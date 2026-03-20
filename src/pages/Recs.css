@@ -26,12 +26,12 @@
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding: 4px 20px 8px;
+  padding: 4px 20px 8px 20px;
+  scroll-padding-left: 20px;
   scroll-snap-type: x mandatory;
-  /* CRITICAL: prevent card height stretch */
   align-items: start;
 }
-@media (min-width: 900px) { .recs-section__scroll { padding: 4px 24px 8px; gap: 12px; } }
+@media (min-width: 900px) { .recs-section__scroll { padding: 4px 24px 8px 24px; scroll-padding-left: 24px; gap: 12px; } }
 .recs-section__scroll::-webkit-scrollbar { display: none; }
 
 .recs-section__item {

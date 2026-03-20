@@ -20,12 +20,18 @@ async function buildRecs(watched, watchlist) {
 
   const results = [];
 
-  // Fetch similar for last 3 watched
+  // Fetch similar for last 3 watched — also fetch localized title for reason label
   for (const m of watched.slice(0, 3)) {
     const type = m.media_type==='tv' ? 'tv' : 'movie';
     try {
+      // Get localized title for this movie
+      let reasonTitle = m._fallback_title || m.title || m.name || '';
+      try {
+        const loc = await fetch(`https://api.themoviedb.org/3/${type}/${m.id}?language=${langCode}`, { headers: HEADERS }).then(r=>r.json());
+        reasonTitle = loc.title || loc.name || reasonTitle;
+      } catch {}
       const r = await fetch(`https://api.themoviedb.org/3/${type}/${m.id}/recommendations?language=${langCode}`, { headers: HEADERS }).then(r=>r.json());
-      (r.results||[]).filter(x=>x.poster_path&&!savedIds.has(x.id)).forEach(x=>results.push({...x,media_type:type,_reason:m.title||m.name}));
+      (r.results||[]).filter(x=>x.poster_path&&!savedIds.has(x.id)).forEach(x=>results.push({...x,media_type:type,_reason:reasonTitle}));
     } catch {}
   }
 

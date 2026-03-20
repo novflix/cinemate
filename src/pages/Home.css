@@ -47,13 +47,13 @@
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  /* Padding so last card isn't flush against edge */
-  padding: 4px 20px 8px;
+  padding: 4px 20px 8px 20px;
+  /* scroll-padding ensures snapped item has left breathing room */
+  scroll-padding-left: 20px;
   scroll-snap-type: x mandatory;
-  /* CRITICAL: align-items start prevents cards from stretching to match tallest */
   align-items: start;
 }
-@media (min-width: 900px) { .home-section__scroll { padding: 4px 28px 8px; gap: 12px; } }
+@media (min-width: 900px) { .home-section__scroll { padding: 4px 28px 8px 28px; scroll-padding-left: 28px; gap: 12px; } }
 .home-section__scroll::-webkit-scrollbar { display: none; }
 
 /* Each card slot - fixed width, no stretching */

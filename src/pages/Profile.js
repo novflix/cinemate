@@ -3,6 +3,7 @@ import { Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2 } fr
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import { tmdb } from '../api';
+import { useLocalizedMovies } from '../useLocalizedMovies';
 import Roulette from '../components/Roulette';
 import MovieModal from '../components/MovieModal';
 import ActorPage from './ActorPage';
@@ -21,11 +22,11 @@ function SettingsModal({ onClose }) {
           <div className="settings-section">
             <p className="settings-label">{t(lang,'Тема','Theme')}</p>
             <div className="settings-options">
-              <button className={"settings-option"+(theme==='dark'?" active":"")} onClick={() => setTheme('dark')}>
+              <button className={"settings-option"+(theme==='dark'?" active":"")} onClick={()=>setTheme('dark')}>
                 <Moon size={15}/> {t(lang,'Тёмная','Dark')}
                 {theme==='dark' && <Check size={14} className="settings-check"/>}
               </button>
-              <button className={"settings-option"+(theme==='light'?" active":"")} onClick={() => setTheme('light')}>
+              <button className={"settings-option"+(theme==='light'?" active":"")} onClick={()=>setTheme('light')}>
                 <Sun size={15}/> {t(lang,'Светлая','Light')}
                 {theme==='light' && <Check size={14} className="settings-check"/>}
               </button>
@@ -34,11 +35,11 @@ function SettingsModal({ onClose }) {
           <div className="settings-section">
             <p className="settings-label">{t(lang,'Язык','Language')}</p>
             <div className="settings-options">
-              <button className={"settings-option"+(lang==='ru'?" active":"")} onClick={() => setLang('ru')}>
+              <button className={"settings-option"+(lang==='ru'?" active":"")} onClick={()=>setLang('ru')}>
                 <Globe size={15}/> Русский
                 {lang==='ru' && <Check size={14} className="settings-check"/>}
               </button>
-              <button className={"settings-option"+(lang==='en'?" active":"")} onClick={() => setLang('en')}>
+              <button className={"settings-option"+(lang==='en'?" active":"")} onClick={()=>setLang('en')}>
                 <Globe size={15}/> English
                 {lang==='en' && <Check size={14} className="settings-check"/>}
               </button>
@@ -51,12 +52,12 @@ function SettingsModal({ onClose }) {
 }
 
 function PosterGrid({ items, onSelect, onRemove }) {
-  if (items.length === 0) return null;
+  if (!items.length) return null;
   return (
     <div className="poster-grid">
       {items.map(m => {
         const poster = tmdb.posterUrl(m.poster_path);
-        const title = m.title || m.name || '';
+        const title  = m.title || m.name || m._fallback_title || '';
         return (
           <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
             <div className="poster-grid__poster">
@@ -64,7 +65,7 @@ function PosterGrid({ items, onSelect, onRemove }) {
                 ? <img src={poster} alt={title} loading="lazy"/>
                 : <div className="poster-grid__no-poster"/>
               }
-              <button className="poster-grid__remove" onClick={e => { e.stopPropagation(); onRemove(m.id); }}>
+              <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <Trash2 size={11}/>
               </button>
             </div>
@@ -79,22 +80,26 @@ function PosterGrid({ items, onSelect, onRemove }) {
 export default function Profile() {
   const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist } = useStore();
   const { lang } = useTheme();
-  const [listTab, setListTab] = useState('watchlist');
-  const [editing, setEditing] = useState(false);
+  const [listTab,      setListTab]      = useState('watchlist');
+  const [editing,      setEditing]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [name, setName] = useState(profile.name);
-  const [bio, setBio] = useState(profile.bio || '');
-  const [selected, setSelected] = useState(null);
-  const [actor, setActor] = useState(null);
+  const [name,         setName]         = useState(profile.name);
+  const [bio,          setBio]          = useState(profile.bio || '');
+  const [selected,     setSelected]     = useState(null);
+  const [actor,        setActor]        = useState(null);
   const fileRef = useRef();
 
-  const handleSave = () => { setProfile({...profile, name: name.trim() || 'Кинолюб', bio}); setEditing(false); };
+  // Hydrate lists with localized titles/posters on every lang change
+  const localizedWatched   = useLocalizedMovies(watched,   lang);
+  const localizedWatchlist = useLocalizedMovies(watchlist, lang);
+
+  const handleSave   = () => { setProfile({...profile, name: name.trim()||'Кинолюб', bio}); setEditing(false); };
   const handleAvatar = (e) => {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader(); r.onload = ev => setProfile({...profile, avatar: ev.target.result}); r.readAsDataURL(f);
   };
 
-  const items = listTab === 'watchlist' ? watchlist : watched;
+  const displayItems = listTab === 'watchlist' ? localizedWatchlist : localizedWatched;
 
   if (actor) return (
     <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>
@@ -102,7 +107,6 @@ export default function Profile() {
 
   return (
     <div className="page profile-page">
-      {/* Top bar */}
       <div className="profile-topbar">
         <span className="profile-topbar__title">CINE<span>MATE</span></span>
         <div style={{display:'flex',gap:8}}>
@@ -111,7 +115,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Profile card */}
       <div className="profile-card">
         <div className="profile-avatar-wrap" onClick={() => editing && fileRef.current?.click()}>
           {profile.avatar
@@ -124,12 +127,12 @@ export default function Profile() {
 
         {editing ? (
           <div className="profile-edit">
-            <input className="profile-edit__input" value={name} onChange={e => setName(e.target.value)}
+            <input className="profile-edit__input" value={name} onChange={e=>setName(e.target.value)}
               placeholder={t(lang,'Твоё имя','Your name')} maxLength={30}/>
-            <textarea className="profile-edit__bio" value={bio} onChange={e => setBio(e.target.value)}
+            <textarea className="profile-edit__bio" value={bio} onChange={e=>setBio(e.target.value)}
               placeholder={t(lang,'О своих вкусах...','About your taste...')} maxLength={120} rows={2}/>
             <div className="profile-edit__actions">
-              <button className="profile-edit__cancel" onClick={() => { setName(profile.name); setBio(profile.bio||''); setEditing(false); }}>
+              <button className="profile-edit__cancel" onClick={()=>{setName(profile.name);setBio(profile.bio||'');setEditing(false);}}>
                 {t(lang,'Отмена','Cancel')}
               </button>
               <button className="profile-edit__save" onClick={handleSave}>{t(lang,'Сохранить','Save')}</button>
@@ -143,7 +146,6 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Stats */}
       <div className="profile-stats">
         <div className="profile-stat">
           <span className="profile-stat__val">{watched.length}</span>
@@ -163,38 +165,36 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Roulette - own wrapper above lists */}
       <div className="profile-roulette">
         <Roulette onMovieClick={setSelected}/>
       </div>
 
-      {/* Lists */}
       <div className="profile-lists">
         <div className="lists-tabs">
-          <button className={"lists-tab"+(listTab==='watchlist'?" active":"")} onClick={() => setListTab('watchlist')}>
+          <button className={"lists-tab"+(listTab==='watchlist'?" active":"")} onClick={()=>setListTab('watchlist')}>
             <Bookmark size={14}/> {t(lang,'Хочу смотреть','Watchlist')} <span>{watchlist.length}</span>
           </button>
-          <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={() => setListTab('watched')}>
+          <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={()=>setListTab('watched')}>
             <Eye size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
           </button>
         </div>
 
-        {items.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="lists-empty">
             {listTab==='watchlist' ? <Bookmark size={38} strokeWidth={1}/> : <Eye size={38} strokeWidth={1}/>}
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>
           </div>
         ) : (
           <PosterGrid
-            items={items}
+            items={displayItems}
             onSelect={setSelected}
             onRemove={listTab==='watched' ? removeFromWatched : removeFromWatchlist}
           />
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a => { setSelected(null); setActor(a); }}/>
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)}/>}
+      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>{setSelected(null);setActor(a);}}/>
+      {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
     </div>
   );
 }
