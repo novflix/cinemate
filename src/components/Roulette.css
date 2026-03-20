@@ -1,0 +1,154 @@
+/* Trigger button - floats in Profile or can be placed anywhere */
+.roulette-trigger {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(232,197,71,0.15), rgba(255,107,53,0.1));
+  border: 1px solid rgba(232,197,71,0.3);
+  border-radius: 16px; color: var(--accent);
+  font-size: 14px; font-weight: 700;
+  transition: all 0.2s;
+}
+.roulette-trigger:hover { background: linear-gradient(135deg, rgba(232,197,71,0.25), rgba(255,107,53,0.15)); }
+.roulette-trigger:active { transform: scale(0.98); }
+
+/* Overlay */
+.roulette-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+@media (min-width: 900px) { .roulette-overlay { align-items: center; } }
+
+.roulette-modal {
+  width: 100%; max-width: 520px;
+  background: var(--bg2);
+  border-radius: 28px 28px 0 0;
+  padding: 0 0 32px;
+  animation: slideUp 0.35s ease;
+  overflow: hidden;
+}
+@media (min-width: 900px) { .roulette-modal { border-radius: 28px; max-height: 90dvh; } }
+
+.roulette-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+}
+.roulette-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.5px; }
+.roulette-close { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); color: var(--text2); display: flex; align-items: center; justify-content: center; }
+
+/* Wheel viewport - half-wheel effect */
+.roulette-viewport {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Center pointer */
+.roulette-pointer {
+  position: absolute; top: 0; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 142px;
+  border: 2.5px solid var(--accent);
+  border-radius: 16px;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 0 20px rgba(232,197,71,0.3), inset 0 0 20px rgba(232,197,71,0.05);
+}
+/* top/bottom arrow */
+.roulette-pointer::before,
+.roulette-pointer::after {
+  content: '';
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+.roulette-pointer::before { top: -10px; border-bottom: 9px solid var(--accent); }
+.roulette-pointer::after { bottom: -10px; border-top: 9px solid var(--accent); }
+
+/* Horizontal scrolling strip */
+.roulette-strip {
+  display: flex; gap: 12px;
+  padding: 18px 0;
+  height: 100%;
+  will-change: transform;
+  /* Start offset so first real item is near center */
+  padding-left: calc(50% - 65px);
+}
+
+.roulette-card {
+  flex-shrink: 0; width: 130px; height: 164px;
+  border-radius: 12px; overflow: hidden;
+  background: var(--surface2);
+  position: relative;
+}
+.roulette-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.roulette-card__fallback { width: 100%; height: 100%; background: var(--surface2); }
+
+/* Edge fade masks */
+.roulette-mask-left,
+.roulette-mask-right {
+  position: absolute; top: 0; bottom: 0;
+  width: 100px; z-index: 5; pointer-events: none;
+}
+.roulette-mask-left { left: 0; background: linear-gradient(to right, var(--surface), transparent); }
+.roulette-mask-right { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
+
+/* Winner */
+.roulette-winner {
+  position: relative; margin: 16px 20px 0;
+  border-radius: 18px; overflow: hidden;
+  animation: slideUp 0.4s ease;
+}
+.roulette-winner__glow {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(232,197,71,0.12), rgba(255,107,53,0.08));
+  border: 1px solid rgba(232,197,71,0.25);
+  border-radius: 18px;
+}
+.roulette-winner__content {
+  position: relative; display: flex; gap: 14px; padding: 14px;
+}
+.roulette-winner__poster {
+  width: 72px; height: 108px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.roulette-winner__info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.roulette-winner__label { font-size: 11px; font-weight: 700; color: var(--accent); }
+.roulette-winner__title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.3px; line-height: 1.1; }
+.roulette-winner__year { font-size: 11px; color: var(--text3); }
+.roulette-winner__actions { display: flex; gap: 8px; margin-top: 8px; }
+.roulette-winner__btn {
+  flex: 1; padding: 8px 6px; border-radius: 10px;
+  background: var(--surface2); color: var(--text);
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  border: 1px solid var(--border); transition: all 0.15s;
+}
+.roulette-winner__btn.primary { background: var(--accent); color: #000; border-color: transparent; }
+.roulette-winner__btn:active { transform: scale(0.96); }
+
+/* Spin button */
+.roulette-footer { padding: 16px 20px 0; }
+.roulette-spin-btn {
+  width: 100%; padding: 15px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-size: 15px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s; letter-spacing: 0.3px;
+}
+.roulette-spin-btn:active { transform: scale(0.98); }
+.roulette-spin-btn.spinning { opacity: 0.6; cursor: not-allowed; }
+.roulette-spin-btn:hover:not(:disabled) { box-shadow: 0 4px 20px rgba(232,197,71,0.35); }
+
+.roulette-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 40px 24px; color: var(--text3); text-align: center;
+  font-size: 13px;
+}

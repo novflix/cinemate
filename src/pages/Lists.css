@@ -1,0 +1,24 @@
+.lists-header { padding: 56px 20px 0; }
+.lists-header__title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 0.5px; margin-bottom: 16px; }
+.lists-tabs { display: flex; gap: 8px; margin-bottom: 4px; }
+.lists-tab { flex: 1; padding: 10px 8px; border-radius: 12px; background: var(--surface); color: var(--text2); font-size: 13px; font-weight: 600; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.lists-tab.active { background: var(--accent); color: #000; }
+.lists-tab span { background: rgba(0,0,0,0.15); border-radius: 10px; padding: 1px 7px; font-size: 11px; }
+.lists-tab:not(.active) span { background: var(--surface2); color: var(--text3); }
+
+.lists-content { padding: 8px 0; }
+.lists-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; text-align: center; gap: 8px; }
+.lists-empty__icon { font-size: 52px; margin-bottom: 8px; }
+.lists-empty h3 { font-size: 18px; font-weight: 700; }
+.lists-empty p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.lists-grid { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s; }
+.list-item:active { background: var(--surface); }
+.list-item__poster { width: 48px; height: 72px; border-radius: 8px; overflow: hidden; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.list-item__poster img { width: 100%; height: 100%; object-fit: cover; }
+.list-item__info { flex: 1; min-width: 0; }
+.list-item__info h4 { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.list-item__meta { display: flex; gap: 8px; font-size: 12px; color: var(--text3); }
+.list-item__remove { width: 30px; height: 30px; border-radius: 50%; background: var(--surface); color: var(--text3); font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+.list-item__remove:active { background: rgba(239,68,68,0.2); color: #ef4444; }

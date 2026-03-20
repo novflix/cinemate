@@ -1,0 +1,19 @@
+.search-header { padding: 52px 20px 0; }
+@media (min-width: 900px) { .search-header { padding: 32px 24px 0; } }
+.search-header__title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 0.5px; margin-bottom: 14px; }
+.search-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: 14px; padding: 0 14px; border: 1px solid var(--border); margin-bottom: 8px; transition: border-color 0.2s; }
+.search-bar:focus-within { border-color: var(--accent); }
+.search-bar__icon { color: var(--text3); flex-shrink: 0; }
+.search-bar__input { flex: 1; background: none; color: var(--text); font-size: 15px; padding: 14px 0; }
+.search-bar__input::placeholder { color: var(--text3); }
+.search-bar__clear { color: var(--text3); display: flex; align-items: center; }
+.search-trending-label { font-size: 15px; font-weight: 700; padding: 12px 20px 8px; }
+@media (min-width: 900px) { .search-trending-label { padding: 12px 24px 8px; } }
+.search-loading { display: flex; justify-content: center; padding: 48px; }
+.search-loading__spinner { width: 28px; height: 28px; border: 2px solid var(--surface2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.search-empty { padding: 48px; text-align: center; color: var(--text2); font-size: 14px; }
+/* 2 columns on mobile for bigger cards, more on desktop */
+.search-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 16px; }
+@media (min-width: 480px) { .search-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .search-grid { grid-template-columns: repeat(4, 1fr); padding: 12px 24px; gap: 14px; } }
+@media (min-width: 1200px) { .search-grid { grid-template-columns: repeat(5, 1fr); } }
