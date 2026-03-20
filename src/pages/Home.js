@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Play, TrendingUp, Clapperboard, Flame, Trophy } from 'lucide-react';
+import { Star, Play, TrendingUp, Clapperboard, Flame, Trophy, CalendarDays, Tv2, Sparkles } from 'lucide-react';
 import { tmdb } from '../api';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -35,15 +35,21 @@ const SkeletonRow = () => (
 );
 
 export default function Home() {
-  const [trending, setTrending] = useState([]);
-  const [popular, setPopular] = useState([]);
-  const [topRated, setTopRated] = useState([]);
-  const [nowPlaying, setNowPlaying] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [actor, setActor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [hero, setHero] = useState(null);
+  const [trending,     setTrending]     = useState([]);
+  const [popular,      setPopular]      = useState([]);
+  const [topRated,     setTopRated]     = useState([]);
+  const [nowPlaying,   setNowPlaying]   = useState([]);
+  const [upcoming,     setUpcoming]     = useState([]);
+  const [popularTV,    setPopularTV]    = useState([]);
+  const [topRatedTV,   setTopRatedTV]   = useState([]);
+  const [newThisYear,  setNewThisYear]  = useState([]);
+  const [selected,     setSelected]     = useState(null);
+  const [actor,        setActor]        = useState(null);
+  const [loading,      setLoading]      = useState(true);
+  const [hero,         setHero]         = useState(null);
   const { lang } = useTheme();
+
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     setLoading(true);
@@ -52,16 +58,24 @@ export default function Home() {
       tmdb.popular('movie'),
       tmdb.topRated('movie'),
       tmdb.nowPlaying(),
-    ]).then(([tr, p, top, np]) => {
+      tmdb.upcoming(),
+      tmdb.popular('tv'),
+      tmdb.topRated('tv'),
+      tmdb.discover('movie', { primary_release_year: currentYear, sort_by: 'popularity.desc', 'vote_count.gte': 50 }),
+    ]).then(([tr, p, top, np, up, ptv, ttv, ny]) => {
       const items = tr.results || [];
       setTrending(items);
       setHero(items[Math.floor(Math.random() * Math.min(5, items.length))]);
-      setPopular(p.results || []);
-      setTopRated(top.results || []);
+      setPopular(p.results   || []);
+      setTopRated(top.results|| []);
       setNowPlaying(np.results || []);
+      setUpcoming(up.results || []);
+      setPopularTV((ptv.results || []).map(m => ({...m, media_type:'tv'})));
+      setTopRatedTV((ttv.results|| []).map(m => ({...m, media_type:'tv'})));
+      setNewThisYear(ny.results|| []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [lang]);
+  }, [lang, currentYear]);
 
   if (actor) return (
     <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>
@@ -93,12 +107,16 @@ export default function Home() {
       )}
 
       <div className="home-sections">
-        {loading ? <>{[1,2,3,4].map(i => <SkeletonRow key={i}/>)}</> : (
+        {loading ? <>{[1,2,3,4,5,6,7,8].map(i => <SkeletonRow key={i}/>)}</> : (
           <>
-            <Section icon={Flame}       title={t(lang,'В тренде','Trending')}          items={trending.slice(0,10)}   onSelect={setSelected}/>
-            <Section icon={Clapperboard} title={t(lang,'Сейчас в кино','Now Playing')} items={nowPlaying.slice(0,10)} onSelect={setSelected}/>
-            <Section icon={TrendingUp}  title={t(lang,'Популярные','Popular')}          items={popular.slice(0,10)}    onSelect={setSelected}/>
-            <Section icon={Trophy}      title={t(lang,'Лучшие всех времён','All-Time Best')} items={topRated.slice(0,10)} onSelect={setSelected}/>
+            <Section icon={Flame}        title={t(lang,'В тренде','Trending')}                    items={trending.slice(0,10)}    onSelect={setSelected}/>
+            <Section icon={Clapperboard} title={t(lang,'Сейчас в кино','Now Playing')}            items={nowPlaying.slice(0,10)}  onSelect={setSelected}/>
+            <Section icon={CalendarDays} title={t(lang,'Скоро в кино','Coming Soon')}             items={upcoming.slice(0,10)}    onSelect={setSelected}/>
+            <Section icon={Sparkles}     title={t(lang,`Новинки ${currentYear}`,`New in ${currentYear}`)} items={newThisYear.slice(0,10)} onSelect={setSelected}/>
+            <Section icon={TrendingUp}   title={t(lang,'Популярные фильмы','Popular Movies')}     items={popular.slice(0,10)}     onSelect={setSelected}/>
+            <Section icon={Trophy}       title={t(lang,'Лучшие фильмы всех времён','All-Time Best Movies')} items={topRated.slice(0,10)} onSelect={setSelected}/>
+            <Section icon={Tv2}          title={t(lang,'Популярные сериалы','Popular Series')}    items={popularTV.slice(0,10)}   onSelect={setSelected}/>
+            <Section icon={Trophy}       title={t(lang,'Лучшие сериалы','Top Rated Series')}      items={topRatedTV.slice(0,10)}  onSelect={setSelected}/>
           </>
         )}
       </div>
