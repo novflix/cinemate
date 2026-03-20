@@ -1,28 +1,15 @@
-.hero {
-  position: relative; height: 360px; overflow: hidden; cursor: pointer;
-}
+.hero { position: relative; height: 360px; overflow: hidden; cursor: pointer; }
 @media (min-width: 900px) { .hero { height: 460px; border-radius: 24px; margin: 28px 28px 0; } }
-
 .hero__bg { position: absolute; inset: 0; }
 .hero__bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero__fade {
   position: absolute; inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(8,8,16,0.05) 0%,
-    rgba(8,8,16,0.2)  40%,
-    rgba(8,8,16,0.72) 75%,
-    var(--bg)         100%
-  );
+  background: linear-gradient(to bottom, rgba(8,8,16,0.05) 0%, rgba(8,8,16,0.5) 50%, var(--bg) 100%);
 }
 [data-theme="light"] .hero__fade {
-  background: linear-gradient(to bottom, transparent 30%, rgba(240,239,248,0.7) 75%, var(--bg) 100%);
+  background: linear-gradient(to bottom, transparent 30%, rgba(240,239,248,0.7) 70%, var(--bg) 100%);
 }
-
-.hero__content {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 28px 24px 28px;
-}
+.hero__content { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px 24px; }
 .hero__label {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 10px; font-weight: 700; color: var(--accent);
@@ -31,41 +18,53 @@
   border-radius: 20px; padding: 3px 10px; margin-bottom: 10px;
 }
 .hero__title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 46px; letter-spacing: 0.5px; line-height: 0.98;
-  margin-bottom: 10px; color: #fff;
+  font-family: 'Bebas Neue', sans-serif; font-size: 46px; letter-spacing: 0.5px;
+  line-height: 0.98; margin-bottom: 10px; color: #fff;
   text-shadow: 0 4px 24px rgba(0,0,0,0.6);
 }
 @media (min-width: 900px) { .hero__title { font-size: 56px; } }
-.hero__meta {
-  display: flex; gap: 12px; font-size: 12px;
-  color: rgba(255,255,255,0.7); margin-bottom: 16px; align-items: center;
-}
+.hero__meta { display: flex; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.75); margin-bottom: 16px; align-items: center; }
 .hero__meta span { display: flex; align-items: center; gap: 4px; }
 .hero__btn {
-  padding: 10px 22px; border-radius: 22px;
-  background: var(--accent); color: #000;
-  font-size: 13px; font-weight: 800;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: transform 0.15s, box-shadow 0.2s;
-  letter-spacing: 0.2px;
+  padding: 10px 22px; border-radius: 22px; background: var(--accent); color: #000;
+  font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;
+  transition: transform 0.15s, box-shadow 0.2s; letter-spacing: 0.2px;
 }
-.hero__btn:hover { box-shadow: 0 4px 20px rgba(232,197,71,0.4); }
 .hero__btn:active { transform: scale(0.96); }
 
-/* Sections */
+/* ── SECTIONS ── */
 .home-sections { padding: 20px 0 8px; }
 .home-section { margin-bottom: 32px; }
-.home-section__title { font-size: 15px; font-weight: 700; padding: 0 20px; margin-bottom: 14px; }
-@media (min-width: 900px) { .home-section__title { padding: 0 28px; font-size: 16px; } }
-
-.home-section__scroll {
-  display: flex; gap: 12px; overflow-x: auto;
-  padding: 4px 20px 8px; scroll-snap-type: x mandatory;
+.home-section__title {
+  font-size: 15px; font-weight: 700; padding: 0 20px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 7px;
 }
-@media (min-width: 900px) { .home-section__scroll { padding: 4px 28px 8px; gap: 14px; } }
+@media (min-width: 900px) { .home-section__title { padding: 0 28px; font-size: 16px; } }
+.home-section__icon { opacity: 0.7; flex-shrink: 0; }
+
+/* Horizontal scroll row */
+.home-section__scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  /* Padding so last card isn't flush against edge */
+  padding: 4px 20px 8px;
+  scroll-snap-type: x mandatory;
+  /* CRITICAL: align-items start prevents cards from stretching to match tallest */
+  align-items: start;
+}
+@media (min-width: 900px) { .home-section__scroll { padding: 4px 28px 8px; gap: 12px; } }
 .home-section__scroll::-webkit-scrollbar { display: none; }
 
-.home-section__item { flex-shrink: 0; width: 130px; scroll-snap-align: start; }
+/* Each card slot - fixed width, no stretching */
+.home-section__item {
+  flex-shrink: 0;
+  /* Fixed widths per breakpoint */
+  width: 120px;
+  scroll-snap-align: start;
+  /* CRITICAL: don't stretch to match siblings */
+  align-self: start;
+}
+@media (min-width: 400px) { .home-section__item { width: 130px; } }
 @media (min-width: 480px) { .home-section__item { width: 140px; } }
 @media (min-width: 900px) { .home-section__item { width: 160px; } }

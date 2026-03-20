@@ -1,154 +1,186 @@
-/* Trigger button - floats in Profile or can be placed anywhere */
+/* ── Trigger ── */
 .roulette-trigger {
   display: flex; align-items: center; gap: 8px;
   width: 100%; padding: 14px 18px;
   background: linear-gradient(135deg, rgba(232,197,71,0.15), rgba(255,107,53,0.1));
   border: 1px solid rgba(232,197,71,0.3);
   border-radius: 16px; color: var(--accent);
-  font-size: 14px; font-weight: 700;
-  transition: all 0.2s;
+  font-size: 14px; font-weight: 700; transition: all 0.2s;
 }
-.roulette-trigger:hover { background: linear-gradient(135deg, rgba(232,197,71,0.25), rgba(255,107,53,0.15)); }
 .roulette-trigger:active { transform: scale(0.98); }
 
-/* Overlay */
+/* ── Overlay ── */
 .roulette-overlay {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(12px);
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(14px);
   display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: var(--nav-h);   /* always above navbar */
   animation: fadeIn 0.2s ease;
+  overscroll-behavior: contain; touch-action: none;
 }
-@media (min-width: 900px) { .roulette-overlay { align-items: center; } }
+@media (min-width: 900px) {
+  .roulette-overlay { align-items: center; padding-bottom: 0; }
+}
 
+/* ── Modal sheet ── */
 .roulette-modal {
   width: 100%; max-width: 520px;
   background: var(--bg2);
   border-radius: 28px 28px 0 0;
-  padding: 0 0 32px;
-  animation: slideUp 0.35s ease;
   overflow: hidden;
+  animation: slideUp 0.35s cubic-bezier(0.32,0.72,0,1);
+  display: flex; flex-direction: column;
 }
-@media (min-width: 900px) { .roulette-modal { border-radius: 28px; max-height: 90dvh; } }
+@media (min-width: 900px) {
+  .roulette-modal { border-radius: 28px; }
+}
 
+/* ── Header ── */
 .roulette-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 20px 16px;
+  padding: 18px 20px 14px; flex-shrink: 0;
 }
-.roulette-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.5px; }
-.roulette-close { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); color: var(--text2); display: flex; align-items: center; justify-content: center; }
+.roulette-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.5px;
+}
+.roulette-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2); color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+}
 
-/* Wheel viewport - half-wheel effect */
+/* ── Wheel viewport ── */
 .roulette-viewport {
   position: relative;
-  height: 200px;
-  overflow: hidden;
+  height: 210px; overflow: hidden;
   background: var(--surface);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-/* Center pointer */
-.roulette-pointer {
+/* Particle canvas fills the viewport */
+.roulette-particles {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 20;
+}
+
+/* Center selector frame */
+.roulette-frame {
   position: absolute; top: 0; bottom: 0;
   left: 50%; transform: translateX(-50%);
-  width: 142px;
+  width: 140px;
   border: 2.5px solid var(--accent);
-  border-radius: 16px;
-  z-index: 10;
-  pointer-events: none;
-  box-shadow: 0 0 20px rgba(232,197,71,0.3), inset 0 0 20px rgba(232,197,71,0.05);
+  border-radius: 16px; z-index: 10; pointer-events: none;
+  box-shadow: 0 0 24px rgba(232,197,71,0.35), inset 0 0 20px rgba(232,197,71,0.07);
 }
-/* top/bottom arrow */
-.roulette-pointer::before,
-.roulette-pointer::after {
+/* Top/bottom chevrons on frame */
+.roulette-frame::before,
+.roulette-frame::after {
   content: '';
   position: absolute; left: 50%; transform: translateX(-50%);
   width: 0; height: 0;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
 }
-.roulette-pointer::before { top: -10px; border-bottom: 9px solid var(--accent); }
-.roulette-pointer::after { bottom: -10px; border-top: 9px solid var(--accent); }
+.roulette-frame::before { top: -11px; border-bottom: 10px solid var(--accent); }
+.roulette-frame::after  { bottom: -11px; border-top: 10px solid var(--accent); }
 
-/* Horizontal scrolling strip */
+/* Strip */
 .roulette-strip {
-  display: flex; gap: 12px;
-  padding: 18px 0;
-  height: 100%;
+  display: flex; gap: 10px;
+  height: 100%; padding: 15px 0;
   will-change: transform;
-  /* Start offset so first real item is near center */
-  padding-left: calc(50% - 65px);
+  /* Start centered so first card is visible in frame */
+  padding-left: 0;
 }
 
+/* Individual card */
 .roulette-card {
-  flex-shrink: 0; width: 130px; height: 164px;
+  flex-shrink: 0;
+  width: 130px;
   border-radius: 12px; overflow: hidden;
   background: var(--surface2);
   position: relative;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: default;
+  /* Fixed height so strip height is stable */
+  height: 180px;
 }
-.roulette-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.roulette-card__fallback { width: 100%; height: 100%; background: var(--surface2); }
+.roulette-card img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
 
-/* Edge fade masks */
-.roulette-mask-left,
-.roulette-mask-right {
-  position: absolute; top: 0; bottom: 0;
-  width: 100px; z-index: 5; pointer-events: none;
+/* Winner card — grows in place and shows info overlay */
+.roulette-card.winner {
+  transform: scale(1.06);
+  z-index: 5;
+  box-shadow: 0 0 0 2.5px var(--accent), 0 8px 32px rgba(232,197,71,0.4);
+  cursor: pointer;
+  border-radius: 14px;
 }
-.roulette-mask-left { left: 0; background: linear-gradient(to right, var(--surface), transparent); }
-.roulette-mask-right { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
 
-/* Winner */
-.roulette-winner {
-  position: relative; margin: 16px 20px 0;
-  border-radius: 18px; overflow: hidden;
-  animation: slideUp 0.4s ease;
-}
-.roulette-winner__glow {
+/* Info overlay on winner card */
+.roulette-card__winner-info {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(232,197,71,0.12), rgba(255,107,53,0.08));
-  border: 1px solid rgba(232,197,71,0.25);
-  border-radius: 18px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%);
+  animation: fadeIn 0.4s ease 0.2s both;
 }
-.roulette-winner__content {
-  position: relative; display: flex; gap: 14px; padding: 14px;
+.roulette-card__title {
+  font-size: 11px; font-weight: 700; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 3px; line-height: 1.2;
 }
-.roulette-winner__poster {
-  width: 72px; height: 108px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+.roulette-card__rating {
+  font-size: 10px; font-weight: 600; color: var(--accent);
+  display: flex; align-items: center; gap: 3px; margin-bottom: 6px;
 }
-.roulette-winner__info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-.roulette-winner__label { font-size: 11px; font-weight: 700; color: var(--accent); }
-.roulette-winner__title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.3px; line-height: 1.1; }
-.roulette-winner__year { font-size: 11px; color: var(--text3); }
-.roulette-winner__actions { display: flex; gap: 8px; margin-top: 8px; }
-.roulette-winner__btn {
-  flex: 1; padding: 8px 6px; border-radius: 10px;
-  background: var(--surface2); color: var(--text);
-  font-size: 12px; font-weight: 600;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  border: 1px solid var(--border); transition: all 0.15s;
+.roulette-card__actions { display: flex; gap: 4px; }
+.roulette-card__btn-open,
+.roulette-card__btn-watched {
+  flex: 1; padding: 5px 3px; border-radius: 7px;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  transition: transform 0.15s;
 }
-.roulette-winner__btn.primary { background: var(--accent); color: #000; border-color: transparent; }
-.roulette-winner__btn:active { transform: scale(0.96); }
+.roulette-card__btn-open    { background: var(--accent); color: #000; }
+.roulette-card__btn-watched { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.roulette-card__btn-open:active,
+.roulette-card__btn-watched:active { transform: scale(0.94); }
 
-/* Spin button */
-.roulette-footer { padding: 16px 20px 0; }
+/* Edge fades */
+.roulette-fade-left,
+.roulette-fade-right {
+  position: absolute; top: 0; bottom: 0; width: 80px; z-index: 8; pointer-events: none;
+}
+.roulette-fade-left  { left: 0;  background: linear-gradient(to right, var(--surface), transparent); }
+.roulette-fade-right { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
+
+/* ── Result label ── */
+.roulette-result {
+  padding: 12px 20px 4px; text-align: center;
+  animation: slideUp 0.35s ease;
+  flex-shrink: 0;
+}
+.roulette-result__label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+.roulette-result__title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.3px; color: var(--text); }
+
+/* ── Footer ── */
+.roulette-footer { padding: 12px 16px 20px; flex-shrink: 0; }
 .roulette-spin-btn {
   width: 100%; padding: 15px;
   border-radius: 16px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   color: #000; font-size: 15px; font-weight: 800;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.2s; letter-spacing: 0.3px;
+  transition: all 0.2s;
 }
-.roulette-spin-btn:active { transform: scale(0.98); }
-.roulette-spin-btn.spinning { opacity: 0.6; cursor: not-allowed; }
-.roulette-spin-btn:hover:not(:disabled) { box-shadow: 0 4px 20px rgba(232,197,71,0.35); }
+.roulette-spin-btn.spinning { opacity: 0.55; cursor: not-allowed; }
+.roulette-spin-btn:hover:not(:disabled) { box-shadow: 0 4px 20px rgba(232,197,71,0.4); }
+.roulette-spin-btn:active:not(:disabled) { transform: scale(0.98); }
 
-.roulette-empty {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 40px 24px; color: var(--text3); text-align: center;
-  font-size: 13px;
-}
+.roulette-empty { padding: 36px 24px; text-align: center; color: var(--text3); font-size: 13px; }

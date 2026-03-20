@@ -11,8 +11,8 @@ import './Profile.css';
 function SettingsModal({ onClose }) {
   const { theme, setTheme, lang, setLang } = useTheme();
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal settings-modal" onClick={e=>e.stopPropagation()}>
+    <div className="settings-overlay" onClick={onClose}>
+      <div className="settings-modal" onClick={e => e.stopPropagation()}>
         <div className="settings-header">
           <h2>{t(lang,'Настройки','Settings')}</h2>
           <button className="settings-close" onClick={onClose}><X size={18}/></button>
@@ -21,12 +21,12 @@ function SettingsModal({ onClose }) {
           <div className="settings-section">
             <p className="settings-label">{t(lang,'Тема','Theme')}</p>
             <div className="settings-options">
-              <button className={"settings-option"+(theme==='dark'?" active":"")} onClick={()=>setTheme('dark')}>
-                <Moon size={16}/> {t(lang,'Тёмная','Dark')}
+              <button className={"settings-option"+(theme==='dark'?" active":"")} onClick={() => setTheme('dark')}>
+                <Moon size={15}/> {t(lang,'Тёмная','Dark')}
                 {theme==='dark' && <Check size={14} className="settings-check"/>}
               </button>
-              <button className={"settings-option"+(theme==='light'?" active":"")} onClick={()=>setTheme('light')}>
-                <Sun size={16}/> {t(lang,'Светлая','Light')}
+              <button className={"settings-option"+(theme==='light'?" active":"")} onClick={() => setTheme('light')}>
+                <Sun size={15}/> {t(lang,'Светлая','Light')}
                 {theme==='light' && <Check size={14} className="settings-check"/>}
               </button>
             </div>
@@ -34,12 +34,12 @@ function SettingsModal({ onClose }) {
           <div className="settings-section">
             <p className="settings-label">{t(lang,'Язык','Language')}</p>
             <div className="settings-options">
-              <button className={"settings-option"+(lang==='ru'?" active":"")} onClick={()=>setLang('ru')}>
-                <Globe size={16}/> Русский
+              <button className={"settings-option"+(lang==='ru'?" active":"")} onClick={() => setLang('ru')}>
+                <Globe size={15}/> Русский
                 {lang==='ru' && <Check size={14} className="settings-check"/>}
               </button>
-              <button className={"settings-option"+(lang==='en'?" active":"")} onClick={()=>setLang('en')}>
-                <Globe size={16}/> English
+              <button className={"settings-option"+(lang==='en'?" active":"")} onClick={() => setLang('en')}>
+                <Globe size={15}/> English
                 {lang==='en' && <Check size={14} className="settings-check"/>}
               </button>
             </div>
@@ -64,7 +64,7 @@ function PosterGrid({ items, onSelect, onRemove }) {
                 ? <img src={poster} alt={title} loading="lazy"/>
                 : <div className="poster-grid__no-poster"/>
               }
-              <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
+              <button className="poster-grid__remove" onClick={e => { e.stopPropagation(); onRemove(m.id); }}>
                 <Trash2 size={11}/>
               </button>
             </div>
@@ -83,32 +83,37 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [name, setName] = useState(profile.name);
-  const [bio, setBio] = useState(profile.bio||'');
+  const [bio, setBio] = useState(profile.bio || '');
   const [selected, setSelected] = useState(null);
   const [actor, setActor] = useState(null);
   const fileRef = useRef();
 
-  const handleSave = () => { setProfile({...profile, name:name.trim()||'Кинолюб', bio}); setEditing(false); };
-  const handleAvatar = (e) => { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>setProfile({...profile,avatar:ev.target.result}); r.readAsDataURL(f); };
+  const handleSave = () => { setProfile({...profile, name: name.trim() || 'Кинолюб', bio}); setEditing(false); };
+  const handleAvatar = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader(); r.onload = ev => setProfile({...profile, avatar: ev.target.result}); r.readAsDataURL(f);
+  };
 
-  const items = listTab==='watchlist' ? watchlist : watched;
+  const items = listTab === 'watchlist' ? watchlist : watched;
 
-  if (actor) return <ActorPage actor={actor} onBack={()=>setActor(null)} onMovieClick={m=>{setActor(null);setSelected(m);}}/>;
+  if (actor) return (
+    <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>
+  );
 
   return (
     <div className="page profile-page">
-      {/* top bar */}
+      {/* Top bar */}
       <div className="profile-topbar">
-        <span className="profile-topbar__title">CineMate</span>
+        <span className="profile-topbar__title">CINE<span>MATE</span></span>
         <div style={{display:'flex',gap:8}}>
-          {!editing && <button className="profile-icon-btn" onClick={()=>setEditing(true)}><Edit2 size={18}/></button>}
-          <button className="profile-icon-btn" onClick={()=>setShowSettings(true)}><Settings size={18}/></button>
+          {!editing && <button className="profile-icon-btn" onClick={() => setEditing(true)}><Edit2 size={17}/></button>}
+          <button className="profile-icon-btn" onClick={() => setShowSettings(true)}><Settings size={17}/></button>
         </div>
       </div>
 
-      {/* profile card */}
+      {/* Profile card */}
       <div className="profile-card">
-        <div className="profile-avatar-wrap" onClick={()=>editing&&fileRef.current?.click()}>
+        <div className="profile-avatar-wrap" onClick={() => editing && fileRef.current?.click()}>
           {profile.avatar
             ? <img className="profile-avatar" src={profile.avatar} alt="avatar"/>
             : <div className="profile-avatar profile-avatar--placeholder">{(profile.name||'К')[0].toUpperCase()}</div>
@@ -119,10 +124,14 @@ export default function Profile() {
 
         {editing ? (
           <div className="profile-edit">
-            <input className="profile-edit__input" value={name} onChange={e=>setName(e.target.value)} placeholder={t(lang,'Твоё имя','Your name')} maxLength={30}/>
-            <textarea className="profile-edit__bio" value={bio} onChange={e=>setBio(e.target.value)} placeholder={t(lang,'О своих вкусах...','About your taste...')} maxLength={120} rows={2}/>
+            <input className="profile-edit__input" value={name} onChange={e => setName(e.target.value)}
+              placeholder={t(lang,'Твоё имя','Your name')} maxLength={30}/>
+            <textarea className="profile-edit__bio" value={bio} onChange={e => setBio(e.target.value)}
+              placeholder={t(lang,'О своих вкусах...','About your taste...')} maxLength={120} rows={2}/>
             <div className="profile-edit__actions">
-              <button className="profile-edit__cancel" onClick={()=>{setName(profile.name);setBio(profile.bio||'');setEditing(false);}}>{t(lang,'Отмена','Cancel')}</button>
+              <button className="profile-edit__cancel" onClick={() => { setName(profile.name); setBio(profile.bio||''); setEditing(false); }}>
+                {t(lang,'Отмена','Cancel')}
+              </button>
               <button className="profile-edit__save" onClick={handleSave}>{t(lang,'Сохранить','Save')}</button>
             </div>
           </div>
@@ -134,33 +143,45 @@ export default function Profile() {
         )}
       </div>
 
-      {/* stats */}
+      {/* Stats */}
       <div className="profile-stats">
-        <div className="profile-stat"><span className="profile-stat__val">{watched.length}</span><span className="profile-stat__label">{t(lang,'Смотрел','Watched')}</span></div>
-        <div className="profile-stat"><span className="profile-stat__val">{watchlist.length}</span><span className="profile-stat__label">{t(lang,'В очереди','Queued')}</span></div>
-        <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>!m.media_type||m.media_type==='movie').length}</span><span className="profile-stat__label">{t(lang,'Фильмов','Movies')}</span></div>
-        <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>m.media_type==='tv').length}</span><span className="profile-stat__label">{t(lang,'Сериалов','Series')}</span></div>
+        <div className="profile-stat">
+          <span className="profile-stat__val">{watched.length}</span>
+          <span className="profile-stat__label">{t(lang,'Смотрел','Watched')}</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__val">{watchlist.length}</span>
+          <span className="profile-stat__label">{t(lang,'В очереди','Queued')}</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__val">{watched.filter(m=>!m.media_type||m.media_type==='movie').length}</span>
+          <span className="profile-stat__label">{t(lang,'Фильмов','Movies')}</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat__val">{watched.filter(m=>m.media_type==='tv').length}</span>
+          <span className="profile-stat__label">{t(lang,'Сериалов','Series')}</span>
+        </div>
       </div>
 
-      {/* Roulette */}
-      <div style={{padding:'0 16px', marginBottom:14}}>
+      {/* Roulette - own wrapper above lists */}
+      <div className="profile-roulette">
         <Roulette onMovieClick={setSelected}/>
       </div>
 
-      {/* lists */}
+      {/* Lists */}
       <div className="profile-lists">
         <div className="lists-tabs">
-          <button className={"lists-tab"+(listTab==='watchlist'?" active":"")} onClick={()=>setListTab('watchlist')}>
+          <button className={"lists-tab"+(listTab==='watchlist'?" active":"")} onClick={() => setListTab('watchlist')}>
             <Bookmark size={14}/> {t(lang,'Хочу смотреть','Watchlist')} <span>{watchlist.length}</span>
           </button>
-          <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={()=>setListTab('watched')}>
+          <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={() => setListTab('watched')}>
             <Eye size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
           </button>
         </div>
 
         {items.length === 0 ? (
           <div className="lists-empty">
-            {listTab==='watchlist' ? <Bookmark size={40} strokeWidth={1}/> : <Eye size={40} strokeWidth={1}/>}
+            {listTab==='watchlist' ? <Bookmark size={38} strokeWidth={1}/> : <Eye size={38} strokeWidth={1}/>}
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>
           </div>
         ) : (
@@ -172,8 +193,8 @@ export default function Profile() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={setActor}/>
-      {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
+      <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a => { setSelected(null); setActor(a); }}/>
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)}/>}
     </div>
   );
 }

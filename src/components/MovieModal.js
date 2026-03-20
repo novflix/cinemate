@@ -60,10 +60,19 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
   const type = movie?.media_type || (movie?.title ? 'movie' : 'tv');
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (movie) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => document.body.classList.remove('modal-open');
+  }, [movie]);
+
   useEffect(() => {
     if (!movie) return;
     setDetails(null);
-    // Fetch details with current language
     const path = type === 'tv'
       ? `https://api.themoviedb.org/3/tv/${movie.id}?language=${langCode}&append_to_response=credits,videos`
       : `https://api.themoviedb.org/3/movie/${movie.id}?language=${langCode}&append_to_response=credits,videos`;
@@ -72,7 +81,6 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
 
   if (!movie) return null;
 
-  // Prefer details data (language-correct) over cached movie data
   const title = details?.title || details?.name || movie.title || movie.name || '';
   const overview = details?.overview || movie.overview || '';
   const year = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0, 4);
@@ -88,7 +96,6 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
 
-        {/* Backdrop image */}
         <div className="modal__backdrop">
           {backdrop && <img src={backdrop} alt=""/>}
           {!backdrop && poster && <img src={poster} alt="" style={{objectPosition:'center top'}}/>}
@@ -96,7 +103,6 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
           <button className="modal__close" onClick={onClose}><X size={16} strokeWidth={2.5}/></button>
         </div>
 
-        {/* Poster floats out of backdrop */}
         <div className="modal__poster-wrap">
           {poster && <img className="modal__poster" src={poster} alt={title}/>}
           <div className="modal__title-block">
@@ -106,13 +112,14 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
               {rating && <span><Star size={11} fill="currentColor"/>{rating}</span>}
               {runtime && <span><Clock size={11}/>{runtime}</span>}
               {seasons && <span><Tv2 size={11}/>{seasons} {t(lang,'сез.','seas.')}</span>}
-              <span className="modal__type-badge">{type==='tv'?<><Tv2 size={10}/>{t(lang,'Сериал','Series')}</>:<><Film size={10}/>{t(lang,'Фильм','Movie')}</>}</span>
+              <span className="modal__type-badge">
+                {type==='tv' ? <><Tv2 size={10}/>{t(lang,'Сериал','Series')}</> : <><Film size={10}/>{t(lang,'Фильм','Movie')}</>}
+              </span>
             </div>
             {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
           </div>
         </div>
 
-        {/* Scrollable content */}
         <div className="modal__content">
           {overview && <p className="modal__overview">{overview}</p>}
 
@@ -138,10 +145,13 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
           )}
 
           <div className="modal__actions">
-            <button className={"modal__action-btn"+(watched?" active-green":"")} onClick={() => watched ? removeFromWatched(movie.id) : addToWatched({...movie,media_type:type})}>
+            <button className={"modal__action-btn"+(watched?" active-green":"")}
+              onClick={() => watched ? removeFromWatched(movie.id) : addToWatched({...movie,media_type:type})}>
               {watched ? <><EyeOff size={15}/>{t(lang,'Смотрел','Watched')}</> : <><Eye size={15}/>{t(lang,'Уже смотрел','Mark watched')}</>}
             </button>
-            <button className={"modal__action-btn secondary"+(inList&&!watched?" active-yellow":"")} onClick={() => inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type})} disabled={watched}>
+            <button className={"modal__action-btn secondary"+(inList&&!watched?" active-yellow":"")}
+              onClick={() => inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type})}
+              disabled={watched}>
               {inList&&!watched ? <><BookmarkCheck size={15}/>{t(lang,'В списке','In list')}</> : <><Bookmark size={15}/>{t(lang,'Хочу посмотреть','Watchlist')}</>}
             </button>
           </div>

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sparkles, RefreshCw } from 'lucide-react';
-import { tmdb } from '../api';
+import { tmdb, HEADERS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -8,31 +8,23 @@ import MovieModal from '../components/MovieModal';
 import ActorPage from './ActorPage';
 import './Recs.css';
 
-// Simple recommendation algorithm:
-// 1. Get genres from watched + watchlist
-// 2. Fetch similar movies for recently watched
-// 3. Fetch popular in top genres
-// 4. Deduplicate and remove already seen/listed
 async function buildRecs(watched, watchlist) {
   const allSaved = [...watched, ...watchlist];
-  if (allSaved.length === 0) return null; // no data yet
+  if (allSaved.length === 0) return null;
 
-  // Count genres
   const genreCount = {};
   allSaved.forEach(m => (m.genre_ids||[]).forEach(g => { genreCount[g] = (genreCount[g]||0)+1; }));
   const topGenres = Object.entries(genreCount).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
   const savedIds = new Set(allSaved.map(m=>m.id));
+  const langCode = (() => { try { return localStorage.getItem('lang')==='en'?'en-US':'ru-RU'; } catch { return 'ru-RU'; } })();
 
   const results = [];
 
   // Fetch similar for last 3 watched
-  const recents = watched.slice(0,3);
-  for (const m of recents) {
+  for (const m of watched.slice(0, 3)) {
     const type = m.media_type==='tv' ? 'tv' : 'movie';
     try {
-      const r = await fetch(`https://api.themoviedb.org/3/${type}/${m.id}/recommendations?language=ru-RU`, {
-        headers: { Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1OWU5ZDhiMjQxNmZkZmMzZThkYTIwOTQ3ZWVmZmIyOSIsIm5iZiI6MTc3MzU3ODA1Ny40NTYsInN1YiI6IjY5YjZhNzQ5NWNiYjJlMDcwMzY3MzkxNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oV8T4jCi78cD-1-y_rGlfaPS55RGvXFshRniaiP93FM` }
-      }).then(r=>r.json());
+      const r = await fetch(`https://api.themoviedb.org/3/${type}/${m.id}/recommendations?language=${langCode}`, { headers: HEADERS }).then(r=>r.json());
       (r.results||[]).filter(x=>x.poster_path&&!savedIds.has(x.id)).forEach(x=>results.push({...x,media_type:type,_reason:m.title||m.name}));
     } catch {}
   }
@@ -49,24 +41,20 @@ async function buildRecs(watched, watchlist) {
     } catch {}
   }
 
-  // Deduplicate
   const seen = new Set();
   const deduped = results.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
-
-  // Sort by score: vote_average * log(vote_count)
   deduped.sort((a,b) => {
-    const sa = (a.vote_average||0) * Math.log((a.vote_count||1)+1);
-    const sb = (b.vote_average||0) * Math.log((b.vote_count||1)+1);
-    return sb - sa;
+    const sa = (a.vote_average||0)*Math.log((a.vote_count||1)+1);
+    const sb = (b.vote_average||0)*Math.log((b.vote_count||1)+1);
+    return sb-sa;
   });
 
-  // Group: "because you watched X" + "popular in your genres"
   const becauseOf = {};
-  deduped.filter(m=>m._reason&&m._reason!=='genre').forEach(m=>{
-    if (!becauseOf[m._reason]) becauseOf[m._reason]=[];
+  deduped.filter(m=>m._reason&&m._reason!=='genre').forEach(m => {
+    if (!becauseOf[m._reason]) becauseOf[m._reason] = [];
     if (becauseOf[m._reason].length < 8) becauseOf[m._reason].push(m);
   });
-  const byGenre = deduped.filter(m=>m._reason==='genre').slice(0,12);
+  const byGenre = deduped.filter(m=>m._reason==='genre').slice(0, 12);
 
   return { becauseOf, byGenre, hasData: true };
 }
@@ -75,16 +63,16 @@ const Section = ({ title, items, onSelect }) => (
   <div className="recs-section">
     <h3 className="recs-section__title">{title}</h3>
     <div className="recs-section__scroll">
-      {items.map(m => <div key={m.id} className="recs-section__item"><MovieCard movie={m} onClick={onSelect}/></div>)}
+      {items.map(m=><div key={m.id} className="recs-section__item"><MovieCard movie={m} onClick={onSelect}/></div>)}
     </div>
   </div>
 );
 
 const SkeletonRow = () => (
   <div className="recs-section">
-    <div className="skeleton" style={{height:16,width:200,marginBottom:12,marginLeft:20,borderRadius:6}}/>
+    <div className="skeleton" style={{height:15,width:220,marginBottom:12,marginLeft:20,borderRadius:6}}/>
     <div style={{display:'flex',gap:12,overflow:'hidden',padding:'0 20px'}}>
-      {[1,2,3,4].map(i=><div key={i} className="skeleton" style={{width:130,height:195,flexShrink:0}}/>)}
+      {[1,2,3,4].map(i=><div key={i} className="skeleton" style={{width:130,flexShrink:0,borderRadius:12,paddingBottom:'195px'}}/>)}
     </div>
   </div>
 );
@@ -96,13 +84,42 @@ export default function Recs() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [actor, setActor] = useState(null);
+  // Track if we've loaded at least once — prevent reloading on every store update
+  const loadedRef = useRef(false);
+  const watchedRef = useRef(watched);
+  const watchlistRef = useRef(watchlist);
 
-  const load = useCallback(() => {
+  // Only reload recs when the page first mounts, or when user clicks refresh
+  // NOT when watched/watchlist changes (that caused the reload-on-save bug)
+  const doLoad = () => {
     setLoading(true);
-    buildRecs(watched, watchlist).then(r => { setRecs(r); setLoading(false); }).catch(()=>setLoading(false));
+    buildRecs(watchedRef.current, watchlistRef.current)
+      .then(r => { setRecs(r); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    // Keep refs in sync with latest values without triggering reload
+    watchedRef.current = watched;
+    watchlistRef.current = watchlist;
   }, [watched, watchlist]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    // Load once on mount
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      doLoad();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reload when language changes
+  useEffect(() => {
+    if (loadedRef.current) {
+      doLoad();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   if (actor) return <ActorPage actor={actor} onBack={()=>setActor(null)} onMovieClick={m=>{setActor(null);setSelected(m);}}/>;
 
@@ -115,7 +132,7 @@ export default function Recs() {
           <h1 className="recs-header__title">{t(lang,'Для вас','For You')}</h1>
           <p className="recs-header__sub">{t(lang,'На основе ваших вкусов','Based on your taste')}</p>
         </div>
-        <button className={"recs-refresh"+(loading?" spinning":"")} onClick={load} disabled={loading}>
+        <button className={"recs-refresh"+(loading?" spinning":"")} onClick={doLoad} disabled={loading}>
           <RefreshCw size={18}/>
         </button>
       </div>
@@ -124,7 +141,7 @@ export default function Recs() {
 
       {noData && (
         <div className="recs-empty">
-          <Sparkles size={48} strokeWidth={1}/>
+          <Sparkles size={44} strokeWidth={1}/>
           <h3>{t(lang,'Пока пусто','Nothing yet')}</h3>
           <p>{t(lang,'Добавь фильмы в списки и мы подберём рекомендации','Add movies to your lists and we\'ll suggest similar ones')}</p>
         </div>
