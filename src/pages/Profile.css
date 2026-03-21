@@ -108,3 +108,63 @@
   padding: 20px;
   animation: fadeIn 0.2s ease;
 }
+
+.poster-grid__rating {
+  position: absolute; bottom: 5px; left: 5px; z-index: 2;
+  background: var(--accent); color: #000;
+  border-radius: 6px; padding: 2px 5px;
+  font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; gap: 2px;
+}
+
+.settings-account { display: flex; flex-direction: column; gap: 8px; }
+.settings-account__email { font-size: 13px; color: var(--text2); background: var(--surface2); border-radius: 10px; padding: 10px 12px; }
+.settings-account__signout { padding: 11px; border-radius: 12px; background: rgba(239,68,68,0.1); color: #ef4444; font-size: 13px; font-weight: 700; border: 1px solid rgba(239,68,68,0.2); transition: all 0.15s; }
+.settings-account__signout:hover { background: rgba(239,68,68,0.18); }
+.settings-account__guest { font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+/* Auth additions */
+.profile-topbar__email { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.profile-sync-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); opacity: 0.8;
+  animation: pulse 1.5s ease-in-out infinite;
+  align-self: center;
+}
+@keyframes pulse { 0%,100%{opacity:0.8;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+.settings-signout {
+  width: 100%; padding: 12px; border-radius: 12px;
+  background: rgba(239,68,68,0.1); color: #f87171;
+  font-size: 13px; font-weight: 700; border: 1px solid rgba(239,68,68,0.2);
+  transition: all 0.15s;
+}
+.settings-signout:hover { background: rgba(239,68,68,0.2); }
+.settings-signout-hint { font-size: 11px; color: var(--text3); text-align: center; margin-top: 4px; }
+
+.profile-topbar__email { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.profile-sync-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.settings-email {
+  font-size: 12px; color: var(--text2);
+  padding: 8px 12px; background: var(--surface2);
+  border-radius: 10px; margin-bottom: 8px;
+  word-break: break-all;
+}
+.settings-email--guest { color: var(--text3); font-style: italic; }
+
+.settings-signout {
+  width: 100%; padding: 11px 12px; border-radius: 12px;
+  background: rgba(239,68,68,0.1); color: #f87171;
+  font-size: 13px; font-weight: 700;
+  border: 1px solid rgba(239,68,68,0.2);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.15s;
+}
+.settings-signout:hover { background: rgba(239,68,68,0.2); }

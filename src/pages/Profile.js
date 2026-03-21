@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
-import { Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2 } from 'lucide-react';
+import { Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut } from 'lucide-react';
 import { useStore } from '../store';
+import { useAuth } from '../auth';
 import { useTheme, t } from '../theme';
 import { tmdb } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
@@ -11,6 +12,14 @@ import './Profile.css';
 
 function SettingsModal({ onClose }) {
   const { theme, setTheme, lang, setLang } = useTheme();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    onClose();
+    localStorage.removeItem('auth_skipped');
+  };
+
   return (
     <div className="settings-overlay" onClick={onClose}>
       <div className="settings-modal" onClick={e => e.stopPropagation()}>
@@ -45,6 +54,22 @@ function SettingsModal({ onClose }) {
               </button>
             </div>
           </div>
+
+          {user && (
+            <div className="settings-section">
+              <p className="settings-label">{t(lang,'Аккаунт','Account')}</p>
+              <p className="settings-email">{user.email}</p>
+              <button className="settings-signout" onClick={handleSignOut}>
+                <LogOut size={14}/> {t(lang,'Выйти из аккаунта','Sign out')}
+              </button>
+            </div>
+          )}
+          {!user && (
+            <div className="settings-section">
+              <p className="settings-label">{t(lang,'Аккаунт','Account')}</p>
+              <p className="settings-email settings-email--guest">{t(lang,'Гостевой режим — данные только на устройстве','Guest mode — data stored locally only')}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -58,6 +83,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
       {items.map(m => {
         const poster = tmdb.posterUrl(m.poster_path);
         const title  = m.title || m.name || m._fallback_title || '';
+        const rating = getRating(m.id);
         return (
           <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
             <div className="poster-grid__poster">
@@ -65,8 +91,8 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
                 ? <img src={poster} alt={title} loading="lazy"/>
                 : <div className="poster-grid__no-poster"/>
               }
-              {listTab==='watched' && getRating(m.id) && (
-                <div className="poster-grid__rating"><span>★</span>{getRating(m.id)}</div>
+              {listTab === 'watched' && rating && (
+                <div className="poster-grid__rating"><span>★</span>{rating}</div>
               )}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <Trash2 size={11}/>
@@ -81,7 +107,8 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
 }
 
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing } = useStore();
+  const { user } = useAuth();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
   const [editing,      setEditing]      = useState(false);
@@ -92,7 +119,6 @@ export default function Profile() {
   const [actor,        setActor]        = useState(null);
   const fileRef = useRef();
 
-  // Hydrate lists with localized titles/posters on every lang change
   const localizedWatched   = useLocalizedMovies(watched,   lang);
   const localizedWatchlist = useLocalizedMovies(watchlist, lang);
 
@@ -111,8 +137,15 @@ export default function Profile() {
   return (
     <div className="page profile-page">
       <div className="profile-topbar">
-        <span className="profile-topbar__title">CINE<span>MATE</span></span>
-        <div style={{display:'flex',gap:8}}>
+        <div>
+          <span className="profile-topbar__title">CINE<span>MATE</span></span>
+          {user
+            ? <p className="profile-topbar__email">{user.email}</p>
+            : <p className="profile-topbar__email">{t(lang,'Гостевой режим','Guest mode')}</p>
+          }
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          {syncing && <span className="profile-sync-dot" title="Syncing..."/>}
           {!editing && <button className="profile-icon-btn" onClick={() => setEditing(true)}><Edit2 size={17}/></button>}
           <button className="profile-icon-btn" onClick={() => setShowSettings(true)}><Settings size={17}/></button>
         </div>

@@ -98,7 +98,6 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   border: 1px solid var(--border);
 }
 .modal__rating-star:hover { transform: scale(1.15); }
-.modal__rating-star.active { }
 .modal__rating-value {
   font-size: 12px; font-weight: 700;
   animation: fadeIn 0.2s ease;
