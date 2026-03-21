@@ -29,7 +29,7 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
 
   if (!actor) return null;
 
-  const photo = actor.profile_path ? `https://image.tmdb.org/t/p/w342${actor.profile_path}` : null;
+  const photo = actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : null;
   const name = actor.name || '';
   const born = details?.birthday;
   const birthplace = details?.place_of_birth;

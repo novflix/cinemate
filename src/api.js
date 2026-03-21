@@ -1,4 +1,4 @@
-const TMDB_TOKEN = process.env.REACT_APP_TMDB_TOKEN;
+const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1OWU5ZDhiMjQxNmZkZmMzZThkYTIwOTQ3ZWVmZmIyOSIsIm5iZiI6MTc3MzU3ODA1Ny40NTYsInN1YiI6IjY5YjZhNzQ5NWNiYjJlMDcwMzY3MzkxNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oV8T4jCi78cD-1-y_rGlfaPS55RGvXFshRniaiP93FM';
 const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
 export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
@@ -50,8 +50,8 @@ export const tmdb = {
     : get(`/discover/${type}`, params),
   watchProviders:(type, id) => get(`/${type}/${id}/watch/providers`),
   similar:       (type, id) => get(`/${type}/${id}/recommendations`),
-  posterUrl:     (path, size = 'w342') => path ? `${IMG}/${size}${path}` : null,
-  backdropUrl:   (path, size = 'w780') => path ? `${IMG}/${size}${path}` : null,
+  posterUrl:     (path, size = 'w500') => path ? `${IMG}/${size}${path}` : null,
+  backdropUrl:   (path, size = 'w1280') => path ? `${IMG}/${size}${path}` : null,
 };
 
 export const STREAMING_LINKS = {

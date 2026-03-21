@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, ChevronRight, ExternalLink } from 'lucide-react';
+import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, ExternalLink } from 'lucide-react';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -28,7 +28,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
       <div className="modal__where-list">
         {all.map(p => {
           const svc = STREAMING_LINKS[p.provider_id];
-          const logo = p.logo_path ? `https://image.tmdb.org/t/p/w45${p.logo_path}` : null;
+          const logo = p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : null;
           const href = svc ? svc.url + enc : null;
           const streaming = !!flatrate.find(f => f.provider_id === p.provider_id);
           return href ? (
@@ -109,7 +109,7 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
   const overview = details?.overview || movie.overview  || '';
   const year     = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0,4);
   const backdrop = tmdb.backdropUrl(details?.backdrop_path || movie.backdrop_path);
-  const poster   = tmdb.posterUrl(details?.poster_path   || movie.poster_path);
+  const poster   = tmdb.posterUrl(details?.poster_path   || movie.poster_path, 'w780');
   const rating   = (details?.vote_average || movie.vote_average)?.toFixed(1);
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
   const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t(lang,'ч','h')} ${details.runtime%60}${t(lang,'м','m')}` : null;
@@ -171,11 +171,11 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
                     <div key={c.id} className="modal__cast-item" onClick={() => onActorClick?.(c)}>
                       <div className="modal__cast-avatar">
                         {c.profile_path
-                          ? <img src={`https://image.tmdb.org/t/p/w185${c.profile_path}`} alt={c.name}/>
+                          ? <img src={`https://image.tmdb.org/t/p/w342${c.profile_path}`} alt={c.name}/>
                           : <span className="modal__cast-initials">{c.name[0]}</span>}
                       </div>
                       <span className="modal__cast-name">{c.name}</span>
-                      <ChevronRight size={9} style={{color:'var(--text3)'}}/>
+  
                     </div>
                   ))}
                 </div>
