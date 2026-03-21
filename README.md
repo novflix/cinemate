@@ -4,7 +4,7 @@
  
 | Home | Movie Details | Recommendations |
 |------|--------------|-----------------|
-| ![Home](https://i.imgur.com/oCevBol.jpeg) | ![Modal](https://i.imgur.com/woZYbKq.jpeg) | ![Recs](https://imgur.com/a/yAsrhoN) |
+| ![Home](https://i.imgur.com/oCevBol.jpeg) | ![Modal](https://i.imgur.com/woZYbKq.jpeg) | ![Recs](https://i.imgur.com/arnrKNr.jpeg) |
 
  
 | Profile | Search | Roulette |
