@@ -19,7 +19,7 @@
 - **Countdown badges** — Coming Soon cards show a live countdown: "in 12 days", "in 3 hours"
 - **Seasonal picks** — the feed automatically surfaces Halloween horror, Christmas family films, summer blockbusters, etc. based on the current date
 - **Watch Together** — a dedicated section with tags (First Date / With Friends / Family) that surfaces the right films for the occasion
-- **Gold border** on Top Rated sections so the best titles visually stand out
+
  
 ### 🔍 Search
 - Multi-word and year-aware search across movies and TV shows
