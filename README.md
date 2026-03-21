@@ -2,14 +2,11 @@
 ---
 ## 📸 Screenshots
  
-| Home | Movie Details | Recommendations |
+| Home | Movie Details | Roulette |
 |------|--------------|-----------------|
-| ![Home](https://i.imgur.com/oCevBol.jpeg) | ![Modal](https://i.imgur.com/woZYbKq.jpeg) | ![Recs](https://i.imgur.com/arnrKNr.jpeg) |
+| ![Home](https://i.imgur.com/oCevBol.jpeg) | ![Modal](https://i.imgur.com/woZYbKq.jpeg) | ![Roulette](https://i.imgur.com/xZYO5Om.jpeg) |
 
- 
-| Profile | Search | Roulette |
-|---------|--------|----------|
-| ![Profile](https://i.imgur.com/EBWafew.png) | ![Search](https://i.imgur.com/psWbjoM.jpeg) | ![Roulette](https://i.imgur.com/xZYO5Om.jpeg) |
+
 
  
 ---
