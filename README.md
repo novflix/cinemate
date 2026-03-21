@@ -1,4 +1,4 @@
-![CineMate Banner](https://i.imgur.com/as8tNf7.png)
+![CineMate Banner](https://i.imgur.com/FFhyZ66.png)
 ---
 ## 📸 Screenshots
  
