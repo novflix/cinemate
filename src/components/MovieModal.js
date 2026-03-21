@@ -3,6 +3,7 @@ import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, Chevro
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
+import { useDominantColor } from '../hooks/useDominantColor';
 import './MovieModal.css';
 
 function WhereToWatch({ movieId, type, lang, title }) {
@@ -87,6 +88,8 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
   const inList   = movie ? isInWatchlist(movie.id) : false;
   const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const posterUrl = tmdb.posterUrl(movie?.poster_path);
+  const accentColor = useDominantColor(posterUrl);
 
   useEffect(() => {
     document.body.classList.toggle('modal-open', !!movie);
@@ -124,7 +127,7 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal" onClick={e => e.stopPropagation()} style={accentColor ? {'--modal-accent':`rgb(${accentColor})`} : {}}>
 
           <div className="modal__backdrop">
             {(backdrop || poster) && <img src={backdrop || poster} alt="" className="modal__backdrop-img"/>}

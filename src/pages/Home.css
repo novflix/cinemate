@@ -135,3 +135,51 @@
 @media (min-width: 400px) { .home-section__item { width: 130px; } }
 @media (min-width: 480px) { .home-section__item { width: 140px; } }
 @media (min-width: 900px) { .home-section__item { width: 160px; } }
+
+/* ─── Together section ─── */
+.together-tags {
+  display: flex; gap: 8px; padding: 0 20px 12px; overflow-x: auto;
+}
+.together-tags::-webkit-scrollbar { display: none; }
+.together-tag {
+  flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); font-size: 13px; font-weight: 600;
+  transition: all 0.2s; white-space: nowrap;
+}
+.together-tag.active {
+  background: linear-gradient(135deg, rgba(232,197,71,0.2), rgba(255,107,53,0.12));
+  border-color: rgba(232,197,71,0.4); color: var(--accent);
+}
+
+/* ─── Collections row ─── */
+.collections-row {
+  display: flex; gap: 8px; padding: 0 20px 4px; overflow-x: auto; flex-wrap: wrap;
+}
+@media (min-width: 900px) { .collections-row { padding: 0 28px 4px; } }
+.collection-chip {
+  flex-shrink: 0; padding: 8px 16px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  transition: all 0.18s; white-space: nowrap;
+}
+.collection-chip:hover { border-color: var(--accent); color: var(--accent); }
+.collection-chip:active { transform: scale(0.96); }
+
+/* ─── Studios row ─── */
+.studios-row {
+  display: flex; gap: 8px; padding: 0 20px 4px; overflow-x: auto;
+}
+@media (min-width: 900px) { .studios-row { padding: 0 28px 4px; } }
+.studio-chip {
+  flex-shrink: 0; padding: 10px 20px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; font-weight: 700;
+  transition: all 0.18s; white-space: nowrap; letter-spacing: 0.3px;
+}
+.studio-chip:hover {
+  background: var(--surface2); border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 2px 12px rgba(232,197,71,0.15);
+}
+.studio-chip:active { transform: scale(0.96); }
