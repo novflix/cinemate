@@ -4,25 +4,38 @@ import { tmdb } from '../api';
 import './MovieCard.css';
 
 export default function MovieCard({ movie, onClick }) {
-  const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist } = useStore();
-  const watched = isWatched(movie.id);
-  const inList = isInWatchlist(movie.id);
-  const poster = tmdb.posterUrl(movie.poster_path);
-  const title = movie.title || movie.name || '';
-  const year = (movie.release_date || movie.first_air_date || '').slice(0, 4);
-  const rating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
-  const type = movie.media_type || (movie.title ? 'movie' : 'tv');
+  const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating } = useStore();
+  const watched  = isWatched(movie.id);
+  const inList   = isInWatchlist(movie.id);
+  const poster   = tmdb.posterUrl(movie.poster_path);
+  const title    = movie.title || movie.name || '';
+  const year     = (movie.release_date || movie.first_air_date || '').slice(0, 4);
+  const tmdbRating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
+  const userRating = getRating(movie.id);
+  const type     = movie.media_type || (movie.title ? 'movie' : 'tv');
 
-  const handleWatched = (e) => { e.stopPropagation(); watched ? removeFromWatched(movie.id) : addToWatched({...movie, media_type:type}); };
-  const handleWatchlist = (e) => { e.stopPropagation(); inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie, media_type:type}); };
+  const handleWatched   = (e) => { e.stopPropagation(); watched ? removeFromWatched(movie.id) : addToWatched({...movie,media_type:type}); };
+  const handleWatchlist = (e) => { e.stopPropagation(); inList  ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type}); };
 
   return (
     <div className="movie-card" onClick={() => onClick && onClick(movie)}>
       <div className="movie-card__poster">
         {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="movie-card__no-poster"/>}
+
         {watched && <div className="movie-card__badge watched"><Eye size={10}/></div>}
         {!watched && inList && <div className="movie-card__badge watchlist"><Bookmark size={10}/></div>}
-        {rating && <div className="movie-card__rating"><Star size={9} fill="currentColor"/> {rating}</div>}
+
+        {/* User rating top-right (takes priority over TMDB rating) */}
+        {userRating ? (
+          <div className="movie-card__user-rating">
+            <Star size={8} fill="currentColor"/> {userRating}
+          </div>
+        ) : tmdbRating ? (
+          <div className="movie-card__rating">
+            <Star size={8} fill="currentColor"/> {tmdbRating}
+          </div>
+        ) : null}
+
         <div className="movie-card__overlay">
           <button className={"movie-card__btn"+(watched?" g":"")} onClick={handleWatched}>
             {watched ? <EyeOff size={14}/> : <Eye size={14}/>}

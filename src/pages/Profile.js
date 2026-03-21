@@ -51,7 +51,7 @@ function SettingsModal({ onClose }) {
   );
 }
 
-function PosterGrid({ items, onSelect, onRemove }) {
+function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
   if (!items.length) return null;
   return (
     <div className="poster-grid">
@@ -65,6 +65,9 @@ function PosterGrid({ items, onSelect, onRemove }) {
                 ? <img src={poster} alt={title} loading="lazy"/>
                 : <div className="poster-grid__no-poster"/>
               }
+              {listTab==='watched' && getRating(m.id) && (
+                <div className="poster-grid__rating"><span>★</span>{getRating(m.id)}</div>
+              )}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <Trash2 size={11}/>
               </button>
@@ -78,7 +81,7 @@ function PosterGrid({ items, onSelect, onRemove }) {
 }
 
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating } = useStore();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
   const [editing,      setEditing]      = useState(false);
@@ -189,6 +192,8 @@ export default function Profile() {
             items={displayItems}
             onSelect={setSelected}
             onRemove={listTab==='watched' ? removeFromWatched : removeFromWatchlist}
+            listTab={listTab}
+            getRating={getRating}
           />
         )}
       </div>

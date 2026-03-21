@@ -77,3 +77,29 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .modal__action-btn.secondary.active-yellow { background: rgba(232,197,71,0.15); color: var(--accent); border-color: rgba(232,197,71,0.3); }
 .modal__action-btn:active { transform: scale(0.97); }
 .modal__action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Inline rating editor ── */
+.modal__rating-row {
+  margin-bottom: 16px; padding: 12px 14px;
+  background: var(--surface2); border-radius: 14px;
+  border: 1px solid var(--border);
+}
+.modal__rating-label {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+}
+.modal__rating-stars { display: flex; gap: 4px; margin-bottom: 6px; }
+.modal__rating-star {
+  flex: 1; height: 26px; border-radius: 6px;
+  background: var(--surface); color: var(--text3);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s, background 0.15s;
+  border: 1px solid var(--border);
+}
+.modal__rating-star:hover { transform: scale(1.15); }
+.modal__rating-star.active { }
+.modal__rating-value {
+  font-size: 12px; font-weight: 700;
+  animation: fadeIn 0.2s ease;
+}
