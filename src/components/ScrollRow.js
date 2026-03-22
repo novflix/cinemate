@@ -1,11 +1,12 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './ScrollRow.css';
 
-export default function ScrollRow({ children, className = '' }) {
+const ScrollRow = memo(function ScrollRow({ children }) {
   const ref      = useRef(null);
+  const rafRef   = useRef(null);
   const [canLeft,  setCanLeft]  = useState(false);
-  const [canRight, setCanRight] = useState(false);
+  const [canRight, setCanRight] = useState(true);
 
   const update = useCallback(() => {
     const el = ref.current;
@@ -14,21 +15,31 @@ export default function ScrollRow({ children, className = '' }) {
     setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
   }, []);
 
+  // Throttle scroll updates via rAF
+  const onScroll = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      update();
+      rafRef.current = null;
+    });
+  }, [update]);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     update();
-    el.addEventListener('scroll', update, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => { el.removeEventListener('scroll', update); ro.disconnect(); };
-  }, [update, children]);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      ro.disconnect();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [update, onScroll, children]);
 
   const scroll = (dir) => {
-    const el = ref.current;
-    if (!el) return;
-    // Scroll by ~3 card widths
-    el.scrollBy({ left: dir * 480, behavior: 'smooth' });
+    ref.current?.scrollBy({ left: dir * 480, behavior: 'smooth' });
   };
 
   return (
@@ -38,7 +49,7 @@ export default function ScrollRow({ children, className = '' }) {
           <ChevronLeft size={20}/>
         </button>
       )}
-      <div ref={ref} className={`home-section__scroll ${className}`}>
+      <div ref={ref} className="home-section__scroll">
         {children}
       </div>
       {canRight && (
@@ -48,4 +59,6 @@ export default function ScrollRow({ children, className = '' }) {
       )}
     </div>
   );
-}
+});
+
+export default ScrollRow;

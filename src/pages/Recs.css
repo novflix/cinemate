@@ -2,11 +2,11 @@
 
 .recs-header {
   display: flex; align-items: flex-start; justify-content: space-between;
-  padding: 52px 20px 16px; gap: 12px;
+  padding: 52px 20px 12px; gap: 12px;
 }
-@media (min-width: 900px) { .recs-header { padding: 32px 24px 16px; } }
+@media (min-width: 900px) { .recs-header { padding: 32px 24px 12px; } }
 .recs-header__title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 0.5px; }
-.recs-header__sub { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.4; max-width: 240px; }
+.recs-header__sub { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.4; max-width: 280px; }
 
 .recs-refresh {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
@@ -16,24 +16,62 @@
 }
 .recs-refresh.spinning { animation: spin 1s linear infinite; opacity: 0.5; }
 
+/* Liked actors strip */
+.recs-actors {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 0 20px 12px;
+}
+.recs-actors::-webkit-scrollbar { display: none; }
+.recs-actor-chip {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px 5px 6px;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+}
+.recs-actor-chip img {
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
+}
+.recs-actor-chip__placeholder {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+}
+
+/* Empty state */
 .recs-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 32px; text-align: center; color: var(--text3); }
 .recs-empty h3 { font-size: 18px; font-weight: 700; color: var(--text2); }
-.recs-empty p { font-size: 13px; line-height: 1.6; max-width: 260px; }
+.recs-empty p { font-size: 13px; line-height: 1.6; max-width: 280px; }
 
-/* Big grid - like search but more columns */
+/* Grid */
 .recs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px; padding: 4px 14px 8px;
   align-items: start;
 }
-@media (min-width: 480px) { .recs-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 600px) { .recs-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 900px) { .recs-grid { grid-template-columns: repeat(5, 1fr); padding: 4px 24px 8px; gap: 12px; } }
 @media (min-width: 1200px){ .recs-grid { grid-template-columns: repeat(6, 1fr); } }
-
 .recs-grid > div { align-self: start; min-width: 0; }
 
+/* Card wrap with not-interested button */
+.recs-card-wrap { position: relative; }
+.recs-not-interested {
+  position: absolute; top: 5px; left: 5px; z-index: 20;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.15s;
+  animation: fadeIn 0.15s ease;
+}
+.recs-not-interested:hover {
+  background: rgba(239,68,68,0.85);
+  transform: scale(1.15);
+}
+
+/* Loader */
 .recs-loader { padding: 20px; display: flex; justify-content: center; }
 .recs-spinner {
   width: 28px; height: 28px; border-radius: 50%;

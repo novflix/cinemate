@@ -122,3 +122,32 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 }
 [data-theme="light"] .ambient-glow::before { background: radial-gradient(circle, rgba(232,197,71,0.08) 0%, transparent 70%); }
 [data-theme="light"] .ambient-glow::after  { background: radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 70%); }
+
+/* ─── PERFORMANCE HINTS ─── */
+/* Tell browser to prepare GPU layers for animated elements */
+.hero__bg, .hero__content { will-change: opacity, transform; }
+.movie-card__poster { will-change: transform; }
+.modal-overlay { will-change: opacity; }
+
+/* content-visibility: auto skips rendering off-screen grid items */
+.recs-grid > div,
+.poster-grid__item {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 195px;
+}
+
+/* Prevent layout thrash from scroll containers */
+.home-section__scroll,
+.zoom-carousel,
+.mood-bar,
+.recs-actors {
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Avoid repaints on static elements */
+.particles-canvas,
+.snow-canvas {
+  will-change: contents;
+  pointer-events: none;
+}

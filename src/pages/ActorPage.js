@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Calendar, MapPin, Film, Tv2 } from 'lucide-react';
-import { tmdb, HEADERS } from '../api';
+import { ArrowLeft, Heart, Calendar, MapPin, Film, Tv2 } from 'lucide-react';
+import { HEADERS } from '../api';
+import { useStore } from '../store';
 import { useTheme, t } from '../theme';
+import MovieCard from '../components/MovieCard';
 import './ActorPage.css';
 
 export default function ActorPage({ actor, onBack, onMovieClick }) {
+  const { likeActor, unlikeActor, isActorLiked } = useStore();
+  const liked = isActorLiked(actor?.id);
   const [details, setDetails] = useState(null);
   const [credits, setCredits] = useState([]);
   const { lang } = useTheme();
@@ -42,7 +46,16 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
       <div className="actor-page__hero">
         {photo && <img className="actor-page__bg" src={photo} alt=""/>}
         <div className="actor-page__bg-fade"/>
-        <button className="actor-page__back" onClick={onBack}><ArrowLeft size={20}/></button>
+        <div className="actor-page__topbar">
+          <button className="actor-page__back" onClick={onBack}><ArrowLeft size={20}/></button>
+          <button
+            className={"actor-page__like-btn" + (liked ? ' liked' : '')}
+            onClick={() => liked ? unlikeActor(actor.id) : likeActor(actor)}
+          >
+            <Heart size={16} fill={liked ? 'currentColor' : 'none'}/>
+            {liked ? (lang==='ru'?'В избранном':'Liked') : (lang==='ru'?'Нравится':'Like')}
+          </button>
+        </div>
         <div className="actor-page__hero-content">
           {/* Rounded rect photo — shows faces properly */}
           {photo && <img className="actor-page__photo" src={photo} alt={name}/>}
@@ -80,25 +93,12 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
             </h3>
             <div className="actor-page__films-grid">
               {credits.map((m, i) => {
-                const poster = tmdb.posterUrl(m.poster_path);
-                const title = m.title || m.name || '';
-                const year = (m.release_date || m.first_air_date || '').slice(0, 4);
                 return (
-                  <div key={`${m.id}-${i}`} className="actor-page__film"
-                    onClick={() => onMovieClick && onMovieClick({...m, media_type: m.media_type || 'movie'})}>
-                    <div className="actor-page__film-poster">
-                      {poster
-                        ? <img src={poster} alt={title} loading="lazy"/>
-                        : <div className="actor-page__film-no-poster"/>
-                      }
-                      {m.vote_average > 0 && (
-                        <span className="actor-page__film-rating">
-                          <Star size={9} fill="currentColor"/>{m.vote_average.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="actor-page__film-title">{title}</p>
-                    <p className="actor-page__film-year">{year}</p>
+                  <div key={`${m.id}-${i}`}>
+                    <MovieCard
+                      movie={{...m, media_type: m.media_type || 'movie'}}
+                      onClick={() => onMovieClick && onMovieClick({...m, media_type: m.media_type || 'movie'})}
+                    />
                   </div>
                 );
               })}

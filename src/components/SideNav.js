@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { Home, Search, User, Sparkles } from 'lucide-react';
 import { useTheme, t } from '../theme';
 import './SideNav.css';
 
-export default function SideNav({ active, onChange }) {
+const SideNav = memo(function SideNav({ active, onChange }) {
   const { lang } = useTheme();
   const tabs = [
     { id: 'home',    label: t(lang,'Главная','Home'),    Icon: Home },
@@ -26,3 +27,5 @@ export default function SideNav({ active, onChange }) {
     </aside>
   );
 }
+);
+export default SideNav;

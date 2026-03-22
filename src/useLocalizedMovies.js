@@ -14,16 +14,21 @@ try {
   if (raw) persistedCache = JSON.parse(raw);
 } catch {}
 
+let _saveCacheTimer = null;
 function savePersistedCache() {
-  try {
-    // Keep only last 200 entries to avoid bloat
-    const keys = Object.keys(persistedCache);
-    if (keys.length > 200) {
-      const drop = keys.slice(0, keys.length - 200);
-      drop.forEach(k => delete persistedCache[k]);
-    }
-    localStorage.setItem(LC_KEY, JSON.stringify(persistedCache));
-  } catch {}
+  // Debounce: don't thrash localStorage on rapid sequential fetches
+  if (_saveCacheTimer) return;
+  _saveCacheTimer = setTimeout(() => {
+    _saveCacheTimer = null;
+    try {
+      const keys = Object.keys(persistedCache);
+      if (keys.length > 300) {
+        const drop = keys.slice(0, keys.length - 300);
+        drop.forEach(k => delete persistedCache[k]);
+      }
+      localStorage.setItem(LC_KEY, JSON.stringify(persistedCache));
+    } catch {}
+  }, 2000);
 }
 
 async function fetchLocalized(id, mediaType, langCode) {

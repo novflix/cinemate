@@ -40,6 +40,12 @@
   align-self: start;
   min-width: 0;
 }
+
+/* Wrapper div around MovieCard in filmography grid */
+.actor-page__films-grid > div {
+  align-self: start;
+  min-width: 0;
+}
 .actor-page__film-poster {
   position: relative;
   width: 100%;
@@ -57,3 +63,23 @@
 .actor-page__film-rating { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.72); border-radius: 5px; padding: 2px 4px; font-size: 9px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 2px; z-index: 2; }
 .actor-page__film-title { font-size: 10px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .actor-page__film-year { font-size: 9px; color: var(--text3); }
+
+.actor-page__topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 0 0 0;
+}
+
+.actor-page__like-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); font-size: 13px; font-weight: 600;
+  transition: all 0.2s; position: absolute; top: 52px; right: 20px; z-index: 5;
+}
+@media (min-width: 900px) { .actor-page__like-btn { top: 24px; right: 28px; } }
+.actor-page__like-btn.liked {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.3);
+  color: #f87171;
+}
+.actor-page__like-btn:hover { transform: scale(1.03); }
