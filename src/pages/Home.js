@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Star, Play, TrendingUp, Clapperboard, Flame, Trophy, CalendarDays, Tv2, Sparkles, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
+import { useAdmin } from '../admin';
 import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
@@ -18,10 +19,14 @@ const MOODS = [
   { id: 'mind',   ru: 'Подумать',  en: 'Mind',    icon: '🧠', genres: [878,9648,99] },
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
 const TOGETHER_TAGS = [
-  { id: 'date',    ru: 'Для свидания', en: 'First date',   genres: [10749,35],    icon: '💕' },
-  { id: 'friends', ru: 'С друзьями',   en: 'With friends', genres: [35,28,12,16], icon: '🎉' },
-  { id: 'family',  ru: 'Для семьи',    en: 'Family',       genres: [10751,16,35], icon: '👨‍👩‍👧' },
+  { id: 'date',    ru: 'Для свидания', en: 'First date',   icon: '💕',
+    params: { with_genres: '10749,35', sort_by: 'popularity.desc', 'vote_count.gte': 800,  'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
+  { id: 'friends', ru: 'С друзьями',   en: 'With friends', icon: '🎉',
+    params: { with_genres: '35,28',    sort_by: 'popularity.desc', 'vote_count.gte': 1000, 'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
+  { id: 'family',  ru: 'Для семьи',    en: 'Family',       icon: '👨‍👩‍👧',
+    params: { with_genres: '10751,16', sort_by: 'popularity.desc', 'vote_count.gte': 400,  'vote_average.gte': 6.8, 'primary_release_date.gte': `${CURRENT_YEAR - 15}-01-01` } },
 ];
 
 
@@ -96,8 +101,12 @@ function TogetherSection({ onSelect, lang }) {
 
   useEffect(() => {
     TOGETHER_TAGS.forEach(tag => {
-      const genres = tag.genres.slice(0,2).join(',');
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${genres}&sort_by=vote_average.desc&vote_count.gte=300&page=1`, { headers: HEADERS })
+      const query = new URLSearchParams({
+        language: langCode,
+        page: '1',
+        ...tag.params,
+      }).toString();
+      fetch(`https://api.themoviedb.org/3/discover/movie?${query}`, { headers: HEADERS })
         .then(r=>r.json()).then(data=>{
           setMovies(prev=>({...prev,[tag.id]:(data.results||[]).filter(m=>m.poster_path).slice(0,15)}));
         }).catch(()=>{});
@@ -150,9 +159,10 @@ export default function Home() {
   const [selected,    setSelected]    = useState(null);
   const [actor,       setActor]       = useState(null);
   const { lang } = useTheme();
+  const { overrides } = useAdmin();
   const langCode = lang==='en'?'en-US':'ru-RU';
   const currentYear = new Date().getFullYear();
-  const season = getCurrentSeason();
+  const season = getCurrentSeason(overrides.season);
   const seasonCfg = SEASON_CONFIG[season];
 
   useEffect(() => {
@@ -172,7 +182,13 @@ export default function Home() {
         popularM:  (pm.results||[]).slice(0,50),
         topM:      (tm.results||[]).slice(0,50),
         nowPlaying:(np.results||[]).slice(0,50),
-        upcoming:  (up.results||[]).slice(0,50),
+        upcoming:  (() => {
+        const today = new Date().toISOString().split('T')[0];
+        return (up.results||[])
+          .filter(m => m.release_date && m.release_date > today)
+          .sort((a,b) => a.release_date.localeCompare(b.release_date))
+          .slice(0,50);
+      })(),
         popularTV: (ptv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
         topTV:     (ttv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
         newYear:   (ny.results||[]).slice(0,50),
@@ -181,7 +197,8 @@ export default function Home() {
     }).catch(()=>setLoading(false));
 
     const g = seasonCfg.genres.slice(0,2).join(',');
-    fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${g}&sort_by=${seasonCfg.sort}&vote_count.gte=200&page=1`,{headers:HEADERS})
+    const minYear = new Date().getFullYear() - 20;
+    fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${g}&sort_by=${seasonCfg.sort}&vote_count.gte=200&primary_release_date.gte=${minYear}-01-01&page=1`,{headers:HEADERS})
       .then(r=>r.json()).then(data=>setSeasonData((data.results||[]).filter(m=>m.poster_path).slice(0,20)))
       .catch(()=>{});
   }, [lang, currentYear, langCode, seasonCfg.genres, seasonCfg.sort]);
@@ -193,8 +210,8 @@ export default function Home() {
     setMoodLoading(true);
     const g=cfg.genres.join('|');
     Promise.all([
-      tmdb.discover('movie',{with_genres:g,sort_by:'popularity.desc','vote_count.gte':200},3),
-      tmdb.discover('tv',   {with_genres:g,sort_by:'popularity.desc','vote_count.gte':50},3),
+      tmdb.discover('movie',{with_genres:g,sort_by:'popularity.desc','vote_count.gte':200,'primary_release_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
+      tmdb.discover('tv',   {with_genres:g,sort_by:'popularity.desc','vote_count.gte':50, 'first_air_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
     ]).then(([movies,tv])=>{
       setMoodData({
         movies:(movies.results||[]).map(m=>({...m,media_type:'movie'})),

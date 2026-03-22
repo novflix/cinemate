@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
+import { useAdmin } from '../admin';
+import { SEASON_CONFIG } from '../hooks/useSeason';
 import { useTheme, t } from '../theme';
 import { tmdb } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
@@ -13,6 +15,7 @@ import './Profile.css';
 function SettingsModal({ onClose }) {
   const { theme, setTheme, lang, setLang } = useTheme();
   const { user, signOut } = useAuth();
+  const { isAdmin, overrides, setOverride } = useAdmin();
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,6 +57,34 @@ function SettingsModal({ onClose }) {
               </button>
             </div>
           </div>
+
+          {isAdmin && (
+            <div className="settings-section settings-section--admin">
+              <p className="settings-label">⚙️ Admin / Dev Tools</p>
+              <div className="settings-admin-row">
+                <span className="settings-admin-label">❄️ Snow</span>
+                <button
+                  className={"settings-admin-toggle" + (overrides.snow ? " on" : "")}
+                  onClick={() => setOverride('snow', !overrides.snow)}
+                >
+                  {overrides.snow ? 'ON' : 'OFF'}
+                </button>
+              </div>
+              <div className="settings-admin-row">
+                <span className="settings-admin-label">🗓 Season</span>
+                <select
+                  className="settings-admin-select"
+                  value={overrides.season || ''}
+                  onChange={e => setOverride('season', e.target.value || null)}
+                >
+                  <option value="">Auto</option>
+                  {Object.keys(SEASON_CONFIG).map(s => (
+                    <option key={s} value={s}>{SEASON_CONFIG[s].en}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           {user && (
             <div className="settings-section">

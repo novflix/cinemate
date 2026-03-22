@@ -1,0 +1,19 @@
+.fire-canvas {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  width: 100%; height: 40px;
+  pointer-events: none; z-index: 5;
+}
+
+.snow-canvas {
+  position: fixed; inset: 0; z-index: 2;
+  pointer-events: none;
+  opacity: 1;
+}
+[data-theme="light"] .snow-canvas { opacity: 0.55; }
+
+.spark-burst-canvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 500;
+}
