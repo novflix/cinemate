@@ -62,8 +62,19 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .app-content { flex: 1; overflow-x: hidden; }
 
 @media (min-width: 900px) {
-  .app-shell { flex-direction: row; }
-  .app-content { flex: 1; min-width: 0; }
+  /* Desktop: sidebar fixed, content scrolls independently */
+  .app-shell {
+    flex-direction: row;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .app-content {
+    flex: 1;
+    min-width: 0;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }
 
 /* ─── PAGE BASE ─── */

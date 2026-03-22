@@ -6,6 +6,7 @@ import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import ActorPage from './ActorPage';
+import ScrollRow from '../components/ScrollRow';
 import './Home.css';
 
 const MOODS = [
@@ -78,13 +79,13 @@ function HeroSlider({ items, onSelect }) {
 
 function SectionRow({ items, onSelect, showCountdown=false, gold=false }) {
   return (
-    <div className="home-section__scroll">
+    <ScrollRow>
       {items.map(m => (
         <div key={m.id} className={"home-section__item"+(gold?" home-section__item--gold":"")}>
           <MovieCard movie={m} onClick={onSelect} showCountdown={showCountdown}/>
         </div>
       ))}
-    </div>
+    </ScrollRow>
   );
 }
 
@@ -114,12 +115,12 @@ function TogetherSection({ onSelect, lang }) {
           </button>
         ))}
       </div>
-      <div className="home-section__scroll">
+      <ScrollRow>
         {current.length > 0
           ? current.map(m=><div key={m.id} className="home-section__item"><MovieCard movie={{...m,media_type:'movie'}} onClick={onSelect}/></div>)
           : [1,2,3,4].map(i=><div key={i} className="skeleton home-section__item" style={{paddingBottom:'195px',borderRadius:12}}/>)
         }
-      </div>
+      </ScrollRow>
     </div>
   );
 }

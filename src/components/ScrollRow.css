@@ -1,0 +1,60 @@
+.scroll-row-wrap {
+  position: relative;
+}
+
+/* Arrows only on desktop */
+.scroll-row-arrow {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .scroll-row-arrow {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    transition: all 0.18s;
+    backdrop-filter: blur(8px);
+  }
+  .scroll-row-arrow:hover {
+    background: var(--surface2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 4px 20px rgba(232,197,71,0.2);
+    transform: translateY(-50%) scale(1.08);
+  }
+  .scroll-row-arrow:active {
+    transform: translateY(-50%) scale(0.96);
+  }
+  .scroll-row-arrow--left  { left:  -18px; }
+  .scroll-row-arrow--right { right: -18px; }
+
+  /* Fade edges to hint more content */
+  .scroll-row-wrap::before,
+  .scroll-row-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 40px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .scroll-row-wrap::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+  }
+  .scroll-row-wrap::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg), transparent);
+  }
+}
