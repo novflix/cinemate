@@ -1,41 +1,14 @@
 import { useState, memo } from 'react';
-import { Eye, EyeOff, Bookmark, BookmarkCheck, Star } from 'lucide-react';
+import { Eye, EyeOff, Bookmark, BookmarkCheck, Star, X } from 'lucide-react';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { tmdb } from '../api';
 import Countdown from './Countdown';
 import './MovieCard.css';
 
-// Feature 14: genre → accent color
-const GENRE_COLORS = {
-  28:    '#ef4444', // Action     → red
-  12:    '#f97316', // Adventure  → orange
-  16:    '#a855f7', // Animation  → purple
-  35:    '#eab308', // Comedy     → yellow
-  80:    '#6b7280', // Crime      → gray
-  27:    '#dc2626', // Horror     → dark red
-  10749: '#ec4899', // Romance    → pink
-  878:   '#3b82f6', // Sci-Fi     → blue
-  53:    '#78716c', // Thriller   → stone
-  18:    '#64748b', // Drama      → slate
-  14:    '#8b5cf6', // Fantasy    → violet
-  99:    '#0ea5e9', // Documentary→ sky
-  10751: '#22c55e', // Family     → green
-  36:    '#ca8a04', // History    → amber
-  10402: '#f43f5e', // Music      → rose
-};
+export const GENRE_COLORS = {};
 
-function getGenreColor(genreIds) {
-  if (!genreIds?.length) return null;
-  for (const id of genreIds) {
-    if (GENRE_COLORS[id]) return GENRE_COLORS[id];
-  }
-  return null;
-}
-
-export { GENRE_COLORS };
-
-const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = false }) {
+const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = false, onDislike = null }) {
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist,
           removeFromWatched, removeFromWatchlist, getRating } = useStore();
   const { lang } = useTheme();
@@ -50,9 +23,6 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
   const tmdbRating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
   const userRating = getRating(movie.id);
   const type       = movie.media_type || (movie.title ? 'movie' : 'tv');
-  // Feature 14: genre color
-  const genreColor = getGenreColor(movie.genre_ids);
-
   const handleWatched = (e) => {
     e.stopPropagation();
     if (watched) { removeFromWatched(movie.id); return; }
@@ -74,15 +44,11 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
     <div className="movie-card" onClick={() => onClick && onClick(movie)}>
       <div
         className={"movie-card__poster" + (flash ? ` flash-${flash}` : '')}
-        style={genreColor ? {'--genre-color': genreColor} : {}}
       >
         {poster
           ? <img src={poster} alt={title} loading="lazy"/>
           : <div className="movie-card__no-poster"/>
         }
-
-        {/* Feature 14: genre color border line at bottom */}
-        {genreColor && <div className="movie-card__genre-line"/>}
 
         {watched && <div className="movie-card__badge watched"><Eye size={10}/></div>}
         {!watched && inList && <div className="movie-card__badge watchlist"><Bookmark size={10}/></div>}
@@ -101,7 +67,6 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           <button className={"movie-card__btn"+(watched?" g":"")} onClick={handleWatched}>
             {watched ? <EyeOff size={14}/> : <Eye size={14}/>}
           </button>
-          {/* Feature 43: heartbeat on bookmark */}
           <button
             className={"movie-card__btn"+(inList&&!watched?" y":"")+(flash==='list'?" heartbeat":"")}
             onClick={handleWatchlist}
@@ -109,6 +74,11 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           >
             {inList&&!watched ? <BookmarkCheck size={14}/> : <Bookmark size={14}/>}
           </button>
+          {onDislike && (
+            <button className="movie-card__btn movie-card__btn--dislike" onClick={e=>{e.stopPropagation();onDislike(movie.id);}}>
+              <X size={14}/>
+            </button>
+          )}
         </div>
       </div>
       <p className="movie-card__title">{title}</p>

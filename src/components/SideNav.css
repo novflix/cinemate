@@ -34,3 +34,19 @@
   border-color: rgba(232,197,71,0.2);
   box-shadow: 0 0 20px rgba(232,197,71,0.08);
 }
+
+/* About button pinned to bottom */
+.side-nav__bottom {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.side-nav__item--about {
+  color: var(--text3);
+  font-size: 13px;
+}
+.side-nav__item--about.active {
+  background: linear-gradient(135deg, rgba(232,197,71,0.14), rgba(255,107,53,0.07));
+  color: var(--accent);
+  border-color: rgba(232,197,71,0.2);
+}

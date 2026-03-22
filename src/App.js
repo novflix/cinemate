@@ -12,16 +12,26 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Recs from './pages/Recs';
-import { SnowEffect } from './components/Effects';
+import About from './pages/About';
 import Confetti from './components/Confetti';
+import { SnowEffect } from './components/Effects';
 import './index.css';
+
+const BUILD_DATE = new Date().toISOString().slice(0,10).replace(/-/g,'');
+
+function VersionBadge() {
+  const pkg = require('../package.json');
+  return (
+    <div className="version-badge">
+      v{pkg.version} · {BUILD_DATE}
+    </div>
+  );
+}
 
 function AppInner() {
   const [tab, setTab] = useState('home');
   const { pendingRating, setPendingRating, showConfetti } = useStore();
   const { overrides } = useAdmin();
-
-  // Snow: show if Dec/Jan naturally, OR admin forced it on
   const month = new Date().getMonth() + 1;
   const showSnow = overrides.snow || month === 12 || month === 1;
 
@@ -36,12 +46,14 @@ function AppInner() {
         {tab === 'recs'    && <Recs/>}
         {tab === 'search'  && <Search/>}
         {tab === 'profile' && <Profile/>}
+        {tab === 'about'   && <About/>}
       </div>
       <BottomNav active={tab} onChange={setTab}/>
       {pendingRating && (
         <RatingPrompt movie={pendingRating} onClose={() => setPendingRating(null)}/>
       )}
       <Confetti active={showConfetti} color="#22c55e"/>
+      <VersionBadge/>
     </div>
   );
 }
@@ -62,7 +74,7 @@ function Root() {
 
   return (
     <StoreProvider userId={user?.id || null}>
-      <AdminProvider userEmail={user?.email || null}>
+      <AdminProvider userId={user?.id || null}>
         <AppInner/>
       </AdminProvider>
     </StoreProvider>

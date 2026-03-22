@@ -2,16 +2,37 @@
   display: flex; flex-direction: column;
   cursor: pointer; align-self: start; min-width: 0;
 }
+
 .movie-card__poster {
   position: relative; width: 100%; aspect-ratio: 2/3;
-  border-radius: 12px; overflow: hidden; background: var(--surface2); height: auto;
+  /* Feature 38-style: asymmetric border radius */
+  border-radius: 14px 14px 8px 8px;
+  overflow: hidden; background: var(--surface2); height: auto;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+/* Feature 13: flash animations */
+@keyframes flashGreen {
+  0%   { box-shadow: 0 0 0 0   rgba(34,197,94,0); }
+  30%  { box-shadow: 0 0 0 6px rgba(34,197,94,0.6); }
+  100% { box-shadow: 0 0 0 0   rgba(34,197,94,0); }
+}
+@keyframes flashYellow {
+  0%   { box-shadow: 0 0 0 0   rgba(232,197,71,0); }
+  30%  { box-shadow: 0 0 0 6px rgba(232,197,71,0.65); }
+  100% { box-shadow: 0 0 0 0   rgba(232,197,71,0); }
+}
+.movie-card__poster.flash-watched { animation: flashGreen  0.65s ease; }
+.movie-card__poster.flash-list    { animation: flashYellow 0.65s ease; }
+
 .movie-card__poster img {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; display: block; transition: transform 0.25s ease;
+  object-fit: cover; display: block; transition: transform 0.28s ease;
 }
+.movie-card:hover .movie-card__poster { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
 .movie-card:active .movie-card__poster img { transform: scale(0.97); }
 .movie-card__no-poster { position: absolute; inset: 0; background: var(--surface2); }
+
+/* genre line removed */
 
 .movie-card__badge {
   position: absolute; top: 6px; left: 6px; z-index: 3;
@@ -21,16 +42,13 @@
 .movie-card__badge.watched   { background: #22c55e; color: #fff; }
 .movie-card__badge.watchlist { background: var(--accent); color: #000; }
 
-/* TMDB rating — top right */
 .movie-card__rating {
   position: absolute; top: 6px; right: 6px; z-index: 3;
-  background: rgba(0,0,0,0.68); backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.72);
   border-radius: 6px; padding: 2px 5px;
   font-size: 10px; font-weight: 600; color: var(--accent);
   display: flex; align-items: center; gap: 2px;
 }
-
-/* User personal rating — top right, distinct style */
 .movie-card__user-rating {
   position: absolute; top: 6px; right: 6px; z-index: 3;
   background: var(--accent); color: #000;
@@ -42,16 +60,26 @@
 .movie-card__overlay {
   position: absolute; inset: 0;
   display: flex; gap: 5px; align-items: flex-end; padding: 8px;
-  background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 55%);
-  z-index: 2; opacity: 1; transition: opacity 0.2s;
+  background: transparent;
+  z-index: 2;
+  /* Mobile: overlay is transparent, buttons always visible */
+  pointer-events: none;
 }
+/* Buttons always clickable */
+.movie-card__overlay > * { pointer-events: all; }
+
 @media (hover: hover) {
-  .movie-card__overlay { opacity: 0; }
+  /* Desktop: show gradient + buttons only on hover */
+  .movie-card__overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 55%);
+    opacity: 0; transition: opacity 0.2s;
+  }
   .movie-card:hover .movie-card__overlay { opacity: 1; }
 }
+
 .movie-card__btn {
   flex: 1; min-height: 34px; border-radius: 8px;
-  background: rgba(255,255,255,0.16); backdrop-filter: blur(8px); color: #fff;
+  background: rgba(0,0,0,0.55); color: #fff;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, transform 0.1s;
 }
@@ -59,6 +87,16 @@
 .movie-card__btn.g { background: rgba(34,197,94,0.48); }
 .movie-card__btn.y { background: rgba(232,197,71,0.48); }
 .movie-card__btn:disabled { opacity: 0.3; pointer-events: none; }
+
+/* Feature 43: heartbeat animation on bookmark button */
+@keyframes heartbeat {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.35); }
+  50%  { transform: scale(0.95); }
+  70%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.movie-card__btn.heartbeat { animation: heartbeat 0.6s cubic-bezier(0.36,0.07,0.19,0.97); }
 
 .movie-card__title {
   font-size: 12px; font-weight: 600; color: var(--text);
@@ -70,7 +108,7 @@
 /* Countdown badge */
 .countdown-badge {
   position: absolute; bottom: 6px; left: 6px; z-index: 3;
-  background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.72);
   border-radius: 6px; padding: 2px 6px;
   font-size: 9px; font-weight: 700; color: #fff;
   display: flex; align-items: center; gap: 3px;
@@ -81,5 +119,15 @@
 }
 @keyframes countdownPulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(232,197,71,0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(232,197,71,0); }
+  50%     { box-shadow: 0 0 0 4px rgba(232,197,71,0); }
+}
+
+/* Not interested button */
+.movie-card__btn--dislike {
+  background: rgba(239,68,68,0.15) !important;
+  color: #f87171 !important;
+}
+.movie-card__btn--dislike:hover {
+  background: rgba(239,68,68,0.35) !important;
+  transform: scale(1.12) !important;
 }

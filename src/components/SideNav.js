@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Home, Search, User, Sparkles } from 'lucide-react';
+import { Home, Sparkles, Search, User, Info } from 'lucide-react';
 import { useTheme, t } from '../theme';
 import './SideNav.css';
 
@@ -24,8 +24,13 @@ const SideNav = memo(function SideNav({ active, onChange }) {
           </button>
         ))}
       </nav>
+      <div className="side-nav__bottom">
+        <button className={"side-nav__item side-nav__item--about"+(active==='about'?" active":"")} onClick={() => onChange('about')}>
+          <Info size={20} strokeWidth={active==='about'?2.2:1.8}/>
+          <span>{t(lang,'О приложении','About')}</span>
+        </button>
+      </div>
     </aside>
   );
-}
-);
+});
 export default SideNav;

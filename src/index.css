@@ -151,3 +151,24 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   will-change: contents;
   pointer-events: none;
 }
+
+/* ─── VERSION BADGE (desktop only) ─── */
+.version-badge {
+  display: none;
+}
+@media (min-width: 900px) {
+  .version-badge {
+    display: block;
+    position: fixed;
+    bottom: 12px;
+    right: 16px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    opacity: 0.45;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    z-index: 90;
+    font-family: 'DM Sans', monospace;
+  }
+}

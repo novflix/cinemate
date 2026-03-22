@@ -1,12 +1,21 @@
 body.modal-open { overflow: hidden !important; touch-action: none; }
 
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(100%) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .modal-overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.82); backdrop-filter: blur(12px);
+  background: rgba(0,0,0,0.82);
   display: flex; align-items: flex-end;
   padding-top: 52px;
   padding-bottom: var(--nav-h);
-  animation: fadeIn 0.2s ease; overscroll-behavior: contain;
+  animation: modalFadeIn 0.3s ease both; overscroll-behavior: contain;
 }
 @media (min-width: 900px) {
   .modal-overlay { align-items: center; justify-content: center; padding-bottom: 0; }
@@ -17,7 +26,7 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   background: var(--bg2); border-radius: 28px 28px 0 0;
   max-height: calc(100dvh - var(--nav-h) - 16px);
   overflow: hidden; display: flex; flex-direction: column;
-  animation: slideUp 0.32s cubic-bezier(0.32,0.72,0,1); overscroll-behavior: contain;
+  animation: modalSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both; overscroll-behavior: contain;
 }
 .modal__backdrop {
   position: relative; height: 220px; flex-shrink: 0;
@@ -37,6 +46,7 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 .modal__poster-wrap {
+  animation: pageEnter 0.4s 0.12s cubic-bezier(0.16,1,0.3,1) both;
   display: flex; gap: 14px; align-items: flex-end;
   padding: 0 18px 12px; margin-top: -56px;
   position: relative; z-index: 10; flex-shrink: 0;
@@ -53,7 +63,7 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .modal__type-badge { background: var(--surface2); border-radius: 4px; padding: 2px 6px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
 .modal__genres { display: flex; flex-wrap: wrap; gap: 4px; }
 .modal__genre { background: var(--surface2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: var(--text2); }
-.modal__content { overflow-y: auto; overflow-x: hidden; padding: 4px 18px 28px; flex: 1; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.modal__content { animation: pageEnter 0.4s 0.2s cubic-bezier(0.16,1,0.3,1) both; overflow-y: auto; overflow-x: hidden; padding: 4px 18px 28px; flex: 1; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .modal__overview { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
 .modal__where { margin-bottom: 16px; }
 .modal__where h4 { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; }
