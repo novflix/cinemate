@@ -1,0 +1,263 @@
+/*
+  ██╗     ██╗ ██████╗ ██╗   ██╗██╗██████╗      ██████╗ ██╗      █████╗ ███████╗███████╗
+  ██║     ██║██╔═══██╗██║   ██║██║██╔══██╗    ██╔════╝ ██║     ██╔══██╗██╔════╝██╔════╝
+  ██║     ██║██║   ██║██║   ██║██║██║  ██║    ██║  ███╗██║     ███████║███████╗███████╗
+  ██║     ██║██║▄▄ ██║██║   ██║██║██║  ██║    ██║   ██║██║     ██╔══██║╚════██║╚════██║
+  ███████╗██║╚██████╔╝╚██████╔╝██║██████╔╝    ╚██████╔╝███████╗██║  ██║███████║███████║
+  Only applies on iOS Safari via -webkit-touch-callout
+*/
+
+/* ─── SVG filter for refraction effect ─── */
+.liquid-glass-svg { position: absolute; width: 0; height: 0; }
+
+/* ─── Base liquid glass mixin (applied via class) ─── */
+
+/* iOS-only: target with -webkit-touch-callout which only exists on iOS Safari */
+@supports (-webkit-touch-callout: none) {
+
+  /* ── Bottom Navigation ── */
+  .bottom-nav__inner {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter:
+      blur(48px)
+      saturate(2.2)
+      brightness(1.15) !important;
+    -webkit-backdrop-filter:
+      blur(48px)
+      saturate(2.2)
+      brightness(1.15) !important;
+    border: none !important;
+    box-shadow:
+      /* prismatic edge top */
+      inset 0 1px 0 rgba(255,255,255,0.55),
+      /* prismatic edge bottom */
+      inset 0 -1px 0 rgba(255,255,255,0.12),
+      /* left edge */
+      inset 1px 0 0 rgba(255,255,255,0.18),
+      /* right edge */
+      inset -1px 0 0 rgba(255,255,255,0.18),
+      /* outer shadow */
+      0 8px 40px rgba(0,0,0,0.28),
+      0 2px 12px rgba(0,0,0,0.18) !important;
+    /* Subtle tint from accent */
+    background-image: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.12) 0%,
+      rgba(232,197,71,0.04) 50%,
+      rgba(255,255,255,0.06) 100%
+    ) !important;
+  }
+
+  [data-theme="light"] .bottom-nav__inner {
+    background: rgba(255,255,255,0.45) !important;
+    background-image: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.7) 0%,
+      rgba(255,255,255,0.3) 100%
+    ) !important;
+    backdrop-filter: blur(48px) saturate(1.8) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(48px) saturate(1.8) brightness(1.05) !important;
+  }
+
+  /* Active tab indicator — glassy pill */
+  .bottom-nav__tab.active {
+    background: rgba(255,255,255,0.14) !important;
+    border-radius: 16px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      inset 0 -1px 0 rgba(255,255,255,0.08),
+      0 2px 8px rgba(0,0,0,0.15);
+  }
+  .bottom-nav__tab.active::before { display: none; }
+
+  /* ── Side Navigation ── */
+  .side-nav {
+    background: rgba(255,255,255,0.06) !important;
+    backdrop-filter: blur(56px) saturate(2) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(56px) saturate(2) brightness(1.1) !important;
+    border-right: none !important;
+    box-shadow:
+      inset -1px 0 0 rgba(255,255,255,0.12),
+      1px 0 24px rgba(0,0,0,0.2) !important;
+    background-image: linear-gradient(
+      180deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.04) 100%
+    ) !important;
+  }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    background: rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(24px) saturate(1.4) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
+  }
+
+  /* ── Modal itself ── */
+  .modal {
+    background: rgba(18,18,30,0.55) !important;
+    backdrop-filter: blur(52px) saturate(2.2) brightness(1.08) !important;
+    -webkit-backdrop-filter: blur(52px) saturate(2.2) brightness(1.08) !important;
+    border: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -1px 0 rgba(255,255,255,0.06),
+      inset 1px 0 0 rgba(255,255,255,0.10),
+      inset -1px 0 0 rgba(255,255,255,0.10),
+      0 32px 80px rgba(0,0,0,0.55),
+      0 8px 24px rgba(0,0,0,0.3) !important;
+    background-image: linear-gradient(
+      170deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(232,197,71,0.03) 40%,
+      rgba(255,255,255,0.04) 100%
+    ) !important;
+  }
+  [data-theme="light"] .modal {
+    background: rgba(255,255,255,0.55) !important;
+    background-image: linear-gradient(
+      170deg,
+      rgba(255,255,255,0.75) 0%,
+      rgba(255,255,255,0.4) 100%
+    ) !important;
+  }
+
+  /* ── Rating Prompt ── */
+  .rating-overlay {
+    backdrop-filter: blur(32px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(1.6) !important;
+    background: rgba(0,0,0,0.45) !important;
+  }
+  .rating-prompt {
+    background: rgba(20,20,35,0.50) !important;
+    backdrop-filter: blur(48px) saturate(2) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(48px) saturate(2) brightness(1.1) !important;
+    border: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.28),
+      inset 0 -1px 0 rgba(255,255,255,0.06),
+      0 24px 64px rgba(0,0,0,0.5) !important;
+    background-image: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.12) 0%,
+      rgba(255,255,255,0.04) 100%
+    ) !important;
+  }
+
+  /* ── Auth Screen ── */
+  .auth-btn--outline {
+    background: rgba(255,255,255,0.08) !important;
+    backdrop-filter: blur(20px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25) !important;
+  }
+  .auth-warn-card {
+    background: rgba(20,20,35,0.45) !important;
+    backdrop-filter: blur(40px) saturate(2) brightness(1.08) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(2) brightness(1.08) !important;
+    border: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      0 20px 60px rgba(0,0,0,0.45) !important;
+  }
+
+  /* ── Settings Modal ── */
+  .settings-overlay {
+    backdrop-filter: blur(24px) saturate(1.5) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+  }
+  .settings-modal {
+    background: rgba(18,18,30,0.52) !important;
+    backdrop-filter: blur(48px) saturate(2.2) brightness(1.1) !important;
+    -webkit-backdrop-filter: blur(48px) saturate(2.2) brightness(1.1) !important;
+    border: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.26),
+      inset 0 -1px 0 rgba(255,255,255,0.06),
+      0 24px 64px rgba(0,0,0,0.5) !important;
+    background-image: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.03) 100%
+    ) !important;
+  }
+
+  /* ── Roulette Modal ── */
+  .roulette-overlay {
+    backdrop-filter: blur(24px) saturate(1.5) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+  }
+  .roulette-modal {
+    background: rgba(18,18,30,0.50) !important;
+    backdrop-filter: blur(48px) saturate(2) brightness(1.08) !important;
+    -webkit-backdrop-filter: blur(48px) saturate(2) brightness(1.08) !important;
+    border: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.24),
+      inset 0 -1px 0 rgba(255,255,255,0.06),
+      0 24px 64px rgba(0,0,0,0.5) !important;
+    background-image: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.03) 100%
+    ) !important;
+  }
+
+  /* ── Hero label badge ── */
+  .hero__label {
+    backdrop-filter: blur(20px) saturate(2) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(2) !important;
+    background: rgba(232,197,71,0.15) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+  }
+
+  /* ── Movie card overlay on hover/touch ── */
+  .movie-card__overlay {
+    backdrop-filter: blur(12px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(1.6) !important;
+  }
+  .movie-card__btn {
+    background: rgba(255,255,255,0.12) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3) !important;
+  }
+
+  /* ── Movie card rating badge ── */
+  .movie-card__rating {
+    backdrop-filter: blur(16px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.8) !important;
+    background: rgba(0,0,0,0.4) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  }
+
+  /* ── Mood bar buttons ── */
+  .mood-btn {
+    backdrop-filter: blur(16px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.6) !important;
+    background: rgba(255,255,255,0.06) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18) !important;
+  }
+  .mood-btn.active {
+    background: rgba(232,197,71,0.18) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      0 2px 12px rgba(232,197,71,0.2) !important;
+  }
+
+  /* ── Where to watch items ── */
+  .modal__where-item {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* ── Profile stats ── */
+  .profile-card {
+    backdrop-filter: blur(32px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) !important;
+    background: rgba(255,255,255,0.05) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 8px 32px rgba(0,0,0,0.25) !important;
+  }
+}
