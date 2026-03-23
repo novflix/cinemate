@@ -220,13 +220,25 @@ export default function Recs() {
   }, [langCode]);
 
   useEffect(() => {
-    const el = loaderRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !loadingRef.current) doLoad(false);
-    }, { rootMargin: '400px' });
-    obs.observe(el);
-    return () => obs.disconnect();
+    // Find the scrolling parent (app-content on desktop, window on mobile)
+    const scrollEl = loaderRef.current?.closest('.app-content') || window;
+    
+    const checkScroll = () => {
+      if (loadingRef.current || !hasMore) return;
+      const loader = loaderRef.current;
+      if (!loader) return;
+      
+      const loaderRect = loader.getBoundingClientRect();
+      const threshold = window.innerHeight + 600;
+      if (loaderRect.top < threshold) {
+        doLoad(false);
+      }
+    };
+
+    scrollEl.addEventListener('scroll', checkScroll, { passive: true });
+    // Also check immediately in case content is short
+    checkScroll();
+    return () => scrollEl.removeEventListener('scroll', checkScroll);
   }, [hasMore, doLoad]);
 
   const handleDislike = (id) => {
@@ -297,7 +309,7 @@ export default function Recs() {
         </div>
       )}
 
-      <div ref={loaderRef} style={{height:1}}/>
+      <div ref={loaderRef} style={{height:40, marginBottom:8}}/>
       {loading && items.length > 0 && (
         <div className="recs-loader"><div className="recs-spinner"/></div>
       )}
