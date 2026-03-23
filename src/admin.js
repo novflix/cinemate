@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const ADMIN_EMAIL = 'ildenisov911@gmail.com';
+const ADMIN_ID = process.env.REACT_APP_ADMIN_ID || null;
 
 const AdminContext = createContext(null);
 
@@ -12,8 +12,8 @@ const defaultOverrides = {
   season:   null,   // override season: null = auto, or 'halloween'|'newyear'|'summer'|'winter'|'spring'|'autumn'
 };
 
-export function AdminProvider({ children, userEmail }) {
-  const isAdmin = userEmail === ADMIN_EMAIL;
+export function AdminProvider({ children, userId }) {
+  const isAdmin = !!(ADMIN_ID && userId === ADMIN_ID);
   const [overrides, setOverrides] = useState(() => {
     if (!isAdmin) return defaultOverrides;
     try {
