@@ -1,5 +1,5 @@
-import { useState, memo } from 'react';
-import { Eye, EyeOff, Bookmark, BookmarkCheck, Star, X } from 'lucide-react';
+import { useState, memo, useCallback } from 'react';
+import { EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, CloseCircleLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { tmdb } from '../api';
@@ -24,13 +24,13 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
   const userRating = getRating(movie.id);
   const type       = movie.media_type || (movie.title ? 'movie' : 'tv');
   const progress   = type === 'tv' ? getTvProgress(movie.id) : null;
-  const handleWatched = (e) => {
+  const handleWatched = useCallback((e) => {
     e.stopPropagation();
     if (watched) { removeFromWatched(movie.id); return; }
     addToWatched({...movie, media_type: type});
     setFlash('watched');
     setTimeout(() => setFlash(null), 700);
-  };
+  }, [watched, movie, type, removeFromWatched, addToWatched]);
 
   const handleWatchlist = (e) => {
     e.stopPropagation();
@@ -51,13 +51,13 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           : <div className="movie-card__no-poster"/>
         }
 
-        {watched && <div className="movie-card__badge watched"><Eye size={10}/></div>}
-        {!watched && inList && <div className="movie-card__badge watchlist"><Bookmark size={10}/></div>}
+        {watched && <div className="movie-card__badge watched"><EyeLinear size={10}/></div>}
+        {!watched && inList && <div className="movie-card__badge watchlist"><BookmarkLinear size={10}/></div>}
 
         {userRating ? (
-          <div className="movie-card__user-rating"><Star size={8} fill="currentColor"/> {userRating}</div>
+          <div className="movie-card__user-rating"><StarLinear size={8} fill="currentColor"/> {userRating}</div>
         ) : tmdbRating ? (
-          <div className="movie-card__rating"><Star size={8} fill="currentColor"/> {tmdbRating}</div>
+          <div className="movie-card__rating"><StarLinear size={8} fill="currentColor"/> {tmdbRating}</div>
         ) : null}
 
         {showCountdown && movie.release_date && (
@@ -75,19 +75,19 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
         )}
         {onDislike && (
           <button className="movie-card__dislike" onClick={e=>{e.stopPropagation();onDislike(movie.id);}}>
-            <X size={13}/>
+            <CloseCircleLinear size={13}/>
           </button>
         )}
         <div className="movie-card__overlay">
           <button className={"movie-card__btn"+(watched?" g":"")} onClick={handleWatched}>
-            {watched ? <EyeOff size={14}/> : <Eye size={14}/>}
+            {watched ? <EyeClosedLinear size={14}/> : <EyeLinear size={14}/>}
           </button>
           <button
             className={"movie-card__btn"+(inList&&!watched?" y":"")+(flash==='list'?" heartbeat":"")}
             onClick={handleWatchlist}
             disabled={watched}
           >
-            {inList&&!watched ? <BookmarkCheck size={14}/> : <Bookmark size={14}/>}
+            {inList&&!watched ? <BookmarkOpenedLinear size={14}/> : <BookmarkLinear size={14}/>}
           </button>
         </div>
       </div>

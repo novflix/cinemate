@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
 import { supabase } from './supabase';
 
 const StoreContext = createContext(null);
@@ -125,16 +125,20 @@ export function StoreProvider({ children, userId }) {
   const clearTvProgress    = (id) => setTvProgress(prev => { const n = {...prev}; delete n[id]; return n; });
   const isDisliked     = (id) => dislikedIds.includes(id);
 
+  const ctxValue = useMemo(() => ({
+    watched, watchlist, ratings, profile, setProfile, syncing,
+    likedActors, likeActor, unlikeActor, isActorLiked,
+    dislikedIds, addDisliked, isDisliked,
+    tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
+    pendingRating, setPendingRating, showConfetti, setShowConfetti,
+    addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
+    isWatched, isInWatchlist, rateMovie, getRating,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [watched, watchlist, ratings, profile, likedActors, dislikedIds,
+       tvProgress, pendingRating, showConfetti, syncing]);
+
   return (
-    <StoreContext.Provider value={{
-      watched, watchlist, ratings, profile, setProfile, syncing,
-      likedActors, likeActor, unlikeActor, isActorLiked,
-      dislikedIds, addDisliked, isDisliked,
-      tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
-      pendingRating, setPendingRating, showConfetti, setShowConfetti,
-      addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
-      isWatched, isInWatchlist, rateMovie, getRating,
-    }}>
+    <StoreContext.Provider value={ctxValue}>
       {children}
     </StoreContext.Provider>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Star, Play, TrendingUp, Clapperboard, Flame, Trophy, CalendarDays, Tv2, Sparkles, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
 import { useAdmin } from '../admin';
@@ -75,19 +75,19 @@ function HeroSlider({ items, onSelect }) {
         <div className="hero__fade"/>
       </div>
       <div className={"hero__content hero__content--"+anim}>
-        <div className="hero__label"><TrendingUp size={10}/> #{idx+1}</div>
+        <div className="hero__label"><Chart2Linear size={10}/> #{idx+1}</div>
         <h1 className="hero__title">{hero.title||hero.name}</h1>
         <div className="hero__meta">
-          {hero.vote_average > 0 && <span><Star size={12} fill="currentColor"/> {hero.vote_average.toFixed(1)}</span>}
+          {hero.vote_average > 0 && <span><StarLinear size={12} fill="currentColor"/> {hero.vote_average.toFixed(1)}</span>}
           <span>{(hero.release_date||hero.first_air_date||'').slice(0,4)}</span>
         </div>
         <button className="hero__btn" onClick={e=>{e.stopPropagation();onSelect(hero);}}>
-          <Play size={13} fill="currentColor"/>
+          <PlayLinear size={13} fill="currentColor"/>
         </button>
       </div>
       {items.length > 1 && <>
-        <button className="hero__arrow hero__arrow--left"  onClick={e=>{e.stopPropagation();prev();}}><ChevronLeft  size={20}/></button>
-        <button className="hero__arrow hero__arrow--right" onClick={e=>{e.stopPropagation();next();}}><ChevronRight size={20}/></button>
+        <button className="hero__arrow hero__arrow--left"  onClick={e=>{e.stopPropagation();prev();}}><AltArrowLeftLinear  size={20}/></button>
+        <button className="hero__arrow hero__arrow--right" onClick={e=>{e.stopPropagation();next();}}><AltArrowRightLinear size={20}/></button>
       </>}
       <div className="hero__dots" onClick={e=>e.stopPropagation()}>
         {items.map((_,i)=>(
@@ -132,7 +132,7 @@ function TogetherSection({ onSelect, lang }) {
   const current = movies[activeTag] || [];
   return (
     <div className="home-section together-section">
-      <h3 className="home-section__title"><Heart size={15} className="home-section__icon"/>{t(lang,'Не смотри один','Watch Together')}</h3>
+      <h3 className="home-section__title"><HeartLinear size={15} className="home-section__icon"/>{t(lang,'Не смотри один','Watch Together')}</h3>
       <div className="together-tags">
         {TOGETHER_TAGS.map(tag=>(
           <button key={tag.id} className={"together-tag"+(activeTag===tag.id?' active':'')} onClick={()=>setActiveTag(tag.id)}>
@@ -189,13 +189,13 @@ export default function Home() {
     else setLoading(true);
     Promise.all([
       tmdb.trending('all','week'),
-      tmdb.popular('movie',3),
-      tmdb.topRated('movie',3),
-      tmdb.nowPlaying(3),
-      tmdb.upcoming(3),
-      tmdb.popular('tv',3),
-      tmdb.topRated('tv',3),
-      tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},3),
+      tmdb.popular('movie',2),
+      tmdb.topRated('movie',2),
+      tmdb.nowPlaying(2),
+      tmdb.upcoming(2),
+      tmdb.popular('tv',2),
+      tmdb.topRated('tv',2),
+      tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
     ]).then(([tr,pm,tm,np,up,ptv,ttv,ny]) => {
       const homeData = {
         trending:  (tr.results||[]).slice(0,10),
@@ -259,21 +259,21 @@ export default function Home() {
       seasonData,
     ]);
     sections = [
-      { icon:Clapperboard, title:t(lang,'Сейчас в кино','Now Playing'),   items:nowP.slice(0,50),  countdown:false, gold:false },
-      { icon:CalendarDays, title:t(lang,'Скоро в кино','Coming Soon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
-      { icon:Sparkles,     title:t(lang,`Новинки ${currentYear}`,`New ${currentYear}`), items:newY.slice(0,50), countdown:false, gold:false },
-      { icon:Flame,        title:t(lang,'Популярные фильмы','Popular Movies'),  items:popM.slice(0,50),  countdown:false, gold:false },
-      { icon:Trophy,       title:t(lang,'Лучшие фильмы','Top Movies'),          items:topM.slice(0,50),  countdown:false, gold:true  },
-      { icon:Tv2,          title:t(lang,'Популярные сериалы','Popular Series'), items:popTV.slice(0,50), countdown:false, gold:false },
-      { icon:Trophy,       title:t(lang,'Лучшие сериалы','Top Series'),         items:topTV.slice(0,50), countdown:false, gold:true  },
-      ...(seas.length?[{icon:Sparkles,title:seasonCfg[lang==='en'?'en':'ru'],items:seas.slice(0,20),countdown:false,gold:false}]:[]),
+      { icon:ClapperboardLinear, title:t(lang,'Сейчас в кино','Now Playing'),   items:nowP.slice(0,50),  countdown:false, gold:false },
+      { icon:CalendarDateLinear, title:t(lang,'Скоро в кино','Coming Soon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
+      { icon:MagicStickLinear,     title:t(lang,`Новинки ${currentYear}`,`New ${currentYear}`), items:newY.slice(0,50), countdown:false, gold:false },
+      { icon:FlameLinear,        title:t(lang,'Популярные фильмы','Popular Movies'),  items:popM.slice(0,50),  countdown:false, gold:false },
+      { icon:CupFirstLinear,       title:t(lang,'Лучшие фильмы','Top Movies'),          items:topM.slice(0,50),  countdown:false, gold:true  },
+      { icon:TVLinear,          title:t(lang,'Популярные сериалы','Popular Series'), items:popTV.slice(0,50), countdown:false, gold:false },
+      { icon:CupFirstLinear,       title:t(lang,'Лучшие сериалы','Top Series'),         items:topTV.slice(0,50), countdown:false, gold:true  },
+      ...(seas.length?[{icon:MagicStickLinear,title:seasonCfg[lang==='en'?'en':'ru'],items:seas.slice(0,20),countdown:false,gold:false}]:[]),
     ];
   } else if (allData && moodData) {
     const cfg=MOODS.find(m=>m.id===mood);
     const [movies,tv]=dedup([moodData.movies,moodData.tv]);
     sections=[
-      {icon:Flame,title:t(lang,`Фильмы — ${cfg.ru}`,`Movies — ${cfg.en}`),items:movies.slice(0,50),countdown:false,gold:false},
-      {icon:Tv2,  title:t(lang,`Сериалы — ${cfg.ru}`,`Series — ${cfg.en}`),items:tv.slice(0,50),   countdown:false,gold:false},
+      {icon:FlameLinear,title:t(lang,`Фильмы — ${cfg.ru}`,`Movies — ${cfg.en}`),items:movies.slice(0,50),countdown:false,gold:false},
+      {icon:TVLinear,  title:t(lang,`Сериалы — ${cfg.ru}`,`Series — ${cfg.en}`),items:tv.slice(0,50),   countdown:false,gold:false},
     ];
   }
 
@@ -297,7 +297,7 @@ export default function Home() {
             {allData && mood==='all' && (
               <div className="home-section">
                 <h3 className="home-section__title home-section__title--trending">
-                  <Flame size={15} className="home-section__icon"/>
+                  <FlameLinear size={15} className="home-section__icon"/>
                   {t(lang,'В тренде','Trending')}
                 </h3>
                 <SectionRow items={allData.trending.slice(0,10)} onSelect={setSelected}/>

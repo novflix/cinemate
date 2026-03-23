@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { AltArrowLeftLinear, AltArrowRightLinear } from 'solar-icon-set';
 import './ScrollRow.css';
 
 const ScrollRow = memo(function ScrollRow({ children }) {
@@ -46,7 +46,7 @@ const ScrollRow = memo(function ScrollRow({ children }) {
     <div className="scroll-row-wrap">
       {canLeft && (
         <button className="scroll-row-arrow scroll-row-arrow--left" onClick={() => scroll(-1)}>
-          <ChevronLeft size={20}/>
+          <AltArrowLeftLinear size={20}/>
         </button>
       )}
       <div ref={ref} className="home-section__scroll">
@@ -54,7 +54,7 @@ const ScrollRow = memo(function ScrollRow({ children }) {
       </div>
       {canRight && (
         <button className="scroll-row-arrow scroll-row-arrow--right" onClick={() => scroll(1)}>
-          <ChevronRight size={20}/>
+          <AltArrowRightLinear size={20}/>
         </button>
       )}
     </div>

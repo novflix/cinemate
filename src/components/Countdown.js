@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import { ClockCircleLinear } from 'solar-icon-set';
 
 function getCountdown(dateStr) {
   if (!dateStr) return null;
@@ -30,7 +30,7 @@ export default function Countdown({ releaseDate, lang }) {
 
   return (
     <div className={"countdown-badge" + (cd.urgent ? " urgent" : "")}>
-      <Clock size={9}/>
+      <ClockCircleLinear size={9}/>
       <span>{lang === 'ru' ? cd.label : cd.en}</span>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search as SearchIcon, X, SlidersHorizontal } from 'lucide-react';
+import { MagniferLinear, CloseCircleLinear, Tuning2Linear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -99,7 +99,7 @@ export default function Search() {
       <div className="search-header">
         <h1 className="search-header__title">{t(lang,'Поиск','Search')}</h1>
         <div className="search-bar">
-          <SearchIcon size={16} className="search-bar__icon"/>
+          <MagniferLinear size={16} className="search-bar__icon"/>
           <input
             className="search-bar__input"
             placeholder={t(lang,'Название, год, жанр...','Title, year, genre...')}
@@ -107,7 +107,7 @@ export default function Search() {
             onChange={e => setQuery(e.target.value)}
             autoComplete="off" spellCheck="false"
           />
-          {query && <button className="search-bar__clear" onClick={() => setQuery('')}><X size={14}/></button>}
+          {query && <button className="search-bar__clear" onClick={() => setQuery('')}><CloseCircleLinear size={14}/></button>}
         </div>
         <p className="search-hint">
           {t(lang,'Попробуй: «Человек-паук 2025» или просто «2025»','Try: "Spider-Man 2025" or just "2025"')}
@@ -118,7 +118,7 @@ export default function Search() {
       {loading && <div className="search-loading"><div className="search-loading__spinner"/></div>}
       {isEmpty && (
         <div className="search-empty">
-          <SlidersHorizontal size={32} strokeWidth={1}/>
+          <Tuning2Linear size={32} strokeWidth={1}/>
           <p>{t(lang,`Ничего по «${query}»`,`Nothing for "${query}"`)}</p>
           <p className="search-empty__hint">{t(lang,'Попробуй добавить год или жанр','Try adding a year or genre')}</p>
         </div>

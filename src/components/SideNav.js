@@ -1,15 +1,15 @@
 import { memo } from 'react';
-import { Home, Sparkles, Search, User, Info } from 'lucide-react';
+import { Home2Linear, MagicStickLinear, MagniferLinear, UserLinear, InfoCircleLinear } from 'solar-icon-set';
 import { useTheme, t } from '../theme';
 import './SideNav.css';
 
 const SideNav = memo(function SideNav({ active, onChange }) {
   const { lang } = useTheme();
   const tabs = [
-    { id: 'home',    label: t(lang,'Главная','Home'),    Icon: Home },
-    { id: 'recs',    label: t(lang,'Для вас','For You'), Icon: Sparkles },
-    { id: 'search',  label: t(lang,'Поиск','Search'),    Icon: Search },
-    { id: 'profile', label: t(lang,'Профиль','Profile'), Icon: User },
+    { id: 'home',    label: t(lang,'Главная','Home'),    Icon: Home2Linear },
+    { id: 'recs',    label: t(lang,'Для вас','For You'), Icon: MagicStickLinear },
+    { id: 'search',  label: t(lang,'Поиск','Search'),    Icon: MagniferLinear },
+    { id: 'profile', label: t(lang,'Профиль','Profile'), Icon: UserLinear },
   ];
   return (
     <aside className="side-nav">
@@ -26,7 +26,7 @@ const SideNav = memo(function SideNav({ active, onChange }) {
       </nav>
       <div className="side-nav__bottom">
         <button className={"side-nav__item side-nav__item--about"+(active==='about'?" active":"")} onClick={() => onChange('about')}>
-          <Info size={20} strokeWidth={active==='about'?2.2:1.8}/>
+          <InfoCircleLinear size={20} strokeWidth={active==='about'?2.2:1.8}/>
           <span>{t(lang,'О приложении','About')}</span>
         </button>
       </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Tv2, Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut, UserPlus } from 'lucide-react';
+import { TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear, TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
 import { useAdmin } from '../admin';
@@ -46,19 +46,19 @@ function SettingsModal({ onClose }) {
       <div className="settings-modal" onClick={e => e.stopPropagation()}>
         <div className="settings-header">
           <h2>{t(lang,'Настройки','Settings')}</h2>
-          <button className="settings-close" onClick={onClose}><X size={18}/></button>
+          <button className="settings-close" onClick={onClose}><CloseCircleLinear size={18}/></button>
         </div>
         <div className="settings-body">
           <div className="settings-section">
             <p className="settings-label">{t(lang,'Тема','Theme')}</p>
             <div className="settings-options">
               <button className={"settings-option"+(theme==='dark'?" active":"")} onClick={()=>setTheme('dark')}>
-                <Moon size={15}/> {t(lang,'Тёмная','Dark')}
-                {theme==='dark' && <Check size={14} className="settings-check"/>}
+                <MoonLinear size={15}/> {t(lang,'Тёмная','Dark')}
+                {theme==='dark' && <CheckCircleLinear size={14} className="settings-check"/>}
               </button>
               <button className={"settings-option"+(theme==='light'?" active":"")} onClick={()=>setTheme('light')}>
-                <Sun size={15}/> {t(lang,'Светлая','Light')}
-                {theme==='light' && <Check size={14} className="settings-check"/>}
+                <Sun2Linear size={15}/> {t(lang,'Светлая','Light')}
+                {theme==='light' && <CheckCircleLinear size={14} className="settings-check"/>}
               </button>
             </div>
           </div>
@@ -66,12 +66,12 @@ function SettingsModal({ onClose }) {
             <p className="settings-label">{t(lang,'Язык','Language')}</p>
             <div className="settings-options">
               <button className={"settings-option"+(lang==='ru'?" active":"")} onClick={()=>setLang('ru')}>
-                <Globe size={15}/> Русский
-                {lang==='ru' && <Check size={14} className="settings-check"/>}
+                <GlobalLinear size={15}/> Русский
+                {lang==='ru' && <CheckCircleLinear size={14} className="settings-check"/>}
               </button>
               <button className={"settings-option"+(lang==='en'?" active":"")} onClick={()=>setLang('en')}>
-                <Globe size={15}/> English
-                {lang==='en' && <Check size={14} className="settings-check"/>}
+                <GlobalLinear size={15}/> English
+                {lang==='en' && <CheckCircleLinear size={14} className="settings-check"/>}
               </button>
             </div>
           </div>
@@ -109,7 +109,7 @@ function SettingsModal({ onClose }) {
               <p className="settings-label">{t(lang,'Аккаунт','Account')}</p>
               <p className="settings-email">{user.email}</p>
               <button className="settings-signout" onClick={handleSignOut}>
-                <LogOut size={14}/> {t(lang,'Выйти из аккаунта','Sign out')}
+                <Logout3Linear size={14}/> {t(lang,'Выйти из аккаунта','Sign out')}
               </button>
             </div>
           )}
@@ -122,7 +122,7 @@ function SettingsModal({ onClose }) {
                     {t(lang,'Гостевой режим — данные только на этом устройстве','Guest mode — data stored on this device only')}
                   </p>
                   <button className="settings-register-btn" onClick={() => setRegisterMode(true)}>
-                    <UserPlus size={14}/>
+                    <UserPlusLinear size={14}/>
                     {t(lang,'Создать аккаунт и сохранить данные','Create account & save my data')}
                   </button>
                 </>
@@ -200,7 +200,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
                 );
               })()}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
-                <Trash2 size={11}/>
+                <TrashBinMinimalistic2Linear size={11}/>
               </button>
             </div>
             <p className="poster-grid__title">{title}</p>
@@ -224,7 +224,7 @@ function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect,
     <>
       {watching.length > 0 && (
         <>
-          <p className="profile-watching-label"><Tv2 size={13}/> {t(lang,'Смотрю сейчас','Currently watching')}</p>
+          <p className="profile-watching-label"><TVLinear size={13}/> {t(lang,'Смотрю сейчас','Currently watching')}</p>
           <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
           {queued.length > 0 && <div className="profile-watching-divider" data-label={lang==='ru'?'В очереди':'Up next'}/>}
         </>
@@ -276,8 +276,8 @@ export default function Profile() {
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           {syncing && <span className="profile-sync-dot" title="Syncing..."/>}
-          {!editing && <button className="profile-icon-btn" onClick={() => setEditing(true)}><Edit2 size={17}/></button>}
-          <button className="profile-icon-btn" onClick={() => setShowSettings(true)}><Settings size={17}/></button>
+          {!editing && <button className="profile-icon-btn" onClick={() => setEditing(true)}><Pen2Linear size={17}/></button>}
+          <button className="profile-icon-btn" onClick={() => setShowSettings(true)}><SettingsMinimalisticLinear size={17}/></button>
         </div>
       </div>
 
@@ -287,7 +287,7 @@ export default function Profile() {
             ? <img className="profile-avatar" src={profile.avatar} alt="avatar"/>
             : <div className="profile-avatar profile-avatar--placeholder">{(profile.name||'К')[0].toUpperCase()}</div>
           }
-          {editing && <div className="profile-avatar__overlay"><Edit2 size={16}/></div>}
+          {editing && <div className="profile-avatar__overlay"><Pen2Linear size={16}/></div>}
         </div>
         <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleAvatar}/>
 
@@ -338,16 +338,16 @@ export default function Profile() {
       <div className="profile-lists">
         <div className="lists-tabs">
           <button className={"lists-tab"+(listTab==='watchlist'?" active":"")} onClick={()=>setListTab('watchlist')}>
-            <Bookmark size={14}/> {t(lang,'Хочу смотреть','Watchlist')} <span>{watchlist.length}</span>
+            <BookmarkLinear size={14}/> {t(lang,'Хочу смотреть','Watchlist')} <span>{watchlist.length}</span>
           </button>
           <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={()=>setListTab('watched')}>
-            <Eye size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
+            <EyeLinear size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
           </button>
         </div>
 
         {displayItems.length === 0 ? (
           <div className="lists-empty">
-            {listTab==='watchlist' ? <Bookmark size={38} strokeWidth={1}/> : <Eye size={38} strokeWidth={1}/>}
+            {listTab==='watchlist' ? <BookmarkLinear size={38} strokeWidth={1}/> : <EyeLinear size={38} strokeWidth={1}/>}
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>
           </div>
         ) : (

@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { useTheme } from '../theme';
-import {
-  Sparkles, Tv2, Star, Shuffle, Globe, Cloud, Heart, Ban,
-  Smile, Film, Zap, CheckCircle, ArrowRight, Play,
-  BarChart2, Clock, Layers, Cpu
-} from 'lucide-react';
+import { MagicStickLinear, TVLinear, StarLinear, ShuffleLinear, GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear, SmileCircleLinear, VideoLibraryLinear, BoltCircleLinear, CheckCircleLinear, AltArrowRightLinear, PlayLinear, Chart2Linear, ClockCircleLinear, LayersLinear, Server2Linear } from 'solar-icon-set';
 import './About.css';
 
 /* ─── Hooks ─── */
@@ -114,82 +110,82 @@ export default function About() {
   const [heroRef, heroVisible] = useReveal(0.01);
 
   const features = [
-    { icon: Sparkles, accent: '#e8c547',
+    { icon: MagicStickLinear, accent: '#e8c547',
       title: ru ? 'Умные рекомендации' : 'Smart Recommendations',
       tag:   ru ? 'Главное' : 'Core',
       desc:  ru ? 'Алгоритм строит твой вкусовой профиль из оценок, лайков актёров и списков. Чем больше смотришь — тем точнее.' : 'Algorithm builds a taste profile from ratings, liked actors and lists. The more you use it, the sharper it gets.' },
-    { icon: Star, accent: '#f97316',
+    { icon: StarLinear, accent: '#f97316',
       title: ru ? 'Рейтинги 1–10' : 'Ratings 1–10',
       desc:  ru ? 'Оценивай после просмотра. 9–10 = сильный сигнал для похожих фильмов. 1–3 = только этот фильм плохой, не жанр.' : 'Rate after watching. 9–10 = strong signal for similar films. 1–3 = just this film, not the whole genre.' },
-    { icon: Tv2, accent: '#3b82f6',
+    { icon: TVLinear, accent: '#3b82f6',
       title: ru ? 'Трекер сериалов' : 'Series Tracker',
       tag:   ru ? 'Новое' : 'New',
       desc:  ru ? 'Отмечай на каком сезоне и серии. Сериалы в процессе выделяются отдельно в очереди.' : 'Track which season and episode you\'re on. In-progress shows appear at the top of your queue.' },
-    { icon: Shuffle, accent: '#8b5cf6',
+    { icon: ShuffleLinear, accent: '#8b5cf6',
       title: ru ? 'Рулетка' : 'Roulette',
       desc:  ru ? 'Крути рулетку — она выберет фильм из очереди. Полезно когда не можешь решить.' : 'Spin the wheel to pick from your queue. Perfect when you can\'t decide.' },
-    { icon: Ban, accent: '#ef4444',
+    { icon: ForbiddenCircleLinear, accent: '#ef4444',
       title: ru ? '«Не интересно»' : '"Not Interested"',
       desc:  ru ? 'Нажми ✕ на карточке — фильм исчезнет навсегда. Алгоритм запомнит и не покажет снова.' : 'Tap ✕ on a card — it vanishes forever. The algorithm learns and never shows it again.' },
-    { icon: Heart, accent: '#ec4899',
+    { icon: HeartLinear, accent: '#ec4899',
       title: ru ? 'Любимые актёры' : 'Liked Actors',
       desc:  ru ? 'Лайкни актёра — его фильмография сразу подтягивается в рекомендации с высоким приоритетом.' : 'Like an actor and their filmography gets high-priority placement in your recs.' },
-    { icon: Globe, accent: '#22c55e',
+    { icon: GlobalLinear, accent: '#22c55e',
       title: ru ? 'Два языка' : 'Two Languages',
       desc:  ru ? 'Полная локализация: постеры, описания, названия — на выбранном языке.' : 'Full localisation: posters, overviews and titles switch to your chosen language.' },
-    { icon: Cloud, accent: '#0ea5e9',
+    { icon: CloudLinear, accent: '#0ea5e9',
       title: ru ? 'Облачный синк' : 'Cloud Sync',
       desc:  ru ? 'Войди через email — все данные доступны на любом устройстве.' : 'Sign in with email and everything syncs across every device.' },
-    { icon: Smile, accent: '#eab308',
+    { icon: SmileCircleLinear, accent: '#eab308',
       title: ru ? 'Фильтр настроения' : 'Mood Filter',
       desc:  ru ? 'Выбери вайб — «Страшно», «Экшен», «Поплакать» — получи нужную подборку мгновенно.' : 'Pick a vibe — Scary, Action, Drama — and get a tuned feed instantly.' },
   ];
 
   const stats = [
-    { n: 900000, suffix: '+', label: ru ? 'фильмов и сериалов' : 'films & shows', icon: <Film size={18}/> },
-    { n: 50,     suffix: '+', label: ru ? 'в каждой секции'   : 'per section',   icon: <Layers size={18}/> },
-    { n: 10,     suffix: '/10', label: ru ? 'шкала оценок'    : 'rating scale',  icon: <BarChart2 size={18}/> },
-    { n: 5,      suffix: ' min', label: ru ? 'до первых рекомендаций' : 'to first recs', icon: <Clock size={18}/> },
+    { n: 900000, suffix: '+', label: ru ? 'фильмов и сериалов' : 'films & shows', icon: <VideoLibraryLinear size={18}/> },
+    { n: 50,     suffix: '+', label: ru ? 'в каждой секции'   : 'per section',   icon: <LayersLinear size={18}/> },
+    { n: 10,     suffix: '/10', label: ru ? 'шкала оценок'    : 'rating scale',  icon: <Chart2Linear size={18}/> },
+    { n: 5,      suffix: ' min', label: ru ? 'до первых рекомендаций' : 'to first recs', icon: <ClockCircleLinear size={18}/> },
   ];
 
   const steps = [
-    { Icon: Film,
+    { Icon: VideoLibraryLinear,
       title: ru ? 'Сохраняй' : 'Save',
       desc:  ru ? 'Добавляй в «Хочу посмотреть» и отмечай просмотренные. Для сериалов — указывай сезон.' : 'Add to Watchlist and mark what you\'ve seen. For shows, track your exact episode.' },
-    { Icon: Star,
+    { Icon: StarLinear,
       title: ru ? 'Оценивай' : 'Rate',
       desc:  ru ? 'Ставь оценки 1–10 после просмотра. Каждая оценка точнее настраивает алгоритм.' : 'Rate 1–10 after watching. Every rating fine-tunes the algorithm further.' },
-    { Icon: Sparkles,
+    { Icon: MagicStickLinear,
       title: ru ? 'Открывай' : 'Discover',
       desc:  ru ? 'Вкладка «Для вас» — бесконечная лента подобранных именно под тебя фильмов.' : 'The "For You" tab is an infinite feed tuned precisely to your taste.' },
   ];
 
   const algo = [
-    { icon: <Star size={15}/>, color: '#e8c547',
+    { icon: <StarLinear size={15}/>, color: '#e8c547',
       title: ru ? 'Оценка 9–10' : 'Rating 9–10',
       desc:  ru ? 'Сильнейший seed. Через TMDB /recommendations ищем максимально похожие фильмы.' : 'Strongest seed. TMDB /recommendations finds the most similar films.' },
-    { icon: <Star size={15}/>, color: '#84cc16',
+    { icon: <StarLinear size={15}/>, color: '#84cc16',
       title: ru ? 'Оценка 5–8' : 'Rating 5–8',
       desc:  ru ? 'Мягкий позитивный сигнал. Фильм используется как seed с меньшим весом.' : 'Soft positive signal. Film is used as a seed with lower weight.' },
-    { icon: <Star size={15}/>, color: '#6b7280',
+    { icon: <StarLinear size={15}/>, color: '#6b7280',
       title: ru ? 'Оценка 1–3' : 'Rating 1–3',
       desc:  ru ? 'Штрафуется только этот фильм. Жанр не страдает — плохой Железный человек ≠ ненавижу экшен.' : 'Only this film is penalised. Genre is untouched — one bad film ≠ hate the genre.' },
-    { icon: <Heart size={15}/>, color: '#ec4899',
+    { icon: <HeartLinear size={15}/>, color: '#ec4899',
       title: ru ? 'Лайк актёра' : 'Liked actor',
       desc:  ru ? 'Фильмография добавляется в кандидаты с весом 3× — выше чем просто жанровый discover.' : 'Filmography added as candidates with 3× weight — higher than genre discover.' },
-    { icon: <Zap size={15}/>, color: '#8b5cf6',
+    { icon: <BoltCircleLinear size={15}/>, color: '#8b5cf6',
       title: ru ? 'Очередь' : 'Watchlist',
       desc:  ru ? 'Жанры очереди буcтятся. Пользователь сам выбрал — значит похожее тоже зайдёт.' : 'Queue genres get boosted. You chose these — similar content likely fits too.' },
-    { icon: <Ban size={15}/>, color: '#ef4444',
+    { icon: <ForbiddenCircleLinear size={15}/>, color: '#ef4444',
       title: ru ? '«Не интересно»' : 'Not interested',
       desc:  ru ? 'ID в чёрный список навсегда. Синхронизируется в облако, работает после переустановки.' : 'ID blacklisted permanently. Syncs to cloud — survives reinstalls.' },
   ];
 
   const tech = [
-    { name: 'React 18',  icon: <Cpu size={18}/>,      color: '#61DAFB', sub: ru ? 'Интерфейс'       : 'UI Framework' },
-    { name: 'Supabase',  icon: <Cloud size={18}/>,     color: '#3ECF8E', sub: ru ? 'БД + Авторизация' : 'DB + Auth' },
-    { name: 'TMDB',      icon: <Film size={18}/>,      color: '#01D277', sub: ru ? '900k+ тайтлов'   : '900k+ titles' },
-    { name: 'Vercel',    icon: <Zap size={18}/>,       color: '#aaa',    sub: ru ? 'Деплой'           : 'Deployment' },
+    { name: 'React 18',  icon: <Server2Linear size={18}/>,      color: '#61DAFB', sub: ru ? 'Интерфейс'       : 'UI Framework' },
+    { name: 'Supabase',  icon: <CloudLinear size={18}/>,     color: '#3ECF8E', sub: ru ? 'БД + Авторизация' : 'DB + Auth' },
+    { name: 'TMDB',      icon: <VideoLibraryLinear size={18}/>,      color: '#01D277', sub: ru ? '900k+ тайтлов'   : '900k+ titles' },
+    { name: 'Vercel',    icon: <BoltCircleLinear size={18}/>,       color: '#aaa',    sub: ru ? 'Деплой'           : 'Deployment' },
   ];
 
   return (
@@ -218,10 +214,10 @@ export default function About() {
           </p>
           <div className="about-hero__badges">
             {[
-              { icon: <CheckCircle size={13}/>, label: ru ? 'Бесплатно'     : 'Free' },
-              { icon: <Ban         size={13}/>, label: ru ? 'Без рекламы'   : 'No ads' },
-              { icon: <Cloud       size={13}/>, label: ru ? 'Облачный синк' : 'Cloud sync' },
-              { icon: <Play        size={13}/>, label: 'PWA' },
+              { icon: <CheckCircleLinear size={13}/>, label: ru ? 'Бесплатно'     : 'Free' },
+              { icon: <ForbiddenCircleLinear         size={13}/>, label: ru ? 'Без рекламы'   : 'No ads' },
+              { icon: <CloudLinear       size={13}/>, label: ru ? 'Облачный синк' : 'Cloud sync' },
+              { icon: <PlayLinear        size={13}/>, label: 'PWA' },
             ].map((b, i) => (
               <span key={i} className="about-hero__badge">
                 {b.icon} {b.label}
@@ -229,7 +225,7 @@ export default function About() {
             ))}
           </div>
           <div className="about-hero__cta">
-            <ArrowRight size={14}/>
+            <AltArrowRightLinear size={14}/>
             {ru ? 'Прокрути вниз чтобы узнать больше' : 'Scroll down to learn more'}
           </div>
         </div>

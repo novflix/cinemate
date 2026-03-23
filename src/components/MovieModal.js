@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, ExternalLink, Monitor, Pencil, RotateCcw } from 'lucide-react';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -38,7 +38,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
                 {svc?.name || p.provider_name}
                 {!streaming && <span className="modal__where-tag">{t(lang,'аренда','rent')}</span>}
               </span>
-              <ExternalLink size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
+              <LinkMinimalisticLinear size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
             </a>
           ) : null;
         })}
@@ -106,7 +106,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
       <div className="tv-tracker__row">
         {progress ? (
           <div className="tv-tracker__badge" onClick={handleOpen}>
-            <Monitor size={16} className="tv-tracker__badge-icon"/>
+            <MonitorLinear size={16} className="tv-tracker__badge-icon"/>
             <div className="tv-tracker__badge-info">
               <span className="tv-tracker__badge-pos">{ru?'Сезон':'Season'} {progress.season} · {ru?'Серия':'Episode'} {progress.episode}</span>
               {totalSeasons > 1 && (
@@ -117,16 +117,16 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
                 </div>
               )}
             </div>
-            <Pencil size={12} className="tv-tracker__badge-edit"/>
+            <PenLinear size={12} className="tv-tracker__badge-edit"/>
           </div>
         ) : (
           <button className="tv-tracker__start" onClick={handleOpen}>
-            <span className="tv-tracker__start-inner"><Monitor size={14}/><span>{ru ? 'Отметить прогресс' : 'Track progress'}</span></span>
+            <span className="tv-tracker__start-inner"><MonitorLinear size={14}/><span>{ru ? 'Отметить прогресс' : 'Track progress'}</span></span>
           </button>
         )}
         {progress && (
           <button className="tv-tracker__clear" onClick={onClear}>
-            <RotateCcw size={11}/> {ru ? 'Сбросить' : 'Reset'}
+            <RefreshCircleLinear size={11}/> {ru ? 'Сбросить' : 'Reset'}
           </button>
         )}
       </div>
@@ -136,7 +136,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
         <div className="tv-tracker__overlay" onClick={() => setOpen(false)}>
           <div className="tv-tracker__panel" onClick={e => e.stopPropagation()}>
             <p className="tv-tracker__panel-title">
-              <Tv2 size={15}/> {ru ? 'Где я остановился' : 'My progress'}
+              <TVLinear size={15}/> {ru ? 'Где я остановился' : 'My progress'}
             </p>
             <div className="tv-tracker__fields">
               <div className="tv-tracker__field">
@@ -230,7 +230,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
             {(backdrop || poster) && <img src={backdrop || poster} alt="" className="modal__backdrop-img"/>}
             <div className="modal__backdrop-fade"/>
             <button className="modal__close" onClick={e => { e.stopPropagation(); onClose(); }}>
-              <X size={16} strokeWidth={2.5}/>
+              <CloseCircleLinear size={16} strokeWidth={2.5}/>
             </button>
           </div>
 
@@ -240,11 +240,11 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
               <h2 className="modal__title">{title}</h2>
               <div className="modal__sub">
                 {year    && <span>{year}</span>}
-                {rating  && <span><Star size={11} fill="currentColor"/>{rating}</span>}
-                {runtime && <span><Clock size={11}/>{runtime}</span>}
-                {seasons && <span><Tv2 size={11}/>{seasons} {t(lang,'сез.','seas.')}</span>}
+                {rating  && <span><StarLinear size={11} fill="currentColor"/>{rating}</span>}
+                {runtime && <span><ClockCircleLinear size={11}/>{runtime}</span>}
+                {seasons && <span><TVLinear size={11}/>{seasons} {t(lang,'сез.','seas.')}</span>}
                 <span className="modal__type-badge">
-                  {type==='tv' ? <><Tv2 size={10}/>{t(lang,'Сериал','Series')}</> : <><Film size={10}/>{t(lang,'Фильм','Movie')}</>}
+                  {type==='tv' ? <><TVLinear size={10}/>{t(lang,'Сериал','Series')}</> : <><VideoLibraryLinear size={10}/>{t(lang,'Фильм','Movie')}</>}
                 </span>
               </div>
               {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
@@ -304,12 +304,12 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
 
             <div className="modal__actions">
               <button className={"modal__action-btn"+(watched?" active-green":"")} onClick={handleMarkWatched}>
-                {watched ? <><EyeOff size={15}/>{t(lang,'Смотрел','Watched')}</> : <><Eye size={15}/>{t(lang,'Уже смотрел','Mark watched')}</>}
+                {watched ? <><EyeClosedLinear size={15}/>{t(lang,'Смотрел','Watched')}</> : <><EyeLinear size={15}/>{t(lang,'Уже смотрел','Mark watched')}</>}
               </button>
               <button className={"modal__action-btn secondary"+(inList&&!watched?" active-yellow":"")}
                 onClick={() => inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type})}
                 disabled={watched}>
-                {inList&&!watched ? <><BookmarkCheck size={15}/>{t(lang,'В списке','In list')}</> : <><Bookmark size={15}/>{t(lang,'Хочу посмотреть','Watchlist')}</>}
+                {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t(lang,'В списке','In list')}</> : <><BookmarkLinear size={15}/>{t(lang,'Хочу посмотреть','Watchlist')}</>}
               </button>
             </div>
           </div>

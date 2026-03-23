@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shuffle, X, Eye, ExternalLink } from 'lucide-react';
+import { ShuffleLinear, CloseCircleLinear, EyeLinear, LinkMinimalisticLinear } from 'solar-icon-set';
 import { tmdb } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -99,7 +99,7 @@ export default function Roulette({ onMovieClick }) {
   if (!open) {
     return (
       <button className="roulette-trigger" onClick={handleOpen}>
-        <Shuffle size={18}/>
+        <ShuffleLinear size={18}/>
         <span>{t(lang,'Что посмотреть?','What to watch?')}</span>
       </button>
     );
@@ -110,7 +110,7 @@ export default function Roulette({ onMovieClick }) {
       <div className="roulette-modal" onClick={e => e.stopPropagation()}>
         <div className="roulette-header">
           <h2 className="roulette-title">{t(lang,'Крутим рулетку','Spin the wheel')}</h2>
-          {!spinning && <button className="roulette-close" onClick={handleClose}><X size={18}/></button>}
+          {!spinning && <button className="roulette-close" onClick={handleClose}><CloseCircleLinear size={18}/></button>}
         </div>
 
         {items.length < 2 ? (
@@ -151,10 +151,10 @@ export default function Roulette({ onMovieClick }) {
                 </div>
                 <div className="roulette-result__actions">
                   <button className="roulette-result__btn primary" onClick={() => { handleClose(); setTimeout(() => onMovieClick?.(winner), 320); }}>
-                    <ExternalLink size={15}/> {t(lang,'Открыть','Open')}
+                    <LinkMinimalisticLinear size={15}/> {t(lang,'Открыть','Open')}
                   </button>
                   <button className="roulette-result__btn" onClick={() => { addToWatched(winner); handleClose(); }}>
-                    <Eye size={15}/> {t(lang,'Смотрел','Watched')}
+                    <EyeLinear size={15}/> {t(lang,'Смотрел','Watched')}
                   </button>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default function Roulette({ onMovieClick }) {
 
             <div className="roulette-footer">
               <button className={"roulette-spin-btn"+(spinning?" spinning":"")} onClick={spin} disabled={spinning}>
-                <Shuffle size={18}/>
+                <ShuffleLinear size={18}/>
                 {spinning ? t(lang,'Крутится…','Spinning…') : winner ? t(lang,'Ещё раз!','Again!') : t(lang,'Крутить!','Spin!')}
               </button>
             </div>

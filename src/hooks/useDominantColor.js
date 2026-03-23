@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 
+// Module-level cache: same poster URL → same color, no reprocessing
+const colorCache = new Map();
+
 export function useDominantColor(imageUrl) {
   const [color, setColor] = useState(null);
 
   useEffect(() => {
     if (!imageUrl) { setColor(null); return; }
+    if (colorCache.has(imageUrl)) { setColor(colorCache.get(imageUrl)); return; }
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {

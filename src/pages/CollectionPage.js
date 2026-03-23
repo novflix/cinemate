@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Film } from 'lucide-react';
+import { AltArrowLeftLinear, StarLinear, VideoLibraryLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -53,15 +53,15 @@ export default function CollectionPage({ item, onBack }) {
     <div className="collection-page page">
       <div className="collection-page__hero" style={backdrop ? {backgroundImage:`url(${backdrop})`} : {}}>
         <div className="collection-page__hero-fade"/>
-        <button className="collection-page__back" onClick={onBack}><ArrowLeft size={20}/></button>
+        <button className="collection-page__back" onClick={onBack}><AltArrowLeftLinear size={20}/></button>
         <div className="collection-page__hero-content">
           {item.logo && <img className="collection-page__logo" src={item.logo} alt={item.name}/>}
           <div>
             <p className="collection-page__type">{item.type === 'collection' ? t(lang,'Коллекция','Collection') : t(lang,'Студия','Studio')}</p>
             <h1 className="collection-page__title">{info?.name || item.name}</h1>
             <div className="collection-page__meta">
-              {movies.length > 0 && <span><Film size={12}/> {movies.length} {t(lang,'фильмов','films')}</span>}
-              {avgRating > 0 && <span><Star size={12} fill="currentColor"/> {avgRating}</span>}
+              {movies.length > 0 && <span><VideoLibraryLinear size={12}/> {movies.length} {t(lang,'фильмов','films')}</span>}
+              {avgRating > 0 && <span><StarLinear size={12} fill="currentColor"/> {avgRating}</span>}
             </div>
           </div>
         </div>

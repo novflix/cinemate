@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, Calendar, MapPin, Film, Tv2 } from 'lucide-react';
+import { AltArrowLeftLinear, HeartLinear, CalendarLinear, PinLinear, VideoLibraryLinear, TVLinear } from 'solar-icon-set';
 import { HEADERS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -47,12 +47,12 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
         {photo && <img className="actor-page__bg" src={photo} alt=""/>}
         <div className="actor-page__bg-fade"/>
         <div className="actor-page__topbar">
-          <button className="actor-page__back" onClick={onBack}><ArrowLeft size={20}/></button>
+          <button className="actor-page__back" onClick={onBack}><AltArrowLeftLinear size={20}/></button>
           <button
             className={"actor-page__like-btn" + (liked ? ' liked' : '')}
             onClick={() => liked ? unlikeActor(actor.id) : likeActor(actor)}
           >
-            <Heart size={16} fill={liked ? 'currentColor' : 'none'}/>
+            <HeartLinear size={16} fill={liked ? 'currentColor' : 'none'}/>
             {liked ? (lang==='ru'?'В избранном':'Liked') : (lang==='ru'?'Нравится':'Like')}
           </button>
         </div>
@@ -63,8 +63,8 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
             <h1 className="actor-page__name">{name}</h1>
             {details?.known_for_department && <p className="actor-page__dept">{details.known_for_department}</p>}
             <div className="actor-page__counts">
-              {movieCount > 0 && <span><Film size={11}/> {movieCount} {t(lang,'фильмов','movies')}</span>}
-              {tvCount > 0 && <span><Tv2 size={11}/> {tvCount} {t(lang,'сериалов','series')}</span>}
+              {movieCount > 0 && <span><VideoLibraryLinear size={11}/> {movieCount} {t(lang,'фильмов','movies')}</span>}
+              {tvCount > 0 && <span><TVLinear size={11}/> {tvCount} {t(lang,'сериалов','series')}</span>}
             </div>
           </div>
         </div>
@@ -73,8 +73,8 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
       <div className="actor-page__body">
         {(born || birthplace) && (
           <div className="actor-page__info-row">
-            {born && <span className="actor-page__info-item"><Calendar size={13}/> {born}</span>}
-            {birthplace && <span className="actor-page__info-item"><MapPin size={13}/> {birthplace}</span>}
+            {born && <span className="actor-page__info-item"><CalendarLinear size={13}/> {born}</span>}
+            {birthplace && <span className="actor-page__info-item"><PinLinear size={13}/> {birthplace}</span>}
           </div>
         )}
 

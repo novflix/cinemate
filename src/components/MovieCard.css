@@ -171,3 +171,8 @@
   transform: scale(1.1);
 }
 .movie-card__dislike:active { transform: scale(0.92); }
+
+/* CSS containment — browser skips layout/paint outside each card */
+.movie-card {
+  contain: layout style;
+}

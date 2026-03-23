@@ -4,15 +4,13 @@ import { supabase } from './supabase';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(undefined); // undefined = loading
+  const [user,    setUser]    = useState(undefined);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
     });
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -33,9 +31,12 @@ export function AuthProvider({ children }) {
     return { data, error };
   };
 
+
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
+
 
   return (
     <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>

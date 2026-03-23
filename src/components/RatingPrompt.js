@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { X, Star } from 'lucide-react';
+import { CloseCircleLinear, StarLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import { tmdb } from '../api';
@@ -41,7 +41,7 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
       <div className={"rating-prompt rating-prompt--" + phase} onClick={e => e.stopPropagation()}>
 
         {phase === 'pick' && (
-          <button className="rating-prompt__close" onClick={onClose}><X size={15}/></button>
+          <button className="rating-prompt__close" onClick={onClose}><CloseCircleLinear size={15}/></button>
         )}
 
         <div className="rating-prompt__header">
@@ -76,7 +76,7 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
 
             <div className="rating-prompt__label-row">
               {display > 0
-                ? <p className="rating-prompt__label" style={{ color }}><Star size={13} fill={color}/> {display}/10 — {label}</p>
+                ? <p className="rating-prompt__label" style={{ color }}><StarLinear size={13} fill={color}/> {display}/10 — {label}</p>
                 : <p className="rating-prompt__hint">{t(lang, 'Нажми на цифру', 'Tap a number')}</p>
               }
             </div>

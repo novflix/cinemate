@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { HEADERS } from '../api';
-import { RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -191,7 +191,8 @@ export default function Recs() {
       } else {
         setItems(prev => {
           const existing = new Set(prev.map(m => m.id));
-          return [...prev, ...candidates.filter(m => !existing.has(m.id))];
+          const next = [...prev, ...candidates.filter(m => !existing.has(m.id))];
+          return next.slice(0, 120); // cap to avoid memory bloat
         });
       }
       pageRef.current = pg + 1;
@@ -253,7 +254,7 @@ export default function Recs() {
           </p>
         </div>
         <button className={"recs-refresh"+(loading?" spinning":"")} onClick={doReset} disabled={loading}>
-          <RefreshCw size={18}/>
+          <RefreshLinear size={18}/>
         </button>
       </div>
 
@@ -273,7 +274,7 @@ export default function Recs() {
 
       {noData && (
         <div className="recs-empty">
-          <Sparkles size={44} strokeWidth={1}/>
+          <MagicStickLinear size={44} strokeWidth={1}/>
           <h3>{t(lang,'Пока пусто','Nothing yet')}</h3>
           <p>{t(lang,'Добавь фильмы в списки, оцени просмотренные или поставь лайк любимому актёру','Save movies, rate what you watched, or like a favourite actor')}</p>
         </div>
