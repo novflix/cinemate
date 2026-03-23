@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Tv2, Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut } from 'lucide-react';
+import { Tv2, Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut, UserPlus } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
 import { useAdmin } from '../admin';
@@ -14,8 +14,26 @@ import './Profile.css';
 
 function SettingsModal({ onClose }) {
   const { theme, setTheme, lang, setLang } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, signOut, signUp } = useAuth();
   const { isAdmin, overrides, setOverride } = useAdmin();
+  // Store data auto-migrates to cloud when user registers (onAuthStateChange triggers StoreProvider reload)
+  const [registerMode, setRegisterMode] = useState(false);
+  const [regEmail, setRegEmail] = useState('');
+  const [regPass,  setRegPass]  = useState('');
+  const [regError, setRegError] = useState('');
+  const [regOk,    setRegOk]    = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setRegError('');
+    if (!regEmail || !regPass) { setRegError(t(lang,'Заполни все поля','Fill in all fields')); return; }
+    if (regPass.length < 6)   { setRegError(t(lang,'Пароль минимум 6 символов','Password min 6 chars')); return; }
+    const { error } = await signUp(regEmail, regPass);
+    if (error) { setRegError(error.message); return; }
+    // Data will sync automatically when userId arrives via onAuthStateChange → StoreProvider
+    setRegOk(true);
+    setTimeout(onClose, 2000);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -98,7 +116,51 @@ function SettingsModal({ onClose }) {
           {!user && (
             <div className="settings-section">
               <p className="settings-label">{t(lang,'Аккаунт','Account')}</p>
-              <p className="settings-email settings-email--guest">{t(lang,'Гостевой режим — данные только на устройстве','Guest mode — data stored locally only')}</p>
+              {!registerMode && !regOk && (
+                <>
+                  <p className="settings-email settings-email--guest">
+                    {t(lang,'Гостевой режим — данные только на этом устройстве','Guest mode — data stored on this device only')}
+                  </p>
+                  <button className="settings-register-btn" onClick={() => setRegisterMode(true)}>
+                    <UserPlus size={14}/>
+                    {t(lang,'Создать аккаунт и сохранить данные','Create account & save my data')}
+                  </button>
+                </>
+              )}
+              {registerMode && !regOk && (
+                <form className="settings-register-form" onSubmit={handleRegister}>
+                  <p className="settings-register-hint">
+                    {t(lang,
+                      'Все твои списки, оценки и прогресс сериалов сохранятся в аккаунт.',
+                      'Your lists, ratings and series progress will be saved to your account.'
+                    )}
+                  </p>
+                  <input
+                    className="settings-register-input"
+                    type="email" placeholder="Email"
+                    value={regEmail} onChange={e => setRegEmail(e.target.value)}
+                  />
+                  <input
+                    className="settings-register-input"
+                    type="password" placeholder={t(lang,'Пароль (мин. 6 символов)','Password (min 6 chars)')}
+                    value={regPass} onChange={e => setRegPass(e.target.value)}
+                  />
+                  {regError && <p className="settings-register-error">{regError}</p>}
+                  <div className="settings-register-actions">
+                    <button type="button" className="settings-register-cancel" onClick={() => setRegisterMode(false)}>
+                      {t(lang,'Отмена','Cancel')}
+                    </button>
+                    <button type="submit" className="settings-register-submit">
+                      {t(lang,'Зарегистрироваться','Sign up')}
+                    </button>
+                  </div>
+                </form>
+              )}
+              {regOk && (
+                <p className="settings-register-ok">
+                  ✅ {t(lang,'Проверь почту для подтверждения аккаунта!','Check your email to confirm your account!')}
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -253,3 +253,39 @@
 .poster-grid__progress-fill {
   height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.3s;
 }
+
+/* Guest → Register flow in Settings */
+.settings-register-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  background: rgba(232,197,71,0.08); border: 1px solid rgba(232,197,71,0.25);
+  color: var(--accent); font-size: 13px; font-weight: 700;
+  transition: all 0.2s; text-align: left; margin-top: 4px;
+}
+.settings-register-btn:hover { background: rgba(232,197,71,0.14); }
+
+.settings-register-form { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.settings-register-hint  { font-size: 12px; color: var(--text3); line-height: 1.5; margin-bottom: 4px; }
+.settings-register-input {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px;
+  transition: border-color 0.2s;
+}
+.settings-register-input:focus { outline: none; border-color: var(--accent); }
+.settings-register-error { font-size: 12px; color: #f87171; }
+.settings-register-actions { display: flex; gap: 8px; margin-top: 4px; }
+.settings-register-cancel {
+  flex: 1; padding: 10px; border-radius: 10px;
+  background: var(--surface2); color: var(--text3);
+  font-size: 13px; font-weight: 600;
+}
+.settings-register-submit {
+  flex: 2; padding: 10px; border-radius: 10px;
+  background: var(--accent); color: #000;
+  font-size: 13px; font-weight: 800;
+}
+.settings-register-ok {
+  font-size: 13px; color: #4ade80; font-weight: 600;
+  padding: 10px 0;
+}

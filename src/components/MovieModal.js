@@ -176,6 +176,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [details, setDetails]         = useState(null);
+  const [overviewExpanded, setOverviewExpanded] = useState(false);
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
   const { lang } = useTheme();
   const watched  = movie ? isWatched(movie.id)     : false;
@@ -251,7 +252,20 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
           </div>
 
           <div className="modal__content">
-            {overview && <p className="modal__overview">{overview}</p>}
+            {overview && (
+              <div className="modal__overview-wrap">
+                <p className={"modal__overview" + (overviewExpanded ? ' expanded' : '')}>
+                  {overview}
+                </p>
+                {overview.length > 180 && (
+                  <button className="modal__overview-toggle" onClick={() => setOverviewExpanded(v => !v)}>
+                    {overviewExpanded
+                      ? t(lang, 'Свернуть', 'Show less')
+                      : t(lang, 'Читать полностью', 'Read more')}
+                  </button>
+                )}
+              </div>
+            )}
 
             {watched && (
               <InlineRating movieId={movie.id} lang={lang} getRating={getRating} rateMovie={rateMovie}/>
