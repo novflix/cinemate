@@ -166,6 +166,7 @@ export default function Recs() {
   const [actor,    setActor]   = useState(null);
 
   const loaderRef    = useRef(null);
+  const containerRef = useRef(null);
   const loadingRef   = useRef(false);
   const profileRef   = useRef(null);
   const pageRef      = useRef(1);
@@ -225,7 +226,7 @@ export default function Recs() {
     if (!el) return;
     const obs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !loadingRef.current) doLoad(false);
-    }, { rootMargin: '400px' });
+    }, { root: containerRef.current, rootMargin: '400px' });
     obs.observe(el);
     return () => obs.disconnect();
   }, [hasMore, doLoad]);
@@ -241,7 +242,7 @@ export default function Recs() {
   const hasSignals = watched.length > 0 || watchlist.length > 0 || Object.keys(likedActors).length > 0;
 
   return (
-    <div className="page recs-page">
+    <div className="page recs-page" ref={containerRef}>
       <div className="recs-header">
         <div>
           <h1 className="recs-header__title">{t(lang,'Для вас','For You')}</h1>
