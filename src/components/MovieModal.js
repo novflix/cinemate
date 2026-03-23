@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, ExternalLink } from 'lucide-react';
+import { useState, useEffect, memo } from 'react';
+import { X, Eye, EyeOff, Bookmark, BookmarkCheck, Star, Clock, Tv2, Film, ExternalLink, Monitor, Pencil, RotateCcw } from 'lucide-react';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -80,9 +80,103 @@ function InlineRating({ movieId, lang, getRating, rateMovie }) {
 }
 
 
-export default function MovieModal({ movie, onClose, onActorClick }) {
+
+// ─── TV Progress Tracker ─────────────────────────────────────────────────────
+function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear }) {
+  const ru = lang === 'ru';
+  const [open, setOpen] = useState(false);
+  const [season,  setSeason]  = useState(progress?.season  || 1);
+  const [episode, setEpisode] = useState(progress?.episode || 1);
+
+  // Sync state when progress changes externally
+  const handleOpen = () => {
+    setSeason(progress?.season   || 1);
+    setEpisode(progress?.episode || 1);
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    onChange({ season, episode, totalSeasons });
+    setOpen(false);
+  };
+
+  return (
+    <>
+      {/* Compact badge — always visible when progress exists */}
+      <div className="tv-tracker__row">
+        {progress ? (
+          <div className="tv-tracker__badge" onClick={handleOpen}>
+            <Monitor size={16} className="tv-tracker__badge-icon"/>
+            <div className="tv-tracker__badge-info">
+              <span className="tv-tracker__badge-pos">{ru?'Сезон':'Season'} {progress.season} · {ru?'Серия':'Episode'} {progress.episode}</span>
+              {totalSeasons > 1 && (
+                <div className="tv-tracker__bar">
+                  <div className="tv-tracker__bar-fill" style={{
+                    width: `${Math.min(100, ((progress.season - 1) / totalSeasons) * 100 + 100 / totalSeasons)}%`
+                  }}/>
+                </div>
+              )}
+            </div>
+            <Pencil size={12} className="tv-tracker__badge-edit"/>
+          </div>
+        ) : (
+          <button className="tv-tracker__start" onClick={handleOpen}>
+            <span className="tv-tracker__start-inner"><Monitor size={14}/><span>{ru ? 'Отметить прогресс' : 'Track progress'}</span></span>
+          </button>
+        )}
+        {progress && (
+          <button className="tv-tracker__clear" onClick={onClear}>
+            <RotateCcw size={11}/> {ru ? 'Сбросить' : 'Reset'}
+          </button>
+        )}
+      </div>
+
+      {/* Full-screen prompt — same style as RatingPrompt */}
+      {open && (
+        <div className="tv-tracker__overlay" onClick={() => setOpen(false)}>
+          <div className="tv-tracker__panel" onClick={e => e.stopPropagation()}>
+            <p className="tv-tracker__panel-title">
+              <Tv2 size={15}/> {ru ? 'Где я остановился' : 'My progress'}
+            </p>
+            <div className="tv-tracker__fields">
+              <div className="tv-tracker__field">
+                <label>{ru ? 'Сезон' : 'Season'}</label>
+                <div className="tv-tracker__counter">
+                  <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
+                  <span className="tv-tracker__counter-val">{season}</span>
+                  <button onClick={() => setSeason(s => Math.min(totalSeasons, s + 1))}>+</button>
+                </div>
+                <span className="tv-tracker__of">из {totalSeasons}</span>
+              </div>
+              <div className="tv-tracker__divider"/>
+              <div className="tv-tracker__field">
+                <label>{ru ? 'Серия' : 'Episode'}</label>
+                <div className="tv-tracker__counter">
+                  <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
+                  <span className="tv-tracker__counter-val">{episode}</span>
+                  <button onClick={() => setEpisode(e => e + 1)}>+</button>
+                </div>
+              </div>
+            </div>
+            <div className="tv-tracker__actions">
+              <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>
+                {ru ? 'Отмена' : 'Cancel'}
+              </button>
+              <button className="tv-tracker__save" onClick={handleSave}>
+                {ru ? 'Сохранить' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+
+const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [details, setDetails]         = useState(null);
-  const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie } = useStore();
+  const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
   const { lang } = useTheme();
   const watched  = movie ? isWatched(movie.id)     : false;
   const inList   = movie ? isInWatchlist(movie.id) : false;
@@ -115,6 +209,8 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
   const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t(lang,'ч','h')} ${details.runtime%60}${t(lang,'м','m')}` : null;
   const seasons  = details?.number_of_seasons;
   const cast     = details?.credits?.cast?.slice(0,12) || [];
+  const progress = movie ? getTvProgress(movie.id) : null;
+  const totalSeasons  = details?.number_of_seasons  || 1;
 
   const handleMarkWatched = () => {
     if (watched) {
@@ -162,6 +258,16 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
             )}
 
             <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
+            {type === 'tv' && inList && (
+              <TvProgressTracker
+                id={movie.id}
+                progress={progress}
+                totalSeasons={totalSeasons}
+                lang={lang}
+                onChange={(data) => setTvProgressEntry(movie.id, data)}
+                onClear={() => clearTvProgress(movie.id)}
+              />
+            )}
 
             {cast.length > 0 && (
               <div className="modal__cast">
@@ -199,3 +305,5 @@ export default function MovieModal({ movie, onClose, onActorClick }) {
     </>
   );
 }
+);
+export default MovieModal;

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut } from 'lucide-react';
+import { Tv2, Edit2, Settings, Eye, Bookmark, Moon, Sun, Globe, X, Check, Trash2, LogOut } from 'lucide-react';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
 import { useAdmin } from '../admin';
@@ -107,7 +107,7 @@ function SettingsModal({ onClose }) {
   );
 }
 
-function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
+function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgress }) {
   if (!items.length) return null;
   return (
     <div className="poster-grid">
@@ -125,6 +125,18 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
               {listTab === 'watched' && rating && (
                 <div className="poster-grid__rating"><span>★</span>{rating}</div>
               )}
+              {listTab === 'watchlist' && getTvProgress?.(m.id) && (() => {
+                const p = getTvProgress(m.id);
+                return (
+                  <div className="poster-grid__progress">
+                    <span>S{p.season}·E{p.episode}</span>
+                    <div className="poster-grid__progress-bar">
+                      <div className="poster-grid__progress-fill"
+                        style={{width:`${Math.min(100,((p.season-1)/Math.max(p.totalSeasons||1,1))*100+100/Math.max(p.totalSeasons||1,1))}%`}}/>
+                    </div>
+                  </div>
+                );
+              })()}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <Trash2 size={11}/>
               </button>
@@ -137,8 +149,33 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating }) {
   );
 }
 
+
+function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect, removeFromWatched, removeFromWatchlist, getRating, getTvProgress, lang }) {
+  if (listTab === 'watched') {
+    return <PosterGrid items={displayItems} onSelect={onSelect} onRemove={removeFromWatched} listTab="watched" getRating={getRating}/>;
+  }
+  const watching = localizedWatchlist.filter(m =>
+    (m.media_type === 'tv' || (!m.title && m.name)) && getTvProgress(m.id)
+  );
+  const queued = localizedWatchlist.filter(m => !watching.find(w => w.id === m.id));
+  return (
+    <>
+      {watching.length > 0 && (
+        <>
+          <p className="profile-watching-label"><Tv2 size={13}/> {t(lang,'Смотрю сейчас','Currently watching')}</p>
+          <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+          {queued.length > 0 && <div className="profile-watching-divider" data-label={lang==='ru'?'В очереди':'Up next'}/>}
+        </>
+      )}
+      {queued.length > 0 && (
+        <PosterGrid items={queued} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+      )}
+    </>
+  );
+}
+
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
@@ -252,12 +289,16 @@ export default function Profile() {
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>
           </div>
         ) : (
-          <PosterGrid
-            items={displayItems}
-            onSelect={setSelected}
-            onRemove={listTab==='watched' ? removeFromWatched : removeFromWatchlist}
+          <WatchlistContent
             listTab={listTab}
+            displayItems={displayItems}
+            localizedWatchlist={localizedWatchlist}
+            onSelect={setSelected}
+            removeFromWatched={removeFromWatched}
+            removeFromWatchlist={removeFromWatchlist}
             getRating={getRating}
+            getTvProgress={getTvProgress}
+            lang={lang}
           />
         )}
       </div>

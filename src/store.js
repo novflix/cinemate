@@ -29,6 +29,7 @@ async function syncToCloud(userId, data) {
     profile:     data.profile,
     liked_actors:data.likedActors,
     disliked_ids:data.dislikedIds,
+    tv_progress: data.tvProgress,
     updated_at:  new Date().toISOString(),
   }, { onConflict: 'user_id' });
 }
@@ -49,6 +50,8 @@ export function StoreProvider({ children, userId }) {
   const [likedActors,  setLikedActors]  = useState(() => load('likedActors',   {}));
   // Set of movie/tv ids user said "not interested"
   const [dislikedIds,  setDislikedIds]  = useState(() => load('dislikedIds',   []));
+  // { [id]: { season: N, episode: N, totalSeasons: N, totalEpisodes: N } }
+  const [tvProgress,   setTvProgress]   = useState(() => load('tvProgress',    {}));
   const [pendingRating,setPendingRating]= useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [syncing,      setSyncing]      = useState(false);
@@ -64,6 +67,7 @@ export function StoreProvider({ children, userId }) {
         if (data.profile)      { setProfile(data.profile);           save('profile',      data.profile); }
         if (data.liked_actors) { setLikedActors(data.liked_actors);  save('likedActors',  data.liked_actors); }
         if (data.disliked_ids) { setDislikedIds(data.disliked_ids);  save('dislikedIds',  data.disliked_ids); }
+        if (data.tv_progress)  { setTvProgress(data.tv_progress);    save('tvProgress',   data.tv_progress); }
       }
       setSyncing(false);
     });
@@ -75,11 +79,12 @@ export function StoreProvider({ children, userId }) {
   useEffect(() => save('profile',     profile),     [profile]);
   useEffect(() => save('likedActors', likedActors), [likedActors]);
   useEffect(() => save('dislikedIds', dislikedIds), [dislikedIds]);
+  useEffect(() => save('tvProgress',   tvProgress),   [tvProgress]);
 
   const syncRef = useCallback(() => {
     if (!userId) return;
-    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds });
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds]);
+    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress });
+  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress]);
 
   useEffect(() => {
     if (!userId) return;
@@ -114,6 +119,10 @@ export function StoreProvider({ children, userId }) {
   const isActorLiked= (id)    => !!likedActors[id];
 
   const addDisliked    = (id) => setDislikedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+
+  const setTvProgressEntry = (id, data) => setTvProgress(prev => ({ ...prev, [id]: { ...prev[id], ...data } }));
+  const getTvProgress      = (id) => tvProgress[id] || null;
+  const clearTvProgress    = (id) => setTvProgress(prev => { const n = {...prev}; delete n[id]; return n; });
   const isDisliked     = (id) => dislikedIds.includes(id);
 
   return (
@@ -121,6 +130,7 @@ export function StoreProvider({ children, userId }) {
       watched, watchlist, ratings, profile, setProfile, syncing,
       likedActors, likeActor, unlikeActor, isActorLiked,
       dislikedIds, addDisliked, isDisliked,
+      tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
       pendingRating, setPendingRating, showConfetti, setShowConfetti,
       addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
       isWatched, isInWatchlist, rateMovie, getRating,

@@ -107,7 +107,7 @@ export function useLocalizedMovies(entries, lang) {
     if (!missing.length) return;
 
     // Fetch in batches to avoid hammering API
-    const BATCH = 6;
+    const BATCH = 10;
     let i = 0;
     const next = async () => {
       const batch = missing.slice(i, i + BATCH);

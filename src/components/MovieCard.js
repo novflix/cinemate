@@ -10,7 +10,7 @@ export const GENRE_COLORS = {};
 
 const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = false, onDislike = null }) {
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist,
-          removeFromWatched, removeFromWatchlist, getRating } = useStore();
+          removeFromWatched, removeFromWatchlist, getRating, getTvProgress } = useStore();
   const { lang } = useTheme();
   // Feature 13: flash state
   const [flash, setFlash] = useState(null); // 'watched' | 'list' | null
@@ -23,6 +23,7 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
   const tmdbRating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
   const userRating = getRating(movie.id);
   const type       = movie.media_type || (movie.title ? 'movie' : 'tv');
+  const progress   = type === 'tv' ? getTvProgress(movie.id) : null;
   const handleWatched = (e) => {
     e.stopPropagation();
     if (watched) { removeFromWatched(movie.id); return; }
@@ -63,6 +64,20 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           <Countdown releaseDate={movie.release_date} lang={lang}/>
         )}
 
+        {progress && (
+          <div className="movie-card__progress">
+            <span>S{progress.season}·E{progress.episode}</span>
+            <div className="movie-card__progress-bar">
+              <div className="movie-card__progress-fill"
+                style={{width:`${Math.min(100,((progress.season-1)/Math.max(progress.totalSeasons||1,1))*100+100/Math.max(progress.totalSeasons||1,1))}%`}}/>
+            </div>
+          </div>
+        )}
+        {onDislike && (
+          <button className="movie-card__dislike" onClick={e=>{e.stopPropagation();onDislike(movie.id);}}>
+            <X size={13}/>
+          </button>
+        )}
         <div className="movie-card__overlay">
           <button className={"movie-card__btn"+(watched?" g":"")} onClick={handleWatched}>
             {watched ? <EyeOff size={14}/> : <Eye size={14}/>}
@@ -74,11 +89,6 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           >
             {inList&&!watched ? <BookmarkCheck size={14}/> : <Bookmark size={14}/>}
           </button>
-          {onDislike && (
-            <button className="movie-card__btn movie-card__btn--dislike" onClick={e=>{e.stopPropagation();onDislike(movie.id);}}>
-              <X size={14}/>
-            </button>
-          )}
         </div>
       </div>
       <p className="movie-card__title">{title}</p>

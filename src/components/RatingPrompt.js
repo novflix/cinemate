@@ -1,20 +1,22 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { X, Star } from 'lucide-react';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import { tmdb } from '../api';
+import { SparkBurst } from './Effects';
 import './RatingPrompt.css';
 
 const LABELS_RU = ['','Ужасно','Плохо','Слабо','Ниже среднего','Средне','Неплохо','Хорошо','Отлично','Великолепно','Шедевр'];
 const LABELS_EN = ['','Terrible','Bad','Poor','Below avg','Average','Decent','Good','Great','Excellent','Masterpiece'];
 const COLORS    = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
 
-export default function RatingPrompt({ movie, onClose }) {
+const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
   const { rateMovie, getRating } = useStore();
   const { lang } = useTheme();
   const [hovered,  setHovered]  = useState(0);
   const [selected, setSelected] = useState(getRating(movie?.id) || 0);
-  const [phase,    setPhase]    = useState('pick'); // 'pick' | 'confirm' | 'done'
+  const [phase,    setPhase]    = useState('pick');
+  const [showSparks, setShowSparks] = useState(false); // 'pick' | 'confirm' | 'done'
 
   if (!movie) return null;
 
@@ -27,6 +29,7 @@ export default function RatingPrompt({ movie, onClose }) {
   const handleRate = (score) => {
     setSelected(score);
     rateMovie(movie.id, score);
+    if (score === 10) setShowSparks(true);
     setPhase('confirm');
     // After showing confirm animation, close
     setTimeout(() => setPhase('done'), 1800);
@@ -102,6 +105,9 @@ export default function RatingPrompt({ movie, onClose }) {
         )}
 
       </div>
+    {showSparks && <SparkBurst active={showSparks} onDone={() => setShowSparks(false)}/>}
     </div>
   );
 }
+);
+export default RatingPrompt;

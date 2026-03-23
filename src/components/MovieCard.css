@@ -131,3 +131,43 @@
   background: rgba(239,68,68,0.35) !important;
   transform: scale(1.12) !important;
 }
+
+/* TV Progress badge on card */
+.movie-card__progress {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
+  padding: 20px 6px 5px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+  pointer-events: none;
+}
+.movie-card__progress span {
+  font-size: 9px; font-weight: 800; color: var(--accent);
+  letter-spacing: 0.5px; display: block; margin-bottom: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+.movie-card__progress-bar {
+  height: 3px; border-radius: 2px; background: rgba(255,255,255,0.15);
+  overflow: hidden;
+}
+.movie-card__progress-fill {
+  height: 100%; border-radius: 2px; background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+/* Not interested — top-left corner, always visible when onDislike passed */
+.movie-card__dislike {
+  position: absolute; top: 5px; left: 5px; z-index: 10;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  color: rgba(255,255,255,0.75);
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform 0.15s, background 0.15s;
+}
+.movie-card__dislike:hover {
+  background: rgba(239,68,68,0.75);
+  color: #fff;
+  transform: scale(1.1);
+}
+.movie-card__dislike:active { transform: scale(0.92); }
