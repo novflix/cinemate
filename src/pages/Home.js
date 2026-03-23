@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Star, Play, TrendingUp, Clapperboard, Flame, Trophy, CalendarDays, Tv2, Sparkles, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
@@ -9,6 +9,22 @@ import MovieModal from '../components/MovieModal';
 import ActorPage from './ActorPage';
 import ScrollRow from '../components/ScrollRow';
 import './Home.css';
+
+// Session cache — avoids refetching on tab switch within same session
+const HOME_CACHE_KEY = 'cinemate_home_cache_v1';
+function getHomeCache(lang) {
+  try {
+    const raw = sessionStorage.getItem(HOME_CACHE_KEY + '_' + lang);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > 5 * 60 * 1000) return null; // 5 min TTL
+    return data;
+  } catch { return null; }
+}
+function setHomeCache(lang, data) {
+  try { sessionStorage.setItem(HOME_CACHE_KEY + '_' + lang, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
 
 const MOODS = [
   { id: 'all',    ru: 'Всё',       en: 'All',     icon: '✦', genres: [] },
@@ -82,7 +98,7 @@ function HeroSlider({ items, onSelect }) {
   );
 }
 
-function SectionRow({ items, onSelect, showCountdown=false, gold=false }) {
+const SectionRow = memo(function SectionRow({ items, onSelect, showCountdown=false, gold=false }) {
   return (
     <ScrollRow>
       {items.map(m => (
@@ -92,7 +108,7 @@ function SectionRow({ items, onSelect, showCountdown=false, gold=false }) {
       ))}
     </ScrollRow>
   );
-}
+});
 
 function TogetherSection({ onSelect, lang }) {
   const [activeTag, setActiveTag] = useState('date');
@@ -166,7 +182,11 @@ export default function Home() {
   const seasonCfg = SEASON_CONFIG[season];
 
   useEffect(() => {
-    setLoading(true); setMood('all'); setMoodData(null);
+    setMood('all'); setMoodData(null);
+    // Try cache first
+    const cached = getHomeCache(lang);
+    if (cached) { setAllData(cached); setLoading(false); }
+    else setLoading(true);
     Promise.all([
       tmdb.trending('all','week'),
       tmdb.popular('movie',3),
@@ -177,7 +197,7 @@ export default function Home() {
       tmdb.topRated('tv',3),
       tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},3),
     ]).then(([tr,pm,tm,np,up,ptv,ttv,ny]) => {
-      setAllData({
+      const homeData = {
         trending:  (tr.results||[]).slice(0,10),
         popularM:  (pm.results||[]).slice(0,50),
         topM:      (tm.results||[]).slice(0,50),
@@ -192,7 +212,9 @@ export default function Home() {
         popularTV: (ptv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
         topTV:     (ttv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
         newYear:   (ny.results||[]).slice(0,50),
-      });
+      };
+      setAllData(homeData);
+      setHomeCache(lang, homeData);
       setLoading(false);
     }).catch(()=>setLoading(false));
 

@@ -16,15 +16,21 @@ const get = async (path, params = {}) => {
 
 // Fetch multiple pages and merge results (TMDB returns 20 per page)
 const getPages = async (path, params = {}, pages = 3) => {
-  const results = [];
-  for (let p = 1; p <= pages; p++) {
-    try {
-      const data = await get(path, { ...params, page: p });
-      results.push(...(data.results || []));
-      if (p >= (data.total_pages || 1)) break;
-    } catch { break; }
-  }
-  return results;
+  // Fetch page 1 first to know total_pages, then fetch rest in parallel
+  try {
+    const first = await get(path, { ...params, page: 1 });
+    const total = Math.min(pages, first.total_pages || 1);
+    const results = [...(first.results || [])];
+    if (total > 1) {
+      const rest = await Promise.all(
+        Array.from({ length: total - 1 }, (_, i) =>
+          get(path, { ...params, page: i + 2 }).catch(() => ({ results: [] }))
+        )
+      );
+      rest.forEach(d => results.push(...(d.results || [])));
+    }
+    return results;
+  } catch { return []; }
 };
 
 export const tmdb = {
