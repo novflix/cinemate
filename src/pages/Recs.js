@@ -18,39 +18,64 @@ import './Recs.css';
 // Disliked id  → never show again
 
 function buildProfile(watched, watchlist, ratings, likedActors, dislikedIds) {
-  const seedMovies   = [];
-  const genreBoost   = {};
+  const seedMovies = [];
+  const genreBoost = {};
+  const genrePenalty = {}; // track explicitly bad-rated genres
 
+  // ── Watched + ratings ──
   watched.forEach(m => {
     const r = ratings[m.id];
+    const type = m.media_type || 'movie';
+    const genres = m.genre_ids || [];
+
     if (!r) {
-      seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: 1 });
-      (m.genre_ids || []).forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 0.5; });
+      // Unrated: mild positive seed
+      seedMovies.push({ id: m.id, media_type: type, weight: 0.8 });
+      genres.forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 0.3; });
       return;
     }
+
     if (r >= 9) {
-      seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: 4 });
-      (m.genre_ids || []).forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 2; });
+      // Loved: strongest signal — use both /recommendations and similar
+      seedMovies.push({ id: m.id, media_type: type, weight: 5 });
+      seedMovies.push({ id: m.id, media_type: type, weight: 5, strategy: 'similar' });
+      genres.forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 2.5; });
+    } else if (r >= 8) {
+      seedMovies.push({ id: m.id, media_type: type, weight: 3.5 });
+      genres.forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 1.5; });
     } else if (r >= 7) {
-      seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: 2.5 });
-      (m.genre_ids || []).forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 1; });
+      seedMovies.push({ id: m.id, media_type: type, weight: 2 });
+      genres.forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 0.8; });
     } else if (r >= 5) {
-      seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: 0.5 });
+      // OK: very weak positive
+      seedMovies.push({ id: m.id, media_type: type, weight: 0.4 });
     } else if (r >= 4) {
-      seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: -0.5 });
+      // Meh: skip as seed but no penalty
+    } else {
+      // 1-3: don't seed, mild genre penalty ONLY if multiple bad ratings in same genre
+      genres.forEach(g => { genrePenalty[g] = (genrePenalty[g] || 0) + 1; });
     }
-    // 1-3: don't seed from this movie at all
   });
 
+  // Only penalise genres with 2+ bad ratings (pattern, not accident)
+  Object.entries(genrePenalty).forEach(([g, count]) => {
+    if (count >= 2) {
+      genreBoost[g] = (genreBoost[g] || 0) - (count * 0.8);
+    }
+  });
+
+  // ── Watchlist: user explicitly wants this ──
   watchlist.forEach(m => {
-    seedMovies.push({ id: m.id, media_type: m.media_type || 'movie', weight: 1.5 });
-    (m.genre_ids || []).forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 1; });
+    const type = m.media_type || 'movie';
+    seedMovies.push({ id: m.id, media_type: type, weight: 2 });
+    (m.genre_ids || []).forEach(g => { genreBoost[g] = (genreBoost[g] || 0) + 1.2; });
   });
 
+  // Sort by weight, take top 10 positive seeds
   const posSeeds = seedMovies
     .filter(s => s.weight > 0)
     .sort((a, b) => b.weight - a.weight)
-    .slice(0, 8);
+    .slice(0, 10);
 
   const avoidIds = new Set([
     ...watched.map(m => m.id),
@@ -70,16 +95,18 @@ async function fetchCandidates(profile, page, langCode) {
   const { seedMovies, likedActorIds, genreBoost, avoidIds } = profile;
   const results = [];
 
-  // Strategy 1: /recommendations for top-weighted seed movies
+  // Strategy 1: /recommendations + /similar for top-weighted seeds
   if (seedMovies.length > 0) {
     const picks = [];
-    for (let i = 0; i < Math.min(3, seedMovies.length); i++) {
+    for (let i = 0; i < Math.min(4, seedMovies.length); i++) {
       picks.push(seedMovies[(page - 1 + i) % seedMovies.length]);
     }
     await Promise.all(picks.map(async seed => {
       try {
+        // Use /similar for seeds marked with strategy:'similar', else /recommendations
+        const endpoint = seed.strategy === 'similar' ? 'similar' : 'recommendations';
         const r = await fetch(
-          `https://api.themoviedb.org/3/${seed.media_type}/${seed.id}/recommendations?language=${langCode}&page=${page}`,
+          `https://api.themoviedb.org/3/${seed.media_type}/${seed.id}/${endpoint}?language=${langCode}&page=${page}`,
           { headers: HEADERS }
         ).then(r => r.json());
         (r.results || []).forEach(m => results.push({
@@ -147,11 +174,17 @@ async function fetchCandidates(profile, page, langCode) {
       return true;
     })
     .map(m => {
-      const tmdbScore = (m.vote_average || 0) / 10;
-      const srcWeight = m._source_weight || 1;
-      let genreScore  = 0;
-      (m.genre_ids || []).forEach(g => { genreScore += (genreBoost[g] || 0) * 0.15; });
-      return { ...m, _score: tmdbScore * srcWeight + genreScore };
+      const voteAvg    = m.vote_average || 0;
+      const voteCount  = m.vote_count   || 0;
+      // Bayesian average: weight score by vote count (penalise obscure films)
+      const bayesian   = (voteAvg * voteCount + 6 * 100) / (voteCount + 100);
+      const srcWeight  = m._source_weight || 1;
+      let genreScore   = 0;
+      (m.genre_ids || []).forEach(g => { genreScore += (genreBoost[g] || 0) * 0.12; });
+      // Recency bonus: newer films get a small boost
+      const year = parseInt((m.release_date || m.first_air_date || '2000').slice(0, 4));
+      const recency = Math.max(0, (year - 2000) / 25) * 0.3;
+      return { ...m, _score: bayesian * srcWeight + genreScore + recency };
     })
     .sort((a, b) => b._score - a._score);
 }
@@ -191,7 +224,8 @@ export default function Recs() {
       } else {
         setItems(prev => {
           const existing = new Set(prev.map(m => m.id));
-          return [...prev, ...candidates.filter(m => !existing.has(m.id))];
+          const next = [...prev, ...candidates.filter(m => !existing.has(m.id))];
+          return next.slice(0, 120); // cap to avoid memory bloat
         });
       }
       pageRef.current = pg + 1;
@@ -219,27 +253,35 @@ export default function Recs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langCode]);
 
+  // Stable refs so scroll handler never goes stale
+  const hasMoreRef = useRef(hasMore);
+  const doLoadRef  = useRef(doLoad);
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+  useEffect(() => { doLoadRef.current  = doLoad;  }, [doLoad]);
+
   useEffect(() => {
-    // Find the scrolling parent (app-content on desktop, window on mobile)
-    const scrollEl = loaderRef.current?.closest('.app-content') || window;
-    
+    // Mount once — handler uses refs so always sees latest state
+    const getScrollEl = () =>
+      loaderRef.current?.closest('.app-content') || window;
+
     const checkScroll = () => {
-      if (loadingRef.current || !hasMore) return;
+      if (loadingRef.current || !hasMoreRef.current) return;
       const loader = loaderRef.current;
       if (!loader) return;
-      
-      const loaderRect = loader.getBoundingClientRect();
-      const threshold = window.innerHeight + 600;
-      if (loaderRect.top < threshold) {
-        doLoad(false);
+      const rect = loader.getBoundingClientRect();
+      const viewH = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewH + 800) {
+        doLoadRef.current(false);
       }
     };
 
+    const scrollEl = getScrollEl();
     scrollEl.addEventListener('scroll', checkScroll, { passive: true });
-    // Also check immediately in case content is short
-    checkScroll();
+    // Initial check
+    setTimeout(checkScroll, 300);
     return () => scrollEl.removeEventListener('scroll', checkScroll);
-  }, [hasMore, doLoad]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // mount once only
 
   const handleDislike = (id) => {
     addDisliked(id);

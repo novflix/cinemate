@@ -1,11 +1,10 @@
 {
   "name": "cinemate",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react": "^1.1.6",
-    "@solar-icons/react": "^1.1.0",
     "@supabase/supabase-js": "^2.99.3",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
