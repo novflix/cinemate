@@ -46,28 +46,27 @@ const TYPE_OPTIONS = [
   { value: 'tv',    ru: 'Сериалы',  en: 'Series' },
 ];
 
-async function enhancedSearch(query, langCode, filters) {
+async function enhancedSearch(query, langCode, filters, page = 1) {
   const q = query.trim();
   const hasFilters = filters.genres.length > 0 || filters.yearRange || filters.sort !== 'popularity.desc' || filters.type !== 'all';
 
-  // Pure filter browse (no query)
+  // Pure filter browse (no query) — supports pagination
   if (!q && hasFilters) {
     const results = [];
     const params = new URLSearchParams({
       language: langCode,
       sort_by: filters.sort,
       'vote_count.gte': '50',
+      page: String(page),
     });
     if (filters.genres.length) params.set('with_genres', filters.genres.join(','));
-    if (filters.yearRange?.gte) params.set('primary_release_date.gte', filters.yearRange.gte);
-    if (filters.yearRange?.lte) params.set('primary_release_date.lte', filters.yearRange.lte);
 
     const types = filters.type === 'all' ? ['movie', 'tv'] : [filters.type];
     await Promise.all(types.map(async type => {
       const dateParam = type === 'tv' ? 'first_air_date' : 'primary_release_date';
       const p = new URLSearchParams(params);
-      if (filters.yearRange?.gte) { p.delete('primary_release_date.gte'); p.set(`${dateParam}.gte`, filters.yearRange.gte); }
-      if (filters.yearRange?.lte) { p.delete('primary_release_date.lte'); p.set(`${dateParam}.lte`, filters.yearRange.lte); }
+      if (filters.yearRange?.gte) p.set(`${dateParam}.gte`, filters.yearRange.gte);
+      if (filters.yearRange?.lte) p.set(`${dateParam}.lte`, filters.yearRange.lte);
       try {
         const r = await fetch(`https://api.themoviedb.org/3/discover/${type}?${p}`, { headers: HEADERS }).then(r => r.json());
         (r.results || []).filter(m => m.poster_path).forEach(m => results.push({ ...m, media_type: type }));
@@ -87,10 +86,10 @@ async function enhancedSearch(query, langCode, filters) {
 
   const types = filters.type === 'all' ? ['movie', 'tv'] : [filters.type];
 
-  // Text search
+  // Text search with page
   await Promise.all(types.map(async type => {
     try {
-      const r = await fetch(`https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(q)}&language=${langCode}`, { headers: HEADERS }).then(r => r.json());
+      const r = await fetch(`https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(q)}&language=${langCode}&page=${page}`, { headers: HEADERS }).then(r => r.json());
       add(r.results || [], type);
     } catch {}
   }));
@@ -103,8 +102,8 @@ async function enhancedSearch(query, langCode, filters) {
     await Promise.all(types.map(async type => {
       const dateField = type === 'tv' ? 'first_air_date_year' : 'primary_release_year';
       const endpoint = rest
-        ? `https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(rest)}&${dateField}=${year}&language=${langCode}`
-        : `https://api.themoviedb.org/3/discover/${type}?${dateField === 'first_air_date_year' ? 'first_air_date_year' : 'primary_release_year'}=${year}&sort_by=popularity.desc&language=${langCode}`;
+        ? `https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(rest)}&${dateField}=${year}&language=${langCode}&page=${page}`
+        : `https://api.themoviedb.org/3/discover/${type}?${dateField === 'first_air_date_year' ? 'first_air_date_year' : 'primary_release_year'}=${year}&sort_by=popularity.desc&language=${langCode}&page=${page}`;
       try {
         const r = await fetch(endpoint, { headers: HEADERS }).then(r => r.json());
         add(r.results || [], type);
@@ -144,12 +143,17 @@ export default function Search() {
   const [query,    setQuery]    = useState('');
   const [results,  setResults]  = useState([]);
   const [loading,  setLoading]  = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selected, setSelected] = useState(null);
   const [actor,    setActor]    = useState(null);
   const [popular,  setPopular]  = useState([]);
   const [filters,  setFilters]  = useState(DEFAULT_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
+  const [page,     setPage]     = useState(1);
+  const [hasMore,  setHasMore]  = useState(true);
   const timer = useRef();
+  const loaderRef = useRef(null);
+  const loadingMoreRef = useRef(false);
   const { lang } = useTheme();
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 
@@ -177,17 +181,51 @@ export default function Search() {
     }
   }, [lang, query, activeFilterCount]);
 
+  // Initial search — fires on query/filter change
   useEffect(() => {
     clearTimeout(timer.current);
     const hasFilters = activeFilterCount > 0;
-    if (!query.trim() && !hasFilters) { setResults([]); setLoading(false); return; }
+    if (!query.trim() && !hasFilters) { setResults([]); setLoading(false); setPage(1); setHasMore(true); return; }
     setLoading(true);
+    setPage(1);
+    setHasMore(true);
     timer.current = setTimeout(async () => {
-      const r = await enhancedSearch(query, langCode, filters);
+      const r = await enhancedSearch(query, langCode, filters, 1);
       setResults(r);
       setLoading(false);
+      setHasMore(r.length >= 10);
     }, 350);
   }, [query, langCode, filters, activeFilterCount]);
+
+  // Load more on scroll
+  const loadMore = useCallback(async () => {
+    if (loadingMoreRef.current || !hasMore) return;
+    const hasFilters = activeFilterCount > 0;
+    if (!query.trim() && !hasFilters) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const r = await enhancedSearch(query, langCode, filters, nextPage);
+    setResults(prev => {
+      const existing = new Set(prev.map(m => `${m.id}-${m.media_type}`));
+      return [...prev, ...r.filter(m => !existing.has(`${m.id}-${m.media_type}`))];
+    });
+    setPage(nextPage);
+    setHasMore(r.length >= 5);
+    setLoadingMore(false);
+    loadingMoreRef.current = false;
+  }, [page, hasMore, query, langCode, filters, activeFilterCount]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const el = loaderRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadMore();
+    }, { rootMargin: '400px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loadMore]);
 
   if (actor) return <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>;
 
@@ -309,6 +347,16 @@ export default function Search() {
         <div className="search-grid">
           {displayed.map(m => <div key={`${m.id}-${m.media_type}`}><MovieCard movie={m} onClick={setSelected}/></div>)}
         </div>
+      )}
+
+      {/* Infinite scroll trigger (only for search/filter mode) */}
+      {showingFiltered && (
+        <>
+          <div ref={loaderRef} style={{height: 40}}/>
+          {loadingMore && (
+            <div className="search-loading" style={{padding: '12px 0'}}><div className="search-loading__spinner"/></div>
+          )}
+        </>
       )}
 
       <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a => { setSelected(null); setActor(a); }}/>
