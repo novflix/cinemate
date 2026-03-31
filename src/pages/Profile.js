@@ -364,7 +364,7 @@ function CustomListsContent({ customLists, createCustomList, deleteCustomList, r
 }
 
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress, customLists, createCustomList, deleteCustomList, renameCustomList, addToCustomList, removeFromCustomList } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress, customLists, createCustomList, deleteCustomList, renameCustomList, removeFromCustomList } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
