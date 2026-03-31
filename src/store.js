@@ -30,6 +30,7 @@ async function syncToCloud(userId, data) {
     liked_actors:data.likedActors,
     disliked_ids:data.dislikedIds,
     tv_progress: data.tvProgress,
+    custom_lists:data.customLists,
     updated_at:  new Date().toISOString(),
   }, { onConflict: 'user_id' });
 }
@@ -52,6 +53,8 @@ export function StoreProvider({ children, userId }) {
   const [dislikedIds,  setDislikedIds]  = useState(() => load('dislikedIds',   []));
   // { [id]: { season: N, episode: N, totalSeasons: N, totalEpisodes: N } }
   const [tvProgress,   setTvProgress]   = useState(() => load('tvProgress',    {}));
+  // { [listId]: { id, name, items: [], createdAt } }
+  const [customLists,  setCustomLists]  = useState(() => load('customLists',   {}));
   const [pendingRating,setPendingRating]= useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [syncing,      setSyncing]      = useState(false);
@@ -68,6 +71,7 @@ export function StoreProvider({ children, userId }) {
         if (data.liked_actors) { setLikedActors(data.liked_actors);  save('likedActors',  data.liked_actors); }
         if (data.disliked_ids) { setDislikedIds(data.disliked_ids);  save('dislikedIds',  data.disliked_ids); }
         if (data.tv_progress)  { setTvProgress(data.tv_progress);    save('tvProgress',   data.tv_progress); }
+        if (data.custom_lists) { setCustomLists(data.custom_lists);  save('customLists',  data.custom_lists); }
       }
       setSyncing(false);
     });
@@ -80,6 +84,7 @@ export function StoreProvider({ children, userId }) {
   useEffect(() => save('likedActors', likedActors), [likedActors]);
   useEffect(() => save('dislikedIds', dislikedIds), [dislikedIds]);
   useEffect(() => save('tvProgress',   tvProgress),   [tvProgress]);
+  useEffect(() => save('customLists',  customLists),  [customLists]);
 
   const syncRef = useCallback(() => {
     if (!userId) return;
@@ -125,17 +130,42 @@ export function StoreProvider({ children, userId }) {
   const clearTvProgress    = (id) => setTvProgress(prev => { const n = {...prev}; delete n[id]; return n; });
   const isDisliked     = (id) => dislikedIds.includes(id);
 
+  // ── Custom Lists ──────────────────────────────────────────────────────────
+  const createCustomList = (name) => {
+    const id = `list_${Date.now()}`;
+    setCustomLists(prev => ({ ...prev, [id]: { id, name, items: [], createdAt: Date.now() } }));
+    return id;
+  };
+  const deleteCustomList = (listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; });
+  const renameCustomList = (listId, name) => setCustomLists(prev => ({
+    ...prev, [listId]: { ...prev[listId], name }
+  }));
+  const addToCustomList  = (listId, movie) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    if (list.items.find(m => m.id === movie.id)) return prev;
+    return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items] } };
+  });
+  const removeFromCustomList = (listId, movieId) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== movieId) } };
+  });
+  const isInCustomList = (listId, movieId) => !!customLists[listId]?.items.find(m => m.id === movieId);
+
   const ctxValue = useMemo(() => ({
     watched, watchlist, ratings, profile, setProfile, syncing,
     likedActors, likeActor, unlikeActor, isActorLiked,
     dislikedIds, addDisliked, isDisliked,
     tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
+    customLists, createCustomList, deleteCustomList, renameCustomList,
+    addToCustomList, removeFromCustomList, isInCustomList,
     pendingRating, setPendingRating, showConfetti, setShowConfetti,
     addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
     isWatched, isInWatchlist, rateMovie, getRating,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [watched, watchlist, ratings, profile, likedActors, dislikedIds,
-       tvProgress, pendingRating, showConfetti, syncing]);
+       tvProgress, customLists, pendingRating, showConfetti, syncing]);
 
   return (
     <StoreContext.Provider value={ctxValue}>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear, TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear } from 'solar-icon-set';
+import { TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear, TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear, AddCircleLinear, PenLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
 import { useAdmin } from '../admin';
@@ -236,11 +236,140 @@ function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect,
   );
 }
 
+function CustomListsContent({ customLists, createCustomList, deleteCustomList, renameCustomList, removeFromCustomList, onSelect, lang, editingList, setEditingList, renameVal, setRenameVal }) {
+  const ru = lang === 'ru';
+  const [selectedList, setSelectedList] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+
+  const lists = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
+
+  const handleCreate = () => {
+    const name = newName.trim();
+    if (!name) return;
+    createCustomList(name);
+    setNewName('');
+    setCreating(false);
+  };
+
+  if (selectedList) {
+    const list = customLists[selectedList];
+    if (!list) { setSelectedList(null); return null; }
+    return (
+      <div className="custom-list-view">
+        <div className="custom-list-view__header">
+          <button className="custom-list-view__back" onClick={() => setSelectedList(null)}>← {ru ? 'Назад' : 'Back'}</button>
+          <span className="custom-list-view__title">{list.name}</span>
+          <button className="custom-list-view__delete" onClick={() => { deleteCustomList(selectedList); setSelectedList(null); }}>
+            <TrashBinMinimalistic2Linear size={14}/>
+          </button>
+        </div>
+        {list.items.length === 0 ? (
+          <div className="lists-empty">
+            <ListLinear size={38} strokeWidth={1}/>
+            <p>{ru ? 'Список пуст' : 'List is empty'}</p>
+            <p style={{fontSize:12,color:'var(--text3)'}}>{ru ? 'Открой любой фильм и нажми «В список»' : 'Open any movie and tap "Add to list"'}</p>
+          </div>
+        ) : (
+          <div className="poster-grid">
+            {list.items.map(m => {
+              const poster = tmdb.posterUrl(m.poster_path);
+              const title = m.title || m.name || m._fallback_title || '';
+              return (
+                <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
+                  <div className="poster-grid__poster">
+                    {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
+                    <button className="poster-grid__remove" onClick={e => { e.stopPropagation(); removeFromCustomList(selectedList, m.id); }}>
+                      <TrashBinMinimalistic2Linear size={11}/>
+                    </button>
+                  </div>
+                  <p className="poster-grid__title">{title}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="custom-lists">
+      {lists.length === 0 && !creating && (
+        <div className="lists-empty">
+          <ListLinear size={38} strokeWidth={1}/>
+          <p>{ru ? 'Нет кастомных списков' : 'No custom lists yet'}</p>
+        </div>
+      )}
+      <div className="custom-lists__grid">
+        {lists.map(list => (
+          <div key={list.id} className="custom-list-card" onClick={() => setSelectedList(list.id)}>
+            <div className="custom-list-card__posters">
+              {list.items.slice(0, 4).map(m => (
+                <img key={m.id} src={tmdb.posterUrl(m.poster_path)} alt="" loading="lazy"/>
+              ))}
+              {list.items.length === 0 && <div className="custom-list-card__empty-poster"/>}
+            </div>
+            <div className="custom-list-card__info">
+              {editingList === list.id ? (
+                <input
+                  className="custom-list-card__rename"
+                  autoFocus
+                  value={renameVal}
+                  onChange={e => setRenameVal(e.target.value)}
+                  onBlur={() => { renameCustomList(list.id, renameVal.trim() || list.name); setEditingList(null); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { renameCustomList(list.id, renameVal.trim() || list.name); setEditingList(null); } }}
+                  onClick={e => e.stopPropagation()}
+                  maxLength={40}
+                />
+              ) : (
+                <span className="custom-list-card__name">{list.name}</span>
+              )}
+              <div className="custom-list-card__meta">
+                <span>{list.items.length} {ru ? 'проектов' : 'items'}</span>
+                <button className="custom-list-card__edit" onClick={e => { e.stopPropagation(); setEditingList(list.id); setRenameVal(list.name); }}>
+                  <PenLinear size={11}/>
+                </button>
+                <button className="custom-list-card__del" onClick={e => { e.stopPropagation(); deleteCustomList(list.id); }}>
+                  <TrashBinMinimalistic2Linear size={11}/>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {creating ? (
+        <div className="custom-lists__create">
+          <input
+            autoFocus
+            className="custom-lists__create-input"
+            placeholder={ru ? 'Название списка' : 'List name'}
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setCreating(false); }}
+            maxLength={40}
+          />
+          <div className="custom-lists__create-actions">
+            <button className="custom-lists__create-cancel" onClick={() => setCreating(false)}>{ru ? 'Отмена' : 'Cancel'}</button>
+            <button className="custom-lists__create-confirm" onClick={handleCreate}>{ru ? 'Создать' : 'Create'}</button>
+          </div>
+        </div>
+      ) : (
+        <button className="custom-lists__new" onClick={() => setCreating(true)}>
+          <AddCircleLinear size={16}/> {ru ? 'Новый список' : 'New list'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress, customLists, createCustomList, deleteCustomList, renameCustomList, addToCustomList, removeFromCustomList } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
+  const [editingList,  setEditingList]  = useState(null); // listId being renamed
+  const [renameVal,    setRenameVal]    = useState('');
   const [editing,      setEditing]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [name,         setName]         = useState(profile.name);
@@ -343,9 +472,26 @@ export default function Profile() {
           <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={()=>setListTab('watched')}>
             <EyeLinear size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
           </button>
+          <button className={"lists-tab"+(listTab==='lists'?" active":"")} onClick={()=>setListTab('lists')}>
+            <ListLinear size={14}/> {t(lang,'Списки','Lists')} <span>{Object.keys(customLists).length}</span>
+          </button>
         </div>
 
-        {displayItems.length === 0 ? (
+        {listTab === 'lists' ? (
+          <CustomListsContent
+            customLists={customLists}
+            createCustomList={createCustomList}
+            deleteCustomList={deleteCustomList}
+            renameCustomList={renameCustomList}
+            removeFromCustomList={removeFromCustomList}
+            onSelect={setSelected}
+            lang={lang}
+            editingList={editingList}
+            setEditingList={setEditingList}
+            renameVal={renameVal}
+            setRenameVal={setRenameVal}
+          />
+        ) : displayItems.length === 0 ? (
           <div className="lists-empty">
             {listTab==='watchlist' ? <BookmarkLinear size={38} strokeWidth={1}/> : <EyeLinear size={38} strokeWidth={1}/>}
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>

@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear } from 'solar-icon-set';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, AddCircleLinear, ListLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -87,6 +87,25 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   const [open, setOpen] = useState(false);
   const [season,  setSeason]  = useState(progress?.season  || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
+  const [episodesInSeason, setEpisodesInSeason] = useState(null); // null = loading
+
+  // Fetch episode count for selected season
+  useEffect(() => {
+    if (!open) return;
+    setEpisodesInSeason(null);
+    fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?language=en-US`, { headers: HEADERS })
+      .then(r => r.json())
+      .then(data => {
+        const count = data.episodes?.length || null;
+        setEpisodesInSeason(count);
+        // Clamp episode if needed
+        if (count && episode > count) setEpisode(count);
+      })
+      .catch(() => setEpisodesInSeason(null));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, season, id]);
+
+  const maxEpisode = episodesInSeason || 999;
 
   // Sync state when progress changes externally
   const handleOpen = () => {
@@ -154,8 +173,14 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
                 <div className="tv-tracker__counter">
                   <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
                   <span className="tv-tracker__counter-val">{episode}</span>
-                  <button onClick={() => setEpisode(e => e + 1)}>+</button>
+                  <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
                 </div>
+                {episodesInSeason && (
+                  <span className="tv-tracker__of">{ru ? 'из' : 'of'} {episodesInSeason}</span>
+                )}
+                {episodesInSeason === null && open && (
+                  <span className="tv-tracker__of">…</span>
+                )}
               </div>
             </div>
             <div className="tv-tracker__actions">
@@ -173,6 +198,78 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   );
 }
 
+
+// ─── Add to Custom List Button ────────────────────────────────────────────────
+function AddToListButton({ movie, lang }) {
+  const { customLists, createCustomList, addToCustomList, removeFromCustomList, isInCustomList } = useStore();
+  const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+  const ru = lang === 'ru';
+
+  const lists = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
+
+  const handleCreate = () => {
+    const name = newName.trim();
+    if (!name) return;
+    const id = createCustomList(name);
+    addToCustomList(id, movie);
+    setNewName('');
+    setCreating(false);
+  };
+
+  return (
+    <div className="modal__addlist">
+      <button className="modal__addlist-btn" onClick={() => setOpen(v => !v)}>
+        <ListLinear size={15}/>
+        {ru ? 'В список' : 'Add to list'}
+        {lists.some(l => isInCustomList(l.id, movie.id)) && <span className="modal__addlist-dot"/>}
+      </button>
+
+      {open && (
+        <div className="modal__addlist-dropdown">
+          {lists.length === 0 && !creating && (
+            <p className="modal__addlist-empty">{ru ? 'Нет списков' : 'No lists yet'}</p>
+          )}
+          {lists.map(list => {
+            const inList = isInCustomList(list.id, movie.id);
+            return (
+              <button
+                key={list.id}
+                className={"modal__addlist-item" + (inList ? ' in-list' : '')}
+                onClick={() => inList ? removeFromCustomList(list.id, movie.id) : addToCustomList(list.id, movie)}
+              >
+                <span className="modal__addlist-item-name">{list.name}</span>
+                {inList
+                  ? <span className="modal__addlist-check">✓</span>
+                  : <AddCircleLinear size={14}/>
+                }
+              </button>
+            );
+          })}
+          {creating ? (
+            <div className="modal__addlist-create">
+              <input
+                className="modal__addlist-input"
+                autoFocus
+                placeholder={ru ? 'Название списка' : 'List name'}
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setCreating(false); }}
+                maxLength={40}
+              />
+              <button className="modal__addlist-confirm" onClick={handleCreate}>{ru ? 'Создать' : 'Create'}</button>
+            </div>
+          ) : (
+            <button className="modal__addlist-new" onClick={() => setCreating(true)}>
+              <AddCircleLinear size={14}/> {ru ? 'Новый список' : 'New list'}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [details, setDetails]         = useState(null);
@@ -312,6 +409,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t(lang,'В списке','In list')}</> : <><BookmarkLinear size={15}/>{t(lang,'Хочу посмотреть','Watchlist')}</>}
               </button>
             </div>
+            <AddToListButton movie={movie} lang={lang}/>
           </div>
         </div>
       </div>
