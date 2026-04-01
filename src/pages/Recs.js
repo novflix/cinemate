@@ -161,9 +161,16 @@ export default function Recs() {
   const { lang } = useTheme();
   const [items,    setItems]   = useState([]);
   const [loading,  setLoading] = useState(false);
-  const [hasMore,  setHasMore] = useState(true);
-  const [selected, setSelected]= useState(null);
-  const [actor,    setActor]   = useState(null);
+
+  // Navigation stack: each entry is { type: 'movie'|'actor', data }
+  const [navStack, setNavStack] = useState([]);
+
+  const pushNav  = (entry) => setNavStack(prev => [...prev, entry]);
+  const popNav   = () => setNavStack(prev => prev.slice(0, -1));
+
+  const currentNav = navStack[navStack.length - 1] || null;
+  const selected   = currentNav?.type === 'movie' ? currentNav.data : null;
+  const actor      = currentNav?.type === 'actor' ? currentNav.data : null;
 
   const loaderRef    = useRef(null);
   const loadingRef   = useRef(false);
@@ -176,6 +183,8 @@ export default function Recs() {
     profileRef.current = buildProfile(watched, watchlist, ratings, likedActors, dislikedIds);
   }, [watched, watchlist, ratings, likedActors, dislikedIds]);
 
+  const [observerKey, setObserverKey] = useState(0);
+
   const doLoad = useCallback(async (reset = false) => {
     if (loadingRef.current) return;
     const prof = profileRef.current;
@@ -185,20 +194,31 @@ export default function Recs() {
     const pageOffset = reset ? profileRef.current._pageOffset || 0 : 0;
     const pg = reset ? 1 + pageOffset : pageRef.current;
     try {
-      const candidates = await fetchCandidates(prof, pg, langCode);
+      let candidates = await fetchCandidates(prof, pg, langCode);
+
+      // If candidates dried up on this page, jump to a new random page
+      if (candidates.length < 4 && !reset) {
+        const fallbackPage = (pg % 20) + 1;
+        candidates = await fetchCandidates(prof, fallbackPage, langCode);
+        pageRef.current = fallbackPage + 1;
+      } else {
+        pageRef.current = pg + 1;
+      }
+
       if (reset) {
         setItems(candidates);
       } else {
         setItems(prev => {
           const existing = new Set(prev.map(m => m.id));
-          return [...prev, ...candidates.filter(m => !existing.has(m.id))];
+          const fresh = candidates.filter(m => !existing.has(m.id));
+          return [...prev, ...fresh];
         });
       }
-      pageRef.current = pg + 1;
-      setHasMore(candidates.length > 3);
     } catch {}
     setLoading(false);
     loadingRef.current = false;
+    // Bump key so the observer re-attaches and immediately checks visibility
+    setObserverKey(k => k + 1);
   }, [langCode]);
 
   const doReset = useCallback(() => {
@@ -208,7 +228,6 @@ export default function Recs() {
     profileRef.current = prof;
     pageRef.current = 1 + newOffset;
     setItems([]);
-    setHasMore(true);
     loadingRef.current = false;
     doLoad(true);
   }, [watched, watchlist, ratings, likedActors, dislikedIds, doLoad]);
@@ -220,33 +239,34 @@ export default function Recs() {
   }, [langCode]);
 
   useEffect(() => {
-    // Find the scrolling parent (app-content on desktop, window on mobile)
-    const scrollEl = loaderRef.current?.closest('.app-content') || window;
-    
-    const checkScroll = () => {
-      if (loadingRef.current || !hasMore) return;
-      const loader = loaderRef.current;
-      if (!loader) return;
-      
-      const loaderRect = loader.getBoundingClientRect();
-      const threshold = window.innerHeight + 600;
-      if (loaderRect.top < threshold) {
-        doLoad(false);
-      }
-    };
+    const el = loaderRef.current;
+    if (!el) return;
 
-    scrollEl.addEventListener('scroll', checkScroll, { passive: true });
-    // Also check immediately in case content is short
-    checkScroll();
-    return () => scrollEl.removeEventListener('scroll', checkScroll);
-  }, [hasMore, doLoad]);
+    // On desktop, .app-content is the scroll container (overflow-y: auto, height: 100dvh).
+    // IntersectionObserver with no root uses the viewport — but loaderRef lives inside
+    // .app-content, so it never enters the *browser* viewport on desktop.
+    // We must pass the actual scroll container as root so the observer fires correctly
+    // on both mobile (body scrolls) and desktop (.app-content scrolls).
+    const scrollRoot = el.closest('.app-content') || null;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingRef.current) {
+          doLoad(false);
+        }
+      },
+      { root: scrollRoot, rootMargin: '600px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [doLoad, observerKey]);
 
   const handleDislike = (id) => {
     addDisliked(id);
     setItems(prev => prev.filter(m => m.id !== id));
   };
 
-  if (actor) return <ActorPage actor={actor} onBack={()=>setActor(null)} onMovieClick={m=>{setActor(null);setSelected(m);}}/>;
+  if (actor) return <ActorPage actor={actor} onBack={popNav} onMovieClick={m=>{ pushNav({ type: 'movie', data: m }); }}/>;
 
   const noData = !loading && allSaved.length === 0 && Object.keys(likedActors).length === 0;
   const hasSignals = watched.length > 0 || watchlist.length > 0 || Object.keys(likedActors).length > 0;
@@ -295,7 +315,7 @@ export default function Recs() {
         <div className="recs-grid">
           {items.map(m => (
             <div key={m.id}>
-              <MovieCard movie={m} onClick={setSelected} onDislike={handleDislike}/>
+              <MovieCard movie={m} onClick={m => pushNav({ type: 'movie', data: m })} onDislike={handleDislike}/>
             </div>
           ))}
         </div>
@@ -314,13 +334,7 @@ export default function Recs() {
         <div className="recs-loader"><div className="recs-spinner"/></div>
       )}
 
-      {!hasMore && (
-        <div className="recs-end">
-          Больше рекомендаций пока нет
-        </div>
-      )}
-
-      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>{setSelected(null);setActor(a);}}/>
+      <MovieModal movie={selected} onClose={popNav} onActorClick={a=>{ pushNav({ type: 'actor', data: a }); }}/>
     </div>
   );
 }
