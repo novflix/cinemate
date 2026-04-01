@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, } from 'solar-icon-set';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme, t } from '../theme';
@@ -199,6 +199,84 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 }
 
 
+// ─── More Menu (⋯ button next to title) ──────────────────────────────────────
+function MoreMenu({ movie, lang }) {
+  const { customLists, addToCustomList, removeFromCustomList, isInCustomList } = useStore();
+  const [panel, setPanel] = useState('closed');
+  const ru = lang === 'ru';
+
+  const lists     = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
+  const inAnyList = lists.some(l => isInCustomList(l.id, movie.id));
+  const close     = () => setPanel('closed');
+
+  return (
+    <div className="modal__more" onClick={e => e.stopPropagation()}>
+      {/* vertical 3-dot button */}
+      <button
+        className={"modal__more-btn" + (inAnyList ? ' in-list' : '')}
+        onClick={e => { e.stopPropagation(); setPanel(v => v === 'closed' ? 'main' : 'closed'); }}
+        aria-label="More options"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="8" cy="3"  r="1.5"/>
+          <circle cx="8" cy="8"  r="1.5"/>
+          <circle cx="8" cy="13" r="1.5"/>
+        </svg>
+      </button>
+
+      {panel !== 'closed' && (
+        <>
+          <div className="modal__more-backdrop" onClick={close}/>
+          <div className="modal__more-panel" onClick={e => e.stopPropagation()}>
+
+            {panel === 'main' && (
+              <button
+                className={"modal__more-item" + (inAnyList ? ' accent' : '')}
+                onClick={() => setPanel('lists')}
+              >
+                <ListLinear size={15}/>
+                <span>{ru ? 'В список' : 'Add to list'}</span>
+                {inAnyList && <span className="modal__more-dot"/>}
+              </button>
+            )}
+
+            {panel === 'lists' && (
+              <>
+                <div className="modal__more-lists-header">
+                  <button className="modal__more-back" onClick={() => setPanel('main')}>
+                    ‹ {ru ? 'Назад' : 'Back'}
+                  </button>
+                  <span>{ru ? 'Добавить в список' : 'Add to list'}</span>
+                </div>
+                {lists.length === 0 && (
+                  <p className="modal__more-empty">
+                    {ru ? 'Нет списков — создай в профиле' : 'No lists — create in profile'}
+                  </p>
+                )}
+                {lists.map(list => {
+                  const inList = isInCustomList(list.id, movie.id);
+                  return (
+                    <button key={list.id}
+                      className={"modal__more-item" + (inList ? ' accent' : '')}
+                      onClick={() => { inList ? removeFromCustomList(list.id, movie.id) : addToCustomList(list.id, movie); close(); }}
+                    >
+                      <ListLinear size={14}/>
+                      <span className="modal__more-item-name">{list.name}</span>
+                      <span className="modal__more-item-count">{list.items?.length ?? 0}</span>
+                      {inList && <span className="modal__more-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [details, setDetails]         = useState(null);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
@@ -262,7 +340,10 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
           <div className="modal__poster-wrap">
             {poster && <img className="modal__poster" src={poster} alt={title}/>}
             <div className="modal__title-block">
-              <h2 className="modal__title">{title}</h2>
+              <div className="modal__title-row">
+                <h2 className="modal__title">{title}</h2>
+                <MoreMenu movie={movie} lang={lang}/>
+              </div>
               <div className="modal__sub">
                 {year    && <span>{year}</span>}
                 {rating  && <span><StarLinear size={11} fill="currentColor"/>{rating}</span>}

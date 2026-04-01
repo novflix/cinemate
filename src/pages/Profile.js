@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react';
-import { TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear, TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear } from 'solar-icon-set';
+import { useState, useEffect, useRef } from 'react';
+import { TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear, TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear, AddCircleLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
 import { useAdmin } from '../admin';
 import { SEASON_CONFIG } from '../hooks/useSeason';
 import { useTheme, t } from '../theme';
-import { tmdb } from '../api';
+import { tmdb, HEADERS } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
 import Roulette from '../components/Roulette';
 import MovieModal from '../components/MovieModal';
@@ -236,8 +236,373 @@ function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect,
   );
 }
 
+// ─── Full-screen: view contents of one list ───────────────────────────────────
+function ListDetailPage({ list, listId, onBack, onSelect, removeFromCustomList, updateCustomList, lang }) {
+  const ru = lang === 'ru';
+  const [showPicker, setShowPicker] = useState(false);
+
+  return (
+    <div className="page list-detail-page">
+      <div className="list-detail__header">
+        <button className="list-detail__back" onClick={onBack}>
+          <CloseCircleLinear size={20}/>
+        </button>
+        <div className="list-detail__header-info">
+          {/* Always show square avatar */}
+          <div className={`custom-list-card__avatar${(list.image || list.items.length === 1) ? ' custom-list-card__avatar--single' : ''}`}
+               style={{width:72,height:72,borderRadius:12,flexShrink:0}}>
+            {list.image
+              ? <img src={list.image} alt=""/>
+              : list.items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean).length > 0
+                ? list.items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean).map((url, i) => <img key={i} src={url} alt=""/>)
+                : <div className="custom-list-card__avatar--empty"><ListLinear size={28} strokeWidth={1}/></div>
+            }
+          </div>
+          <div>
+            <h1 className="list-detail__title">{list.name}</h1>
+            {list.description && <p className="list-detail__desc">{list.description}</p>}
+            <p className="list-detail__count">{list.items.length} {ru ? 'проектов' : 'titles'}</p>
+          </div>
+        </div>
+      </div>
+
+      {list.items.length === 0 ? (
+        <div className="lists-empty">
+          <ListLinear size={38} strokeWidth={1}/>
+          <p>{ru ? 'Список пуст' : 'List is empty'}</p>
+          <p style={{fontSize:12,color:'var(--text3)',marginTop:4}}>{ru ? 'Открой любой фильм и добавь через ⋯' : 'Open any title and add via ⋯'}</p>
+        </div>
+      ) : (
+        <div className="poster-grid" style={{padding:'0 16px'}}>
+          {list.items.map(m => {
+            const poster = tmdb.posterUrl(m.poster_path);
+            const title  = m.title || m.name || m._fallback_title || '';
+            return (
+              <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
+                <div className="poster-grid__poster">
+                  {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
+                  <button className="poster-grid__remove" onClick={e => { e.stopPropagation(); removeFromCustomList(listId, m.id); }}>
+                    <TrashBinMinimalistic2Linear size={11}/>
+                  </button>
+                </div>
+                <p className="poster-grid__title">{title}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{padding:'16px 16px 0'}}>
+        <button className="custom-lists__new" onClick={() => setShowPicker(true)}>
+          <AddCircleLinear size={16}/> {ru ? 'Добавить тайтлы' : 'Add titles'}
+        </button>
+      </div>
+
+      {showPicker && (
+        <TitlePickerModal
+          listItems={list.items}
+          onAdd={m => updateCustomList(listId, m)}
+          onClose={() => setShowPicker(false)}
+          lang={lang}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Title picker modal — searches TMDB + shows saved titles ──────────────────
+function TitlePickerModal({ listItems, onAdd, onClose, lang }) {
+  const ru = lang === 'ru';
+  const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const inListIds = new Set(listItems.map(m => m.id));
+  const [query,   setQuery]   = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(timer.current);
+    if (!query.trim()) { setResults([]); setLoading(false); return; }
+    setLoading(true);
+    timer.current = setTimeout(async () => {
+      try {
+        const [movies, tv] = await Promise.all([
+          fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&language=${langCode}`, { headers: HEADERS }).then(r => r.json()),
+          fetch(`https://api.themoviedb.org/3/search/tv?query=${encodeURIComponent(query)}&language=${langCode}`, { headers: HEADERS }).then(r => r.json()),
+        ]);
+        const combined = [
+          ...(movies.results || []).filter(m => m.poster_path).map(m => ({ ...m, media_type: 'movie' })),
+          ...(tv.results    || []).filter(m => m.poster_path).map(m => ({ ...m, media_type: 'tv' })),
+        ].sort((a, b) => (b.popularity || 0) - (a.popularity || 0)).slice(0, 30);
+        setResults(combined);
+      } catch {}
+      setLoading(false);
+    }, 350);
+  }, [query, langCode]);
+
+  const displayed = results;
+
+  return (
+    <div className="picker-overlay" onClick={onClose}>
+      <div className="picker-panel" onClick={e => e.stopPropagation()}>
+        <div className="picker-header">
+          <h3>{ru ? 'Добавить тайтлы' : 'Add titles'}</h3>
+          <button onClick={onClose}><CloseCircleLinear size={20}/></button>
+        </div>
+        <div className="picker-search">
+          <input
+            autoFocus
+            className="picker-search__input"
+            placeholder={ru ? 'Поиск фильмов и сериалов...' : 'Search movies & series...'}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="picker-grid">
+          {loading && (
+            <div style={{gridColumn:'1/-1',padding:'32px 0',textAlign:'center'}}>
+              <div className="search-loading__spinner"/>
+            </div>
+          )}
+          {!loading && displayed.map(m => {
+            const poster = tmdb.posterUrl(m.poster_path);
+            const title  = m.title || m.name || '';
+            const inList = inListIds.has(m.id);
+            return (
+              <div
+                key={`${m.id}-${m.media_type}`}
+                className={"picker-item" + (inList ? ' picker-item--in' : '')}
+                onClick={() => { if (!inList) { onAdd(m); } }}
+              >
+                <div className="picker-item__poster">
+                  {poster
+                    ? <img src={poster} alt={title} loading="lazy"/>
+                    : <div style={{position:'absolute',inset:0,background:'var(--surface2)'}}/>
+                  }
+                  {inList && <div className="picker-item__check">✓</div>}
+                </div>
+                <p className="picker-item__title">{title}</p>
+              </div>
+            );
+          })}
+          {!loading && !displayed.length && query.trim() && (
+            <div style={{gridColumn:'1/-1',padding:'32px 0',textAlign:'center',color:'var(--text3)',fontSize:13}}>
+              {ru ? 'Ничего не найдено' : 'Nothing found'}
+            </div>
+          )}
+          {!loading && !query.trim() && (
+            <div style={{gridColumn:'1/-1',padding:'32px 0',textAlign:'center',color:'var(--text3)',fontSize:13}}>
+              {ru ? 'Начни вводить название...' : 'Start typing to search...'}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Full-screen: create / edit a list ────────────────────────────────────────
+function ListEditPage({ listId, customLists, createCustomList, updateListMeta, onBack, onSaved, addToCustomList, lang }) {
+  const ru       = lang === 'ru';
+  const existing = listId ? customLists[listId] : null;
+  const [name,      setName]      = useState(existing?.name        || '');
+  const [desc,      setDesc]      = useState(existing?.description || '');
+  const [image,     setImage]     = useState(existing?.image       || null);
+  const [currentId, setCurrentId] = useState(listId || null);
+  const [showPicker, setShowPicker] = useState(false);
+  const fileRef = useRef();
+
+  const listItems = (currentId && customLists[currentId]?.items) || [];
+
+  const handleImage = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => setImage(ev.target.result);
+    r.readAsDataURL(f);
+  };
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    let id = currentId;
+    if (id) {
+      updateListMeta(id, { name: name.trim(), description: desc.trim(), image });
+    } else {
+      id = createCustomList(name.trim(), desc.trim(), image);
+      setCurrentId(id);
+    }
+    // Navigate to the detail page of this list
+    onSaved(id);
+  };
+
+  return (
+    <div className="page list-edit-page">
+      <div className="list-edit__topbar">
+        <button className="list-detail__back" onClick={onBack}><CloseCircleLinear size={20}/></button>
+        <h2 className="list-edit__heading">{ru ? (currentId ? 'Редактировать список' : 'Новый список') : (currentId ? 'Edit list' : 'New list')}</h2>
+        <button className="list-edit__save-btn" onClick={handleSave} disabled={!name.trim()}>
+          {ru ? 'Сохранить' : 'Save'}
+        </button>
+      </div>
+
+      {/* Cover image */}
+      <div className="list-edit__cover-wrap" onClick={() => fileRef.current?.click()}>
+        {image
+          ? <img className="list-edit__cover-img" src={image} alt="cover"/>
+          : <div className="list-edit__cover-placeholder">
+              <ListLinear size={28} strokeWidth={1}/>
+              <span>{ru ? 'Обложка' : 'Cover image'}</span>
+            </div>
+        }
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleImage}/>
+
+      <div className="list-edit__fields">
+        <input
+          className="list-edit__input"
+          placeholder={ru ? 'Название *' : 'Title *'}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          maxLength={60}
+        />
+        <textarea
+          className="list-edit__textarea"
+          placeholder={ru ? 'Описание (необязательно)' : 'Description (optional)'}
+          value={desc}
+          onChange={e => setDesc(e.target.value)}
+          maxLength={300}
+          rows={3}
+        />
+      </div>
+
+      {/* Add titles always visible */}
+      <div style={{padding:'0 16px 12px'}}>
+        <button className="custom-lists__new" onClick={() => setShowPicker(true)}>
+          <AddCircleLinear size={16}/> {ru ? 'Добавить тайтлы' : 'Add titles'}
+        </button>
+      </div>
+
+      {listItems.length > 0 && (
+        <div className="poster-grid" style={{padding:'0 16px'}}>
+          {listItems.map(m => {
+            const poster = tmdb.posterUrl(m.poster_path);
+            const title  = m.title || m.name || m._fallback_title || '';
+            return (
+              <div key={m.id} className="poster-grid__item">
+                <div className="poster-grid__poster">
+                  {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
+                </div>
+                <p className="poster-grid__title">{title}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showPicker && (
+        <TitlePickerModal
+          listItems={listItems}
+          onAdd={m => {
+            if (!currentId) {
+              const id = createCustomList(name.trim() || (ru ? 'Новый список' : 'New list'), desc.trim(), image);
+              setCurrentId(id);
+              addToCustomList(id, m);
+            } else {
+              addToCustomList(currentId, m);
+            }
+          }}
+          onClose={() => setShowPicker(false)}
+          lang={lang}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Lists grid shown in profile ──────────────────────────────────────────────
+function CustomListsGrid({ customLists, onOpenList, onCreateList, deleteCustomList, lang }) {
+  const ru    = lang === 'ru';
+  const lists = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
+  const [confirmId, setConfirmId] = useState(null);
+
+  const handleDeleteClick = (e, list) => {
+    e.stopPropagation();
+    if (list.items.length > 0) {
+      setConfirmId(list.id);
+    } else {
+      deleteCustomList(list.id);
+    }
+  };
+
+  const confirmList = confirmId ? customLists[confirmId] : null;
+
+  return (
+    <div className="custom-lists">
+      {/* Confirm delete dialog */}
+      {confirmList && (
+        <div className="list-confirm-overlay" onClick={() => setConfirmId(null)}>
+          <div className="list-confirm-panel" onClick={e => e.stopPropagation()}>
+            <p className="list-confirm-title">
+              {ru ? 'Удалить список?' : 'Delete list?'}
+            </p>
+            <p className="list-confirm-body">
+              {ru
+                ? `«${confirmList.name}» содержит ${confirmList.items.length} проектов. Это нельзя отменить.`
+                : `"${confirmList.name}" has ${confirmList.items.length} title${confirmList.items.length !== 1 ? 's' : ''}. This cannot be undone.`
+              }
+            </p>
+            <div className="list-confirm-actions">
+              <button className="list-confirm-cancel" onClick={() => setConfirmId(null)}>
+                {ru ? 'Отмена' : 'Cancel'}
+              </button>
+              <button className="list-confirm-delete" onClick={() => { deleteCustomList(confirmId); setConfirmId(null); }}>
+                {ru ? 'Удалить' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lists.length === 0 && (
+        <div className="lists-empty">
+          <ListLinear size={38} strokeWidth={1}/>
+          <p>{ru ? 'Нет кастомных списков' : 'No custom lists yet'}</p>
+        </div>
+      )}
+      <div className="custom-lists__grid">
+        {lists.map(list => {
+          const posters = list.items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
+          return (
+            <div key={list.id} className="custom-list-card" onClick={() => onOpenList(list.id)}>
+              <div className="custom-list-card__avatar">
+                {list.image
+                  ? <img src={list.image} alt=""/>
+                  : posters.length > 0
+                    ? posters.map((url, i) => <img key={i} src={url} alt=""/>)
+                    : <div className="custom-list-card__avatar--empty"><ListLinear size={22} strokeWidth={1}/></div>
+                }
+              </div>
+              <div className="custom-list-card__info">
+                <span className="custom-list-card__name">{list.name}</span>
+                <div className="custom-list-card__meta">
+                  <span>{list.items.length} {ru ? 'проектов' : 'items'}</span>
+                  <button className="custom-list-card__del" onClick={e => handleDeleteClick(e, list)}>
+                    <TrashBinMinimalistic2Linear size={13}/>
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button className="custom-lists__new" onClick={onCreateList}>
+        <AddCircleLinear size={16}/> {ru ? 'Новый список' : 'New list'}
+      </button>
+    </div>
+  );
+}
+
 export default function Profile() {
-  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress } = useStore();
+  const { profile, setProfile, watched, watchlist, removeFromWatched, removeFromWatchlist, getRating, syncing, getTvProgress, customLists, createCustomList, deleteCustomList, addToCustomList, removeFromCustomList, updateListMeta } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
   const [listTab,      setListTab]      = useState('watchlist');
@@ -247,6 +612,8 @@ export default function Profile() {
   const [bio,          setBio]          = useState(profile.bio || '');
   const [selected,     setSelected]     = useState(null);
   const [actor,        setActor]        = useState(null);
+  // null = profile; { view:'detail', id } or { view:'edit', id } = full-screen list pages
+  const [listView,     setListView]     = useState(null);
   const fileRef = useRef();
 
   const localizedWatched   = useLocalizedMovies(watched,   lang);
@@ -263,6 +630,42 @@ export default function Profile() {
   if (actor) return (
     <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>
   );
+
+  // Full-screen: list detail page
+  if (listView?.view === 'detail') {
+    const list = customLists[listView.id];
+    if (!list) { setListView(null); return null; }
+    return (
+      <>
+        <ListDetailPage
+          list={list}
+          listId={listView.id}
+          onBack={() => setListView(null)}
+          onSelect={setSelected}
+          removeFromCustomList={removeFromCustomList}
+          updateCustomList={addToCustomList}
+          lang={lang}
+        />
+        <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a => { setSelected(null); setActor(a); }}/>
+      </>
+    );
+  }
+
+  // Full-screen: create/edit list page
+  if (listView?.view === 'edit') {
+    return (
+      <ListEditPage
+        listId={listView.id || null}
+        customLists={customLists}
+        createCustomList={createCustomList}
+        updateListMeta={updateListMeta}
+        onBack={() => setListView(null)}
+        onSaved={id => setListView({ view: 'detail', id })}
+        addToCustomList={addToCustomList}
+        lang={lang}
+      />
+    );
+  }
 
   return (
     <div className="page profile-page">
@@ -343,9 +746,20 @@ export default function Profile() {
           <button className={"lists-tab"+(listTab==='watched'?" active":"")} onClick={()=>setListTab('watched')}>
             <EyeLinear size={14}/> {t(lang,'Смотрел','Watched')} <span>{watched.length}</span>
           </button>
+          <button className={"lists-tab lists-tab--small"+(listTab==='lists'?" active":"")} onClick={()=>setListTab('lists')}>
+            <ListLinear size={13}/> {t(lang,'Списки','Lists')} <span>{Object.keys(customLists).length}</span>
+          </button>
         </div>
 
-        {displayItems.length === 0 ? (
+        {listTab === 'lists' ? (
+          <CustomListsGrid
+            customLists={customLists}
+            onOpenList={id => setListView({ view: 'detail', id })}
+            onCreateList={() => setListView({ view: 'edit', id: null })}
+            deleteCustomList={deleteCustomList}
+            lang={lang}
+          />
+        ) : displayItems.length === 0 ? (
           <div className="lists-empty">
             {listTab==='watchlist' ? <BookmarkLinear size={38} strokeWidth={1}/> : <EyeLinear size={38} strokeWidth={1}/>}
             <p>{listTab==='watchlist' ? t(lang,'Список пуст','List is empty') : t(lang,'Пока пусто','Nothing yet')}</p>

@@ -88,14 +88,14 @@ export function StoreProvider({ children, userId }) {
 
   const syncRef = useCallback(() => {
     if (!userId) return;
-    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress });
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress]);
+    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists });
+  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists]);
 
   useEffect(() => {
     if (!userId) return;
     const t = setTimeout(syncRef, 1500);
     return () => clearTimeout(t);
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, syncRef]);
+  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, customLists, syncRef]);
 
   const addToWatched = (movie) => {
     const norm = normalize(movie);
@@ -131,9 +131,9 @@ export function StoreProvider({ children, userId }) {
   const isDisliked     = (id) => dislikedIds.includes(id);
 
   // ── Custom Lists ──────────────────────────────────────────────────────────
-  const createCustomList = (name) => {
+  const createCustomList = (name, description = '', image = null) => {
     const id = `list_${Date.now()}`;
-    setCustomLists(prev => ({ ...prev, [id]: { id, name, items: [], createdAt: Date.now() } }));
+    setCustomLists(prev => ({ ...prev, [id]: { id, name, description, image, items: [], createdAt: Date.now() } }));
     return id;
   };
   const deleteCustomList = (listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; });
@@ -152,6 +152,11 @@ export function StoreProvider({ children, userId }) {
     return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== movieId) } };
   });
   const isInCustomList = (listId, movieId) => !!customLists[listId]?.items.find(m => m.id === movieId);
+  const updateListMeta = (listId, meta) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    return { ...prev, [listId]: { ...list, ...meta } };
+  });
 
   const ctxValue = useMemo(() => ({
     watched, watchlist, ratings, profile, setProfile, syncing,
@@ -159,7 +164,7 @@ export function StoreProvider({ children, userId }) {
     dislikedIds, addDisliked, isDisliked,
     tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
     customLists, createCustomList, deleteCustomList, renameCustomList,
-    addToCustomList, removeFromCustomList, isInCustomList,
+    addToCustomList, removeFromCustomList, isInCustomList, updateListMeta,
     pendingRating, setPendingRating, showConfetti, setShowConfetti,
     addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
     isWatched, isInWatchlist, rateMovie, getRating,

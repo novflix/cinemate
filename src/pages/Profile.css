@@ -289,3 +289,275 @@
   font-size: 13px; color: #4ade80; font-weight: 600;
   padding: 10px 0;
 }
+/* ── Custom Lists ── */
+.custom-lists { padding-bottom: 16px; }
+
+/* ── Custom Lists — row layout ── */
+.custom-lists { padding-bottom: 16px; }
+.custom-lists__grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+/* Row card: square avatar on left, info on right */
+.custom-list-card {
+  display: flex; align-items: center; gap: 12px;
+  border-radius: 14px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s; padding: 10px 12px;
+}
+.custom-list-card:hover { border-color: var(--accent); background: var(--surface2); }
+
+/* Square avatar — 56x56, always square */
+.custom-list-card__avatar {
+  width: 56px; height: 56px; flex-shrink: 0;
+  border-radius: 10px; overflow: hidden; background: var(--surface2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+/* 1 poster — full square */
+.custom-list-card__avatar img:only-child {
+  grid-column: 1 / -1; grid-row: 1 / -1;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+/* 2 posters — side by side */
+.custom-list-card__avatar img:first-child:nth-last-child(2),
+.custom-list-card__avatar img:first-child:nth-last-child(2) ~ img {
+  grid-row: 1 / -1;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+/* 3 posters — left full height, right split top/bottom */
+.custom-list-card__avatar img:first-child:nth-last-child(3) {
+  grid-column: 1; grid-row: 1 / -1;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.custom-list-card__avatar img:first-child:nth-last-child(3) ~ img {
+  grid-column: 2;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+/* 4 posters — 2×2 grid, each cell equal */
+.custom-list-card__avatar img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.custom-list-card__avatar--empty {
+  grid-column: 1/-1; grid-row: 1/-1;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+}
+
+/* Info block */
+.custom-list-card__info { flex: 1; min-width: 0; }
+.custom-list-card__name {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  display: block; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.custom-list-card__meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); }
+.custom-list-card__meta span { flex: 1; }
+.custom-list-card__del {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: transparent; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; color: var(--text3);
+}
+.custom-list-card__del:hover { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+.custom-lists__new {
+  width: 100%; padding: 12px; border-radius: 12px;
+  border: 1.5px dashed var(--border); color: var(--text3);
+  font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  gap: 7px; transition: all 0.15s; box-sizing: border-box;
+}
+.custom-lists__new:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,197,71,0.05); }
+
+/* ── 3-tab layout ── */
+.lists-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.lists-tab { flex: 1; min-width: 0; padding: 10px 6px; }
+
+/* Lists tab width — edit these values to adjust size:
+   mobile:  min-width controls minimum width, font-size controls text size
+   desktop: @media (min-width: 900px) block below */
+.lists-tab--small {
+  flex: 0 0 auto;
+  min-width: 100px;       /* ← MOBILE width — change this */
+  padding: 10px 8px;
+  font-size: 11px;       /* ← MOBILE font size — change this */
+}
+.lists-tab--small svg { width: 13px; height: 13px; }
+@media (min-width: 900px) {
+  .lists-tab--small {
+    min-width: 250px;    /* ← DESKTOP width — change this */
+    font-size: 12px;     /* ← DESKTOP font size — change this */
+    padding: 10px 14px;
+  }
+}
+
+/* ── List Detail Page ── */
+.list-detail-page { padding-bottom: calc(var(--nav-h) + 24px); }
+.list-detail__header { padding: 52px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+@media (min-width: 900px) { .list-detail__header { padding-top: 32px; } }
+.list-detail__back {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2); align-self: flex-start;
+}
+.list-detail__header-info { display: flex; gap: 14px; align-items: flex-start; }
+/* Square cover on detail page */
+.list-detail__cover {
+  width: 72px; height: 72px; border-radius: 12px;
+  object-fit: cover; flex-shrink: 0;
+  aspect-ratio: 1/1;
+}
+.list-detail__title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.4px; line-height: 1.1; margin-bottom: 4px; }
+.list-detail__desc  { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 4px; }
+.list-detail__count { font-size: 11px; color: var(--text3); }
+
+/* ── List Edit Page ── */
+.list-edit-page { padding-bottom: calc(var(--nav-h) + 24px); }
+.list-edit__topbar { display: flex; align-items: center; gap: 12px; padding: 52px 16px 16px; }
+@media (min-width: 900px) { .list-edit__topbar { padding-top: 32px; } }
+.list-edit__heading { flex: 1; font-size: 17px; font-weight: 700; }
+.list-edit__save-btn {
+  padding: 8px 18px; border-radius: 10px; background: var(--accent);
+  color: #000; font-size: 13px; font-weight: 700;
+}
+.list-edit__save-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Square cover on edit page */
+.list-edit__cover-wrap {
+  margin: 0 16px 16px;
+  width: calc(100% - 32px);
+  aspect-ratio: 1/1;
+  max-width: 160px;        /* keeps it compact, not full-width */
+  border-radius: 14px;
+  overflow: hidden; background: var(--surface); border: 1.5px dashed var(--border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.list-edit__cover-wrap:hover { border-color: var(--accent); }
+.list-edit__cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.list-edit__cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text3); font-size: 13px; }
+.list-edit__fields { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.list-edit__input {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 13px 14px; color: var(--text); font-size: 15px; font-weight: 600;
+  width: 100%; box-sizing: border-box;
+}
+.list-edit__input:focus { border-color: var(--accent); outline: none; }
+.list-edit__textarea {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 13px 14px; color: var(--text); font-size: 13px;
+  width: 100%; resize: none; line-height: 1.5; box-sizing: border-box;
+}
+.list-edit__textarea:focus { border-color: var(--accent); outline: none; }
+
+/* ── Title Picker Modal — mirrors MovieModal layout ── */
+.picker-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.82);
+  display: flex; align-items: flex-end;
+  padding-top: max(52px, env(safe-area-inset-top));
+  padding-bottom: var(--nav-h);
+  animation: modalFadeIn 0.3s ease both;
+  overscroll-behavior: contain;
+}
+@media (min-width: 900px) {
+  .picker-overlay { align-items: center; justify-content: center; padding-bottom: 0; padding-top: 0; }
+  .picker-panel   { border-radius: 24px !important; width: 580px !important; height: 88dvh !important; max-height: 88dvh !important; }
+}
+.picker-panel {
+  position: relative; width: 100%; max-width: 580px; margin: 0 auto;
+  background: var(--bg2); border-radius: 28px 28px 0 0;
+  height: calc(100dvh - var(--nav-h) - 16px);
+  max-height: calc(100dvh - var(--nav-h) - 16px);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: modalSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
+  overscroll-behavior: contain;
+}
+.picker-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 18px 0; flex-shrink: 0;
+}
+.picker-header h3 { font-size: 16px; font-weight: 700; }
+.picker-search { padding: 12px 14px 8px; flex-shrink: 0; }
+.picker-search__input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 14px;
+  box-sizing: border-box;
+}
+.picker-search__input:focus { border-color: var(--accent); outline: none; }
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 4px 14px 24px;
+  overflow-y: auto; overflow-x: hidden;
+  flex: 1;
+  min-height: 0;        /* critical: lets flex child shrink below content size */
+  box-sizing: border-box;
+  align-content: start;
+}
+@media (min-width: 480px) { .picker-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 900px) { .picker-grid { grid-template-columns: repeat(4, 1fr); } }
+.picker-item { cursor: pointer; min-width: 0; width: 100%; }
+.picker-item--in { opacity: 0.55; cursor: default; }
+.picker-item__poster {
+  position: relative;
+  width: 100%;
+  padding-top: 150%;   /* 2:3 ratio via padding trick — more reliable than aspect-ratio in grids */
+  border-radius: 8px;
+  overflow: hidden; background: var(--surface2); margin-bottom: 4px;
+}
+.picker-item__poster img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.picker-item__poster > div { position: absolute; inset: 0; }
+.picker-item__check {
+  position: absolute; inset: 0; background: rgba(34,197,94,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #fff; font-weight: 700;
+}
+.picker-item__title {
+  font-size: 10px; color: var(--text2); line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  width: 100%; display: block;
+}
+
+/* ── Delete list confirm dialog ── */
+.list-confirm-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: modalFadeIn 0.2s ease both;
+}
+.list-confirm-panel {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px 20px 20px;
+  max-width: 320px; width: 100%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  animation: modalSlideUp 0.25s cubic-bezier(0.16,1,0.3,1) both;
+}
+.list-confirm-title {
+  font-size: 17px; font-weight: 700; color: var(--text);
+  margin-bottom: 10px; text-align: center;
+}
+.list-confirm-body {
+  font-size: 13px; color: var(--text2); line-height: 1.5;
+  text-align: center; margin-bottom: 20px;
+}
+.list-confirm-actions {
+  display: flex; gap: 10px;
+}
+.list-confirm-cancel {
+  flex: 1; padding: 12px; border-radius: 12px;
+  background: var(--surface2); color: var(--text2);
+  font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border);
+}
+.list-confirm-delete {
+  flex: 1; padding: 12px; border-radius: 12px;
+  background: rgba(239,68,68,0.15); color: #ef4444;
+  font-size: 14px; font-weight: 700;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+.list-confirm-delete:hover { background: rgba(239,68,68,0.25); }
