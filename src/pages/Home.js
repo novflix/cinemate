@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
@@ -6,7 +8,6 @@ import { useAdmin } from '../admin';
 import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
-import ActorPage from './ActorPage';
 import ScrollRow from '../components/ScrollRow';
 import './Home.css';
 
@@ -172,8 +173,8 @@ export default function Home() {
   const [seasonData,  setSeasonData]  = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [moodLoading, setMoodLoading] = useState(false);
-  const [selected,    setSelected]    = useState(null);
-  const [actor,       setActor]       = useState(null);
+  const { selected, openMovie, closeMovie } = useMovieModal();
+  const navigate = useNavigate();
   const { lang } = useTheme();
   const { overrides } = useAdmin();
   const langCode = lang==='en'?'en-US':'ru-RU';
@@ -243,7 +244,7 @@ export default function Home() {
     }).catch(()=>setMoodLoading(false));
   }, [mood, allData]);
 
-  if (actor)      return <ActorPage actor={actor} onBack={()=>setActor(null)} onMovieClick={m=>{setActor(null);setSelected(m);}}/>;
+  const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
 
   let sections = [];
   if (allData && mood==='all') {
@@ -279,7 +280,7 @@ export default function Home() {
 
   return (
     <div className="page home-page">
-      {!loading && allData && <HeroSlider items={allData.trending} onSelect={setSelected}/>}
+      {!loading && allData && <HeroSlider items={allData.trending} onSelect={openMovie}/>}
       {loading && <div className="hero hero--skeleton"><div className="skeleton" style={{width:'100%',height:'100%',borderRadius:0}}/></div>}
 
       <div className="mood-bar">
@@ -300,7 +301,7 @@ export default function Home() {
                   <FlameLinear size={15} className="home-section__icon"/>
                   {t(lang,'В тренде','Trending')}
                 </h3>
-                <SectionRow items={allData.trending.slice(0,10)} onSelect={setSelected}/>
+                <SectionRow items={allData.trending.slice(0,10)} onSelect={openMovie}/>
               </div>
             )}
 
@@ -310,16 +311,16 @@ export default function Home() {
                   {s.icon && <s.icon size={15} className="home-section__icon"/>}
                   {s.title}
                 </h3>
-                <SectionRow items={s.items} onSelect={setSelected} showCountdown={s.countdown} gold={s.gold}/>
+                <SectionRow items={s.items} onSelect={openMovie} showCountdown={s.countdown} gold={s.gold}/>
               </div>
             ))}
 
-            {mood==='all' && <TogetherSection onSelect={setSelected} lang={lang}/>}
+            {mood==='all' && <TogetherSection onSelect={openMovie} lang={lang}/>}
           </>
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>{setSelected(null);setActor(a);}}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
     </div>
   );
 }

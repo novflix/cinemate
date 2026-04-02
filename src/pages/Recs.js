@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { HEADERS } from '../api';
 import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
@@ -5,7 +7,6 @@ import { useStore } from '../store';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
-import ActorPage from './ActorPage';
 import './Recs.css';
 
 // ─── SIGNAL WEIGHTS ───────────────────────────────────────────────────────────
@@ -162,15 +163,13 @@ export default function Recs() {
   const [items,    setItems]   = useState([]);
   const [loading,  setLoading] = useState(false);
 
-  // Navigation stack: each entry is { type: 'movie'|'actor', data }
-  const [navStack, setNavStack] = useState([]);
-
-  const pushNav  = (entry) => setNavStack(prev => [...prev, entry]);
-  const popNav   = () => setNavStack(prev => prev.slice(0, -1));
-
-  const currentNav = navStack[navStack.length - 1] || null;
-  const selected   = currentNav?.type === 'movie' ? currentNav.data : null;
-  const actor      = currentNav?.type === 'actor' ? currentNav.data : null;
+  // Movie modal via local state; actor pages via router
+  const navigate = useNavigate();
+  const { selected, openMovie, closeMovie } = useMovieModal();
+  const pushNav = (entry) => {
+    if (entry.type === 'movie') openMovie(entry.data);
+    else if (entry.type === 'actor') navigate(`/actor/${entry.data.id}`, { state: { actor: entry.data } });
+  };
 
   const loaderRef    = useRef(null);
   const loadingRef   = useRef(false);
@@ -266,7 +265,7 @@ export default function Recs() {
     setItems(prev => prev.filter(m => m.id !== id));
   };
 
-  if (actor) return <ActorPage actor={actor} onBack={popNav} onMovieClick={m=>{ pushNav({ type: 'movie', data: m }); }}/>;
+
 
   const noData = !loading && allSaved.length === 0 && Object.keys(likedActors).length === 0;
   const hasSignals = watched.length > 0 || watchlist.length > 0 || Object.keys(likedActors).length > 0;
@@ -334,7 +333,7 @@ export default function Recs() {
         <div className="recs-loader"><div className="recs-spinner"/></div>
       )}
 
-      <MovieModal movie={selected} onClose={popNav} onActorClick={a=>{ pushNav({ type: 'actor', data: a }); }}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ closeMovie(); navigate(`/actor/${a.id}`, { state: { actor: a } }); }}/>
     </div>
   );
 }

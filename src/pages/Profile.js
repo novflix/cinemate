@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom';
+import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef } from 'react';
 import {
   TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear,
+  ShareLinear,
   MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
@@ -14,8 +17,8 @@ import { tmdb, HEADERS } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
 import Roulette from '../components/Roulette';
 import MovieModal from '../components/MovieModal';
-import ActorPage from './ActorPage';
 import './Profile.css';
+import { supabase } from '../supabase';
 
 /* ─── Settings Modal ─── */
 function SettingsModal({ onClose }) {
@@ -458,8 +461,39 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 /* ─── List Detail Page ─── */
 function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCustomList, addToCustomList, lang }) {
   const ru = lang === 'ru';
-  const [showPicker, setShowPicker] = useState(false);
+  const [showPicker,  setShowPicker]  = useState(false);
+  const [sharing,     setSharing]     = useState(false);
+  const [shareLabel,  setShareLabel]  = useState(null); // null | 'copying' | 'copied' | 'error'
   const { addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, isWatched, isInWatchlist } = useStore();
+  const { profile } = useStore();
+
+  const handleShare = async () => {
+    setSharing(true);
+    setShareLabel('copying');
+    try {
+      // Upsert the list snapshot to public_lists table
+      const payload = {
+        id:          listId,
+        name:        list.name,
+        description: list.description || '',
+        image:       list.image || null,
+        items:       list.items,
+        author_name: profile?.name || (ru ? 'Аноним' : 'Anonymous'),
+        updated_at:  new Date().toISOString(),
+      };
+      const { error } = await supabase.from('public_lists').upsert(payload, { onConflict: 'id' });
+      if (error) throw error;
+      const url = `${window.location.origin}/list/${listId}`;
+      await navigator.clipboard.writeText(url);
+      setShareLabel('copied');
+      setTimeout(() => setShareLabel(null), 2500);
+    } catch (e) {
+      console.error(e);
+      setShareLabel('error');
+      setTimeout(() => setShareLabel(null), 2500);
+    }
+    setSharing(false);
+  };
 
   // Progress calculation
   const total     = list.items.length;
@@ -487,6 +521,15 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
               <h1 className="list-detail__title">{list.name}</h1>
               <button className="list-detail__edit-btn" onClick={onEdit} title={ru?'Редактировать':'Edit'}>
                 <Pen2Linear size={15}/>
+              </button>
+              <button
+                className={"list-detail__share-btn" + (shareLabel === 'copied' ? ' copied' : shareLabel === 'error' ? ' error' : '')}
+                onClick={handleShare}
+                disabled={sharing}
+                title={ru ? 'Поделиться' : 'Share'}
+              >
+                <ShareLinear size={15}/>
+                <span>{shareLabel === 'copied' ? (ru ? 'Скопировано!' : 'Copied!') : shareLabel === 'error' ? (ru ? 'Ошибка' : 'Error') : (ru ? 'Поделиться' : 'Share')}</span>
               </button>
             </div>
             {list.description && <p className="list-detail__desc">{list.description}</p>}
@@ -684,8 +727,9 @@ export default function Profile() {
   const [showSettings, setShowSettings] = useState(false);
   const [name,         setName]         = useState(profile.name);
   const [bio,          setBio]          = useState(profile.bio || '');
-  const [selected,     setSelected]     = useState(null);
-  const [actor,        setActor]        = useState(null);
+  const { selected, openMovie, closeMovie } = useMovieModal();
+  const navigate = useNavigate();
+  const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
   const [listView,     setListView]     = useState(null);
   const fileRef = useRef();
 
@@ -703,9 +747,7 @@ export default function Profile() {
 
   const displayItems = listTab === 'watchlist' ? localizedWatchlist : localizedWatched;
 
-  if (actor) return (
-    <ActorPage actor={actor} onBack={()=>setActor(null)} onMovieClick={m=>{setActor(null);setSelected(m);}}/>
-  );
+
 
   // List detail
   if (listView?.view === 'detail') {
@@ -717,13 +759,13 @@ export default function Profile() {
           list={list}
           listId={listView.id}
           onBack={() => setListView(null)}
-          onSelect={setSelected}
+          onSelect={openMovie}
           onEdit={() => setListView({ view: 'edit', id: listView.id })}
           removeFromCustomList={removeFromCustomList}
           addToCustomList={addToCustomList}
           lang={lang}
         />
-        <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>{setSelected(null);setActor(a);}}/>
+        <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
       </>
     );
   }
@@ -795,7 +837,7 @@ export default function Profile() {
         <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>m.media_type==='tv').length}</span><span className="profile-stat__label">{t(lang,'Сериалов','Series')}</span></div>
       </div>
 
-      <div className="profile-roulette"><Roulette onMovieClick={setSelected}/></div>
+      <div className="profile-roulette"><Roulette onMovieClick={openMovie}/></div>
 
       <div className="profile-lists">
         <div className="lists-tabs">
@@ -829,7 +871,7 @@ export default function Profile() {
             listTab={listTab}
             displayItems={displayItems}
             localizedWatchlist={localizedWatchlist}
-            onSelect={setSelected}
+            onSelect={openMovie}
             removeFromWatched={removeFromWatched}
             removeFromWatchlist={removeFromWatchlist}
             getRating={getRating}
@@ -839,7 +881,7 @@ export default function Profile() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>{setSelected(null);setActor(a);}}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
       {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
     </div>
   );

@@ -1,10 +1,11 @@
+import { useNavigate } from 'react-router-dom';
+import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MagniferLinear, CloseCircleLinear, FilterLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
-import ActorPage from './ActorPage';
 import './Search.css';
 
 const GENRES = [
@@ -144,8 +145,8 @@ export default function Search() {
   const [results,  setResults]  = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [selected, setSelected] = useState(null);
-  const [actor,    setActor]    = useState(null);
+  const { selected, openMovie, closeMovie } = useMovieModal();
+  const navigate = useNavigate();
   const [popular,  setPopular]  = useState([]);
   const [filters,  setFilters]  = useState(DEFAULT_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -227,7 +228,7 @@ export default function Search() {
     return () => obs.disconnect();
   }, [loadMore]);
 
-  if (actor) return <ActorPage actor={actor} onBack={() => setActor(null)} onMovieClick={m => { setActor(null); setSelected(m); }}/>;
+  const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
 
   const showingFiltered = query.trim() || activeFilterCount > 0;
   const displayed = showingFiltered ? results : popular;
@@ -345,7 +346,7 @@ export default function Search() {
 
       {!loading && displayed.length > 0 && (
         <div className="search-grid">
-          {displayed.map(m => <div key={`${m.id}-${m.media_type}`}><MovieCard movie={m} onClick={setSelected}/></div>)}
+          {displayed.map(m => <div key={`${m.id}-${m.media_type}`}><MovieCard movie={m} onClick={openMovie}/></div>)}
         </div>
       )}
 
@@ -359,7 +360,7 @@ export default function Search() {
         </>
       )}
 
-      <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a => { setSelected(null); setActor(a); }}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a => { closeMovie(); handleActorClick(a); }}/>
     </div>
   );
 }
