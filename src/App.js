@@ -42,6 +42,38 @@ const TAB_TO_PATH = {
   about:   '/about',
 };
 
+// Feature 38: swipe left/right between tabs on mobile
+const TAB_ORDER = ['home', 'recs', 'search', 'profile', 'about'];
+
+function useSwipeNav(activeTab, onTabChange) {
+  const touchStartX = useState(null);
+  const touchStartY = useState(null);
+
+  const handleTouchStart = (e) => {
+    touchStartX[1](e.touches[0].clientX);
+    touchStartY[1](e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e) => {
+    const startX = touchStartX[0];
+    const startY = touchStartY[0];
+    if (startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // Only swipe if horizontal movement dominates and gesture is long enough
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    const currentIdx = TAB_ORDER.indexOf(activeTab);
+    if (dx < 0 && currentIdx < TAB_ORDER.length - 1) {
+      onTabChange(TAB_ORDER[currentIdx + 1]);
+    } else if (dx > 0 && currentIdx > 0) {
+      onTabChange(TAB_ORDER[currentIdx - 1]);
+    }
+    touchStartX[1](null);
+  };
+
+  return { handleTouchStart, handleTouchEnd };
+}
+
 function AppInner() {
   const { pendingRating, setPendingRating, showConfetti } = useStore();
   const { overrides } = useAdmin();
@@ -56,13 +88,20 @@ function AppInner() {
     navigate(TAB_TO_PATH[tab] || '/');
   };
 
+  const { handleTouchStart, handleTouchEnd } = useSwipeNav(activeTab, handleTabChange);
+
   return (
     <div className="app-shell">
       <Particles/>
       {showSnow && <SnowEffect/>}
       <div className="ambient-glow"/>
       <SideNav active={activeTab} onChange={handleTabChange}/>
-      <div className="app-content" style={{position:'relative',zIndex:1}}>
+      <div
+        className="app-content"
+        style={{position:'relative',zIndex:1}}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <Routes>
           <Route path="/"              element={<Home/>}/>
           <Route path="/recs"          element={<Recs/>}/>

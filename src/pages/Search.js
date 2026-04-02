@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { MagniferLinear, CloseCircleLinear, FilterLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme, t } from '../theme';
+import { useStore } from '../store';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import './Search.css';
@@ -140,6 +141,26 @@ async function enhancedSearch(query, langCode, filters, page = 1) {
 
 const DEFAULT_FILTERS = { genres: [], yearRange: null, sort: 'popularity.desc', type: 'all' };
 
+// Feature 50: search actors
+async function searchActors(query, langCode, watched) {
+  if (!query.trim()) return [];
+  try {
+    const r = await fetch(
+      `https://api.themoviedb.org/3/search/person?query=${encodeURIComponent(query)}&language=${langCode}&page=1`,
+      { headers: HEADERS }
+    ).then(r => r.json());
+    const watchedSet = new Set(watched.map(m => m.id));
+    return (r.results || [])
+      .filter(a => a.profile_path && a.known_for_department === 'Acting')
+      .map(a => ({
+        ...a,
+        _watchedCount: (a.known_for || []).filter(m => watchedSet.has(m.id)).length,
+      }))
+      .sort((a, b) => b._watchedCount - a._watchedCount || (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 20);
+  } catch { return []; }
+}
+
 export default function Search() {
   const [query,    setQuery]    = useState('');
   const [results,  setResults]  = useState([]);
@@ -152,10 +173,14 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [page,     setPage]     = useState(1);
   const [hasMore,  setHasMore]  = useState(true);
+  // Feature 50: actor search tab
+  const [searchTab, setSearchTab] = useState('movies'); // 'movies' | 'actors'
+  const [actorResults, setActorResults] = useState([]);
   const timer = useRef();
   const loaderRef = useRef(null);
   const loadingMoreRef = useRef(false);
   const { lang } = useTheme();
+  const { watched } = useStore();
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 
   const setFilter = useCallback((key, val) => {
@@ -229,6 +254,18 @@ export default function Search() {
   }, [loadMore]);
 
   const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
+
+  // Feature 50: actor search
+  useEffect(() => {
+    clearTimeout(timer.current);
+    if (!query.trim() || searchTab !== 'actors') { setActorResults([]); return; }
+    setLoading(true);
+    timer.current = setTimeout(async () => {
+      const r = await searchActors(query, langCode, watched);
+      setActorResults(r);
+      setLoading(false);
+    }, 350);
+  }, [query, langCode, searchTab, watched]);
 
   const showingFiltered = query.trim() || activeFilterCount > 0;
   const displayed = showingFiltered ? results : popular;
@@ -330,21 +367,65 @@ export default function Search() {
       </div>
 
       {!showingFiltered && <h3 className="search-trending-label">{t(lang, 'В тренде сегодня', 'Trending today')}</h3>}
-      {showingFiltered && !loading && results.length > 0 && (
+      {showingFiltered && !loading && results.length > 0 && searchTab === 'movies' && (
         <p className="search-results-count">{t(lang, `Найдено: ${results.length}`, `Found: ${results.length}`)}</p>
+      )}
+
+      {/* Feature 50: search mode tabs */}
+      {query.trim() && (
+        <div className="search-tabs">
+          <button className={"search-tab-btn" + (searchTab === 'movies' ? ' active' : '')} onClick={() => setSearchTab('movies')}>
+            {t(lang, 'Фильмы и сериалы', 'Movies & Shows')}
+          </button>
+          <button className={"search-tab-btn" + (searchTab === 'actors' ? ' active' : '')} onClick={() => setSearchTab('actors')}>
+            {t(lang, 'Актёры', 'Actors')}
+          </button>
+        </div>
       )}
 
       {loading && <div className="search-loading"><div className="search-loading__spinner"/></div>}
 
-      {isEmpty && (
+      {isEmpty && searchTab === 'movies' && (
         <div className="search-empty">
           <MagniferLinear size={32} strokeWidth={1}/>
-          <p>{t(lang, `Ничего по «${query || 'выбранным фильтрам'}»`, `Nothing for "${query || 'selected filters'}"`)}</p>
-          <p className="search-empty__hint">{t(lang, 'Попробуй изменить фильтры', 'Try changing filters')}</p>
+          {!query.trim() && activeFilterCount > 0 ? (
+            <>
+              <p>{t(lang, 'Настройте фильтры и увидите результаты', 'Adjust filters to see results')}</p>
+              <p className="search-empty__hint">{t(lang, 'Или введите название для поиска', 'Or type a title to search')}</p>
+            </>
+          ) : (
+            <>
+              <p>{t(lang, `Ничего по «${query || 'выбранным фильтрам'}»`, `Nothing for "${query || 'selected filters'}"`)}</p>
+              <p className="search-empty__hint">{t(lang, 'Попробуй изменить фильтры', 'Try changing filters')}</p>
+            </>
+          )}
         </div>
       )}
 
-      {!loading && displayed.length > 0 && (
+      {/* Actor results grid */}
+      {searchTab === 'actors' && !loading && actorResults.length > 0 && (
+        <div className="search-actors-grid">
+          {actorResults.map(a => (
+            <div key={a.id} className="search-actor-card" onClick={() => handleActorClick(a)}>
+              <div className="search-actor-card__avatar">
+                <img src={`https://image.tmdb.org/t/p/w185${a.profile_path}`} alt={a.name}/>
+              </div>
+              <p className="search-actor-card__name">{a.name}</p>
+              {a._watchedCount > 0 && (
+                <p className="search-actor-card__watched">{t(lang, `${a._watchedCount} смотрел`, `${a._watchedCount} watched`)}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {searchTab === 'actors' && !loading && query.trim() && actorResults.length === 0 && (
+        <div className="search-empty">
+          <MagniferLinear size={32} strokeWidth={1}/>
+          <p>{t(lang, `Актёры не найдены по «${query}»`, `No actors found for "${query}"`)}</p>
+        </div>
+      )}
+
+      {!loading && searchTab === 'movies' && displayed.length > 0 && (
         <div className="search-grid">
           {displayed.map(m => <div key={`${m.id}-${m.media_type}`}><MovieCard movie={m} onClick={openMovie}/></div>)}
         </div>

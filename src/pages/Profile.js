@@ -7,6 +7,7 @@ import {
   MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
+  PinLinear,
 } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
@@ -151,7 +152,7 @@ function SettingsModal({ onClose }) {
 }
 
 /* ─── Poster Grid ─── */
-function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgress }) {
+function PosterGrid({ items, onSelect, onRemove, onPin, onUnpin, isPinned, listTab, getRating, getTvProgress }) {
   if (!items.length) return null;
   return (
     <div className="poster-grid">
@@ -159,6 +160,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
         const poster = tmdb.posterUrl(m.poster_path);
         const title  = m.title || m.name || m._fallback_title || '';
         const rating = getRating(m.id);
+        const pinned = isPinned?.(m.id);
         return (
           <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
             <div className="poster-grid__poster">
@@ -177,9 +179,21 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
                   </div>
                 );
               })()}
+              {/* Skeleton shimmer placeholder (fix #15) shown before img loads */}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <TrashBinMinimalistic2Linear size={11}/>
               </button>
+              {/* Feature: pin button for watchlist */}
+              {listTab === 'watchlist' && onPin && (
+                <button
+                  className={"poster-grid__pin" + (pinned ? ' pinned' : '')}
+                  onClick={e => { e.stopPropagation(); pinned ? onUnpin(m.id) : onPin(m.id); }}
+                  title={pinned ? (t('ru','Открепить','Unpin')) : (t('ru','Закрепить','Pin'))}
+                >
+                  <PinLinear size={11}/>
+                </button>
+              )}
+              {pinned && <div className="poster-grid__pin-badge"/>}
             </div>
             <p className="poster-grid__title">{title}</p>
           </div>
@@ -189,7 +203,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
   );
 }
 
-function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect, removeFromWatched, removeFromWatchlist, getRating, getTvProgress, lang }) {
+function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect, removeFromWatched, removeFromWatchlist, getRating, getTvProgress, lang, pinWatchlistItem, unpinWatchlistItem, isWatchlistPinned }) {
   if (listTab === 'watched') {
     return <PosterGrid items={displayItems} onSelect={onSelect} onRemove={removeFromWatched} listTab="watched" getRating={getRating}/>;
   }
@@ -200,12 +214,12 @@ function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect,
       {watching.length > 0 && (
         <>
           <p className="profile-watching-label"><TVLinear size={13}/> {t(lang,'Смотрю сейчас','Currently watching')}</p>
-          <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+          <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress} onPin={pinWatchlistItem} onUnpin={unpinWatchlistItem} isPinned={isWatchlistPinned}/>
           {queued.length > 0 && <div className="profile-watching-divider" data-label={lang==='ru'?'В очереди':'Up next'}/>}
         </>
       )}
       {queued.length > 0 && (
-        <PosterGrid items={queued} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+        <PosterGrid items={queued} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress} onPin={pinWatchlistItem} onUnpin={unpinWatchlistItem} isPinned={isWatchlistPinned}/>
       )}
     </>
   );
@@ -715,10 +729,12 @@ function CustomListsGrid({ customLists, onOpenList, onEditList, onCreateList, de
 /* ─── Main Profile ─── */
 export default function Profile() {
   const {
-    profile, setProfile, watched, watchlist,
+    profile, setProfile, watched, watchlist, sortedWatchlist,
     removeFromWatched, removeFromWatchlist, getRating, syncing,
     getTvProgress, customLists, createCustomList, deleteCustomList,
     addToCustomList, removeFromCustomList, updateListMeta,
+    pinWatchlistItem, unpinWatchlistItem, isWatchlistPinned,
+    totalWatchMinutes,
   } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
@@ -734,8 +750,11 @@ export default function Profile() {
   const fileRef = useRef();
 
 
-  const localizedWatched   = useLocalizedMovies(watched,   lang);
-  const localizedWatchlist = useLocalizedMovies(watchlist, lang);
+  const localizedWatched   = useLocalizedMovies(watched,        lang);
+  const localizedWatchlist = useLocalizedMovies(sortedWatchlist, lang);
+
+  // Feature 7: watch time display
+  const watchHours = Math.round(totalWatchMinutes / 60);
 
   const handleSave   = () => { setProfile({...profile, name: name.trim()||'Кинолюб', bio}); setEditing(false); };
   const handleAvatar = (e) => {
@@ -835,6 +854,10 @@ export default function Profile() {
         <div className="profile-stat"><span className="profile-stat__val">{watchlist.length}</span><span className="profile-stat__label">{t(lang,'В очереди','Queued')}</span></div>
         <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>!m.media_type||m.media_type==='movie').length}</span><span className="profile-stat__label">{t(lang,'Фильмов','Movies')}</span></div>
         <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>m.media_type==='tv').length}</span><span className="profile-stat__label">{t(lang,'Сериалов','Series')}</span></div>
+        <div className="profile-stat profile-stat--accent" title={t(lang,`~${totalWatchMinutes} минут`,`~${totalWatchMinutes} minutes`)}>
+          <span className="profile-stat__val">{watchHours > 0 ? watchHours : '<1'}</span>
+          <span className="profile-stat__label">{t(lang,'Часов','Hours')}</span>
+        </div>
       </div>
 
       <div className="profile-roulette"><Roulette onMovieClick={openMovie}/></div>
@@ -877,6 +900,9 @@ export default function Profile() {
             getRating={getRating}
             getTvProgress={getTvProgress}
             lang={lang}
+            pinWatchlistItem={pinWatchlistItem}
+            unpinWatchlistItem={unpinWatchlistItem}
+            isWatchlistPinned={isWatchlistPinned}
           />
         )}
       </div>

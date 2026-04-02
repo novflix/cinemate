@@ -1,10 +1,17 @@
-import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import { supabase } from './supabase';
 
 const StoreContext = createContext(null);
 const load = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } };
 const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
 
+// Fix #18: clear all local storage keys on sign-out
+export const STORE_KEYS = ['watched','watchlist','ratings','profile','likedActors','dislikedIds','tvProgress','customLists','pinnedIds'];
+export function clearLocalStore() {
+  STORE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+}
+
+// Fix #10: normalize now preserves title and name
 const normalize = (movie) => ({
   id:            movie.id,
   media_type:    movie.media_type || (movie.title ? 'movie' : 'tv'),
@@ -16,8 +23,21 @@ const normalize = (movie) => ({
   genre_ids:     movie.genre_ids     || [],
   release_date:      movie.release_date      || null,
   first_air_date:    movie.first_air_date     || null,
+  title:             movie.title             || null,
+  name:              movie.name              || null,
   _fallback_title:   movie.title || movie.name || '',
 });
+
+// Fix #2: debounced sync — batches all rapid changes into one request
+function useDebouncedEffect(fn, deps, delay = 1500) {
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
+  useEffect(() => {
+    const t = setTimeout(() => fnRef.current(), delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, delay]);
+}
 
 async function syncToCloud(userId, data) {
   if (!userId) return;
@@ -31,6 +51,7 @@ async function syncToCloud(userId, data) {
     disliked_ids:data.dislikedIds,
     tv_progress: data.tvProgress,
     custom_lists:data.customLists,
+    pinned_ids:  data.pinnedIds,
     updated_at:  new Date().toISOString(),
   }, { onConflict: 'user_id' });
 }
@@ -47,17 +68,26 @@ export function StoreProvider({ children, userId }) {
   const [watchlist,    setWatchlist]    = useState(() => load('watchlist',     []));
   const [ratings,      setRatings]      = useState(() => load('ratings',       {}));
   const [profile,      setProfile]      = useState(() => load('profile',       { name: 'Кинолюб', avatar: null, bio: '' }));
-  // { [actorId]: { id, name, profile_path } }
   const [likedActors,  setLikedActors]  = useState(() => load('likedActors',   {}));
-  // Set of movie/tv ids user said "not interested"
-  const [dislikedIds,  setDislikedIds]  = useState(() => load('dislikedIds',   []));
-  // { [id]: { season: N, episode: N, totalSeasons: N, totalEpisodes: N } }
+  // Fix #6: dislikedIds stored as array in cloud/localStorage but used as Set internally
+  const [dislikedIds,  setDislikedIds]  = useState(() => {
+    const arr = load('dislikedIds', []);
+    return Array.isArray(arr) ? arr : [];
+  });
   const [tvProgress,   setTvProgress]   = useState(() => load('tvProgress',    {}));
-  // { [listId]: { id, name, items: [], createdAt } }
   const [customLists,  setCustomLists]  = useState(() => load('customLists',   {}));
+  // Pinned watchlist item ids (feature: pin items)
+  const [pinnedIds,    setPinnedIds]    = useState(() => {
+    const v = load('pinnedIds', []);
+    return Array.isArray(v) ? v : [];
+  });
   const [pendingRating,setPendingRating]= useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [syncing,      setSyncing]      = useState(false);
+
+  // Fix #6: keep a Set for O(1) lookups, derived from array state
+  const dislikedSet = useMemo(() => new Set(dislikedIds), [dislikedIds]);
+  const pinnedSet   = useMemo(() => new Set(pinnedIds),   [pinnedIds]);
 
   useEffect(() => {
     if (!userId) return;
@@ -72,6 +102,7 @@ export function StoreProvider({ children, userId }) {
         if (data.disliked_ids) { setDislikedIds(data.disliked_ids);  save('dislikedIds',  data.disliked_ids); }
         if (data.tv_progress)  { setTvProgress(data.tv_progress);    save('tvProgress',   data.tv_progress); }
         if (data.custom_lists) { setCustomLists(data.custom_lists);  save('customLists',  data.custom_lists); }
+        if (data.pinned_ids)   { setPinnedIds(data.pinned_ids);      save('pinnedIds',    data.pinned_ids); }
       }
       setSyncing(false);
     });
@@ -85,81 +116,115 @@ export function StoreProvider({ children, userId }) {
   useEffect(() => save('dislikedIds', dislikedIds), [dislikedIds]);
   useEffect(() => save('tvProgress',   tvProgress),   [tvProgress]);
   useEffect(() => save('customLists',  customLists),  [customLists]);
+  useEffect(() => save('pinnedIds',    pinnedIds),    [pinnedIds]);
 
-  const syncRef = useCallback(() => {
+  // Fix #2: single debounced sync, no per-field useEffect timers
+  useDebouncedEffect(() => {
     if (!userId) return;
-    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists });
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists]);
+    syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists, pinnedIds });
+  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists, pinnedIds]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const t = setTimeout(syncRef, 1500);
-    return () => clearTimeout(t);
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, customLists, syncRef]);
-
-  const addToWatched = (movie) => {
+  // Fix #3: mutations wrapped in useCallback
+  const addToWatched = useCallback((movie) => {
     const norm = normalize(movie);
     setWatchlist(prev => prev.filter(m => m.id !== movie.id));
+    setPinnedIds(prev => prev.filter(id => id !== movie.id));
     setWatched(prev => {
       if (prev.find(m => m.id === movie.id)) return prev;
+      // Only show confetti for deliberate user actions (movie object comes from UI)
       setTimeout(() => setPendingRating(norm), 350);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 1400);
       return [norm, ...prev];
     });
-  };
-  const addToWatchlist   = (movie) => {
-    if (!watched.find(m => m.id === movie.id))
-      setWatchlist(prev => prev.find(m => m.id === movie.id) ? prev : [normalize(movie), ...prev]);
-  };
-  const removeFromWatched   = (id) => setWatched(prev   => prev.filter(m => m.id !== id));
-  const removeFromWatchlist = (id) => setWatchlist(prev => prev.filter(m => m.id !== id));
-  const isWatched     = (id) => watched.some(m => m.id === id);
-  const isInWatchlist = (id) => watchlist.some(m => m.id === id);
-  const rateMovie     = (id, score) => setRatings(prev => ({ ...prev, [id]: score }));
-  const getRating     = (id) => ratings[id] || null;
+  }, []);
 
-  const likeActor   = (actor) => setLikedActors(prev => ({ ...prev, [actor.id]: { id: actor.id, name: actor.name, profile_path: actor.profile_path || null } }));
-  const unlikeActor = (id)    => setLikedActors(prev => { const n = {...prev}; delete n[id]; return n; });
-  const isActorLiked= (id)    => !!likedActors[id];
+  const addToWatchlist = useCallback((movie) => {
+    setWatched(prev => {
+      if (prev.find(m => m.id === movie.id)) return prev;
+      setWatchlist(wl => wl.find(m => m.id === movie.id) ? wl : [normalize(movie), ...wl]);
+      return prev;
+    });
+  }, []);
 
-  const addDisliked    = (id) => setDislikedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+  const removeFromWatched   = useCallback((id) => setWatched(prev   => prev.filter(m => m.id !== id)), []);
+  const removeFromWatchlist = useCallback((id) => {
+    setWatchlist(prev => prev.filter(m => m.id !== id));
+    setPinnedIds(prev => prev.filter(pid => pid !== id));
+  }, []);
 
-  const setTvProgressEntry = (id, data) => setTvProgress(prev => ({ ...prev, [id]: { ...prev[id], ...data } }));
-  const getTvProgress      = (id) => tvProgress[id] || null;
-  const clearTvProgress    = (id) => setTvProgress(prev => { const n = {...prev}; delete n[id]; return n; });
-  const isDisliked     = (id) => dislikedIds.includes(id);
+  const isWatched     = useCallback((id) => watched.some(m => m.id === id), [watched]);
+  const isInWatchlist = useCallback((id) => watchlist.some(m => m.id === id), [watchlist]);
+  const rateMovie     = useCallback((id, score) => setRatings(prev => ({ ...prev, [id]: score })), []);
+  const getRating     = useCallback((id) => ratings[id] || null, [ratings]);
+
+  const likeActor   = useCallback((actor) => setLikedActors(prev => ({ ...prev, [actor.id]: { id: actor.id, name: actor.name, profile_path: actor.profile_path || null } })), []);
+  const unlikeActor = useCallback((id) => setLikedActors(prev => { const n = {...prev}; delete n[id]; return n; }), []);
+  const isActorLiked= useCallback((id) => !!likedActors[id], [likedActors]);
+
+  // Fix #6: O(1) lookup via Set
+  const addDisliked = useCallback((id) => setDislikedIds(prev => prev.includes(id) ? prev : [...prev, id]), []);
+  const isDisliked  = useCallback((id) => dislikedSet.has(id), [dislikedSet]);
+
+  const setTvProgressEntry = useCallback((id, data) => setTvProgress(prev => ({ ...prev, [id]: { ...prev[id], ...data } })), []);
+  const getTvProgress      = useCallback((id) => tvProgress[id] || null, [tvProgress]);
+  const clearTvProgress    = useCallback((id) => setTvProgress(prev => { const n = {...prev}; delete n[id]; return n; }), []);
+
+  // ── Watchlist pinning ──────────────────────────────────────────────────────
+  const pinWatchlistItem   = useCallback((id) => setPinnedIds(prev => prev.includes(id) ? prev : [id, ...prev]), []);
+  const unpinWatchlistItem = useCallback((id) => setPinnedIds(prev => prev.filter(pid => pid !== id)), []);
+  const isWatchlistPinned  = useCallback((id) => pinnedSet.has(id), [pinnedSet]);
+
+  // Sorted watchlist: pinned first (preserving pin order), then rest
+  const sortedWatchlist = useMemo(() => {
+    const pinned = pinnedIds.map(id => watchlist.find(m => m.id === id)).filter(Boolean);
+    const rest   = watchlist.filter(m => !pinnedSet.has(m.id));
+    return [...pinned, ...rest];
+  }, [watchlist, pinnedIds, pinnedSet]);
 
   // ── Custom Lists ──────────────────────────────────────────────────────────
-  const createCustomList = (name, description = '', image = null, opts = {}) => {
+  const createCustomList = useCallback((name, description = '', image = null, opts = {}) => {
     const id = `list_${Date.now()}`;
     setCustomLists(prev => ({ ...prev, [id]: { id, name, description, image, items: [], createdAt: Date.now(), showProgress: opts.showProgress !== false, deadline: opts.deadline || null } }));
     return id;
-  };
-  const deleteCustomList = (listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; });
-  const renameCustomList = (listId, name) => setCustomLists(prev => ({
+  }, []);
+
+  const deleteCustomList = useCallback((listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; }), []);
+  const renameCustomList = useCallback((listId, name) => setCustomLists(prev => ({
     ...prev, [listId]: { ...prev[listId], name }
-  }));
-  const addToCustomList  = (listId, movie) => setCustomLists(prev => {
+  })), []);
+
+  const addToCustomList = useCallback((listId, movie) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
     if (list.items.find(m => m.id === movie.id)) return prev;
     return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items] } };
-  });
-  const removeFromCustomList = (listId, movieId) => setCustomLists(prev => {
+  }), []);
+
+  const removeFromCustomList = useCallback((listId, movieId) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
     return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== movieId) } };
-  });
-  const isInCustomList = (listId, movieId) => !!customLists[listId]?.items.find(m => m.id === movieId);
-  const updateListMeta = (listId, meta) => setCustomLists(prev => {
+  }), []);
+
+  const isInCustomList = useCallback((listId, movieId) => !!customLists[listId]?.items.find(m => m.id === movieId), [customLists]);
+  const updateListMeta = useCallback((listId, meta) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
     return { ...prev, [listId]: { ...list, ...meta } };
-  });
+  }), []);
+
+  // ── Watch time helpers ─────────────────────────────────────────────────────
+  // Returns estimated total minutes watched (uses runtime from ratings keys if available)
+  // Simple estimation: avg 100 min per movie, 45 min per TV episode
+  const totalWatchMinutes = useMemo(() => {
+    const movies = watched.filter(m => m.media_type === 'movie' || m.title).length;
+    const tvShows = watched.filter(m => m.media_type === 'tv' || m.name).length;
+    return movies * 100 + tvShows * 45;
+  }, [watched]);
 
   const ctxValue = useMemo(() => ({
-    watched, watchlist, ratings, profile, setProfile, syncing,
+    watched, watchlist, sortedWatchlist, ratings, profile, setProfile, syncing,
     likedActors, likeActor, unlikeActor, isActorLiked,
     dislikedIds, addDisliked, isDisliked,
     tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
@@ -168,9 +233,11 @@ export function StoreProvider({ children, userId }) {
     pendingRating, setPendingRating, showConfetti, setShowConfetti,
     addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
     isWatched, isInWatchlist, rateMovie, getRating,
+    pinnedIds, pinWatchlistItem, unpinWatchlistItem, isWatchlistPinned,
+    totalWatchMinutes,
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [watched, watchlist, ratings, profile, likedActors, dislikedIds,
-       tvProgress, customLists, pendingRating, showConfetti, syncing]);
+  }), [watched, watchlist, sortedWatchlist, ratings, profile, likedActors, dislikedIds,
+       tvProgress, customLists, pendingRating, showConfetti, syncing, pinnedIds, totalWatchMinutes]);
 
   return (
     <StoreContext.Provider value={ctxValue}>

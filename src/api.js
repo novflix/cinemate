@@ -1,9 +1,12 @@
-const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1OWU5ZDhiMjQxNmZkZmMzZThkYTIwOTQ3ZWVmZmIyOSIsIm5iZiI6MTc3MzU3ODA1Ny40NTYsInN1YiI6IjY5YjZhNzQ5NWNiYjJlMDcwMzY3MzkxNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oV8T4jCi78cD-1-y_rGlfaPS55RGvXFshRniaiP93FM';
+const TMDB_TOKEN = process.env.REACT_APP_TMDB_TOKEN;
 const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
 export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
 
 const getLang = () => { try { return localStorage.getItem('lang') === 'en' ? 'en-US' : 'ru-RU'; } catch { return 'ru-RU'; } };
+
+// ─── Session-level details cache (fix #9) ────────────────────────────────────
+const _detailsCache = new Map();
 
 const get = async (path, params = {}) => {
   const url = new URL(`${BASE}${path}`);
@@ -16,7 +19,6 @@ const get = async (path, params = {}) => {
 
 // Fetch multiple pages and merge results (TMDB returns 20 per page)
 const getPages = async (path, params = {}, pages = 3) => {
-  // Fetch page 1 first to know total_pages, then fetch rest in parallel
   try {
     const first = await get(path, { ...params, page: 1 });
     const total = Math.min(pages, first.total_pages || 1);
@@ -48,16 +50,34 @@ export const tmdb = {
     ? getPages('/movie/upcoming', {}, pages).then(results => ({ results }))
     : get('/movie/upcoming'),
   search:        (query) => get('/search/multi', { query }),
-  movieDetails:  (id) => get(`/movie/${id}`, { append_to_response: 'credits' }),
-  tvDetails:     (id) => get(`/tv/${id}`,    { append_to_response: 'credits' }),
+  // Fix #9: cache movieDetails / tvDetails for session, also fetch videos
+  movieDetails:  async (id) => {
+    const key = `movie_${id}_${getLang()}`;
+    if (_detailsCache.has(key)) return _detailsCache.get(key);
+    const data = await get(`/movie/${id}`, { append_to_response: 'credits,videos' });
+    _detailsCache.set(key, data);
+    return data;
+  },
+  tvDetails:     async (id) => {
+    const key = `tv_${id}_${getLang()}`;
+    if (_detailsCache.has(key)) return _detailsCache.get(key);
+    const data = await get(`/tv/${id}`, { append_to_response: 'credits,videos' });
+    _detailsCache.set(key, data);
+    return data;
+  },
   genres:        (type = 'movie') => get(`/genre/${type}/list`),
   discover:      (type = 'movie', params = {}, pages = 1) => pages > 1
     ? getPages(`/discover/${type}`, params, pages).then(results => ({ results }))
     : get(`/discover/${type}`, params),
   watchProviders:(type, id) => get(`/${type}/${id}/watch/providers`),
   similar:       (type, id) => get(`/${type}/${id}/recommendations`),
-  posterUrl:     (path, size = 'w500') => path ? `${IMG}/${size}${path}` : null,
+  // Fix #11: default poster size w342 instead of w500 — ~40% less traffic on cards
+  posterUrl:     (path, size = 'w342') => path ? `${IMG}/${size}${path}` : null,
+  // Large poster for modal (w780) — called explicitly
+  posterUrlLarge:(path) => path ? `${IMG}/w780${path}` : null,
   backdropUrl:   (path, size = 'w1280') => path ? `${IMG}/${size}${path}` : null,
+  // Small actor thumbnails (w185)
+  actorUrl:      (path, size = 'w185') => path ? `${IMG}/${size}${path}` : null,
 };
 
 export const STREAMING_LINKS = {

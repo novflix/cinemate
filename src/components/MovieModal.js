@@ -80,16 +80,14 @@ function InlineRating({ movieId, lang, getRating, rateMovie }) {
 }
 
 
-
 // ─── TV Progress Tracker ─────────────────────────────────────────────────────
 function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear }) {
   const ru = lang === 'ru';
   const [open, setOpen] = useState(false);
   const [season,  setSeason]  = useState(progress?.season  || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
-  const [episodesInSeason, setEpisodesInSeason] = useState(null); // null = loading
+  const [episodesInSeason, setEpisodesInSeason] = useState(null);
 
-  // Fetch episode count for selected season
   useEffect(() => {
     if (!open) return;
     setEpisodesInSeason(null);
@@ -98,7 +96,6 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
       .then(data => {
         const count = data.episodes?.length || null;
         setEpisodesInSeason(count);
-        // Clamp episode if needed
         if (count && episode > count) setEpisode(count);
       })
       .catch(() => setEpisodesInSeason(null));
@@ -107,7 +104,6 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
   const maxEpisode = episodesInSeason || 999;
 
-  // Sync state when progress changes externally
   const handleOpen = () => {
     setSeason(progress?.season   || 1);
     setEpisode(progress?.episode || 1);
@@ -121,7 +117,6 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
   return (
     <>
-      {/* Compact badge — always visible when progress exists */}
       <div className="tv-tracker__row">
         {progress ? (
           <div className="tv-tracker__badge" onClick={handleOpen}>
@@ -150,54 +145,35 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
         )}
       </div>
 
-      {/* Full-screen prompt — same style as RatingPrompt */}
       {open && (
-        <div className="tv-tracker__overlay" onClick={() => setOpen(false)}>
-          <div className="tv-tracker__panel" onClick={e => e.stopPropagation()}>
-            <p className="tv-tracker__panel-title">
-              <TVLinear size={15}/> {ru ? 'Где я остановился' : 'My progress'}
-            </p>
-            <div className="tv-tracker__fields">
-              <div className="tv-tracker__field">
-                <label>{ru ? 'Сезон' : 'Season'}</label>
-                <div className="tv-tracker__counter">
-                  <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
-                  <span className="tv-tracker__counter-val">{season}</span>
-                  <button onClick={() => setSeason(s => Math.min(totalSeasons, s + 1))}>+</button>
-                </div>
-                <span className="tv-tracker__of">из {totalSeasons}</span>
+        <div className="tv-tracker__editor">
+          <div className="tv-tracker__controls">
+            <label>
+              <span>{ru ? 'Сезон' : 'Season'}</span>
+              <div className="tv-tracker__spinner">
+                <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
+                <span>{season}</span>
+                <button onClick={() => setSeason(s => Math.min(totalSeasons || 99, s + 1))}>+</button>
               </div>
-              <div className="tv-tracker__divider"/>
-              <div className="tv-tracker__field">
-                <label>{ru ? 'Серия' : 'Episode'}</label>
-                <div className="tv-tracker__counter">
-                  <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
-                  <span className="tv-tracker__counter-val">{episode}</span>
-                  <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
-                </div>
-                {episodesInSeason && (
-                  <span className="tv-tracker__of">{ru ? 'из' : 'of'} {episodesInSeason}</span>
-                )}
-                {episodesInSeason === null && open && (
-                  <span className="tv-tracker__of">…</span>
-                )}
+            </label>
+            <label>
+              <span>{ru ? 'Серия' : 'Episode'}</span>
+              <div className="tv-tracker__spinner">
+                <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
+                <span>{episode}{episodesInSeason ? `/${episodesInSeason}` : ''}</span>
+                <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
               </div>
-            </div>
-            <div className="tv-tracker__actions">
-              <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>
-                {ru ? 'Отмена' : 'Cancel'}
-              </button>
-              <button className="tv-tracker__save" onClick={handleSave}>
-                {ru ? 'Сохранить' : 'Save'}
-              </button>
-            </div>
+            </label>
+          </div>
+          <div className="tv-tracker__editor-actions">
+            <button className="tv-tracker__save" onClick={handleSave}>{ru ? 'Сохранить' : 'Save'}</button>
+            <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{ru ? 'Отмена' : 'Cancel'}</button>
           </div>
         </div>
       )}
     </>
   );
 }
-
 
 // ─── More Menu (⋯ button next to title) ──────────────────────────────────────
 function MoreMenu({ movie, lang }) {
@@ -211,7 +187,6 @@ function MoreMenu({ movie, lang }) {
 
   return (
     <div className="modal__more" onClick={e => e.stopPropagation()}>
-      {/* vertical 3-dot button */}
       <button
         className={"modal__more-btn" + (inAnyList ? ' in-list' : '')}
         onClick={e => { e.stopPropagation(); setPanel(v => v === 'closed' ? 'main' : 'closed'); }}
@@ -286,7 +261,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const inList   = movie ? isInWatchlist(movie.id) : false;
   const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
-  const posterUrl = tmdb.posterUrl(movie?.poster_path);
+  // Fix #9: use large poster for dominant color extraction
+  const posterUrl = tmdb.posterUrl(movie?.poster_path, 'w342');
   const accentColor = useDominantColor(posterUrl);
 
   useEffect(() => {
@@ -295,11 +271,11 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   }, [movie]);
 
   useEffect(() => {
-    if (!movie) return;
+    if (!movie) { setDetails(null); return; }
     setDetails(null);
-    const url = `https://api.themoviedb.org/3/${type}/${movie.id}?language=${langCode}&append_to_response=credits`;
-    fetch(url, { headers: HEADERS }).then(r => r.json()).then(setDetails).catch(() => {});
-  }, [movie, type, langCode]);
+    const fetcher = type === 'tv' ? tmdb.tvDetails : tmdb.movieDetails;
+    fetcher(movie.id).then(setDetails).catch(() => {});
+  }, [movie, type, langCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!movie) return null;
 
@@ -307,7 +283,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const overview = details?.overview || movie.overview  || '';
   const year     = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0,4);
   const backdrop = tmdb.backdropUrl(details?.backdrop_path || movie.backdrop_path);
-  const poster   = tmdb.posterUrl(details?.poster_path   || movie.poster_path, 'w780');
+  // Fix: use large poster in modal
+  const poster   = tmdb.posterUrl(details?.poster_path || movie.poster_path, 'w780');
   const rating   = (details?.vote_average || movie.vote_average)?.toFixed(1);
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
   const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t(lang,'ч','h')} ${details.runtime%60}${t(lang,'м','m')}` : null;
@@ -327,7 +304,16 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
-        <div className="modal" onClick={e => e.stopPropagation()} style={accentColor ? {'--modal-accent':`rgb(${accentColor})`} : {}}>
+        <div
+          className="modal"
+          onClick={e => e.stopPropagation()}
+          style={accentColor ? {
+            '--modal-accent': `rgb(${accentColor})`,
+            '--modal-accent-border': `rgba(${accentColor}, 0.35)`,
+          } : {}}
+        >
+          {/* Feature 9: dominant color border accent */}
+          {accentColor && <div className="modal__accent-border" style={{background: `rgb(${accentColor})`}}/>}
 
           <div className="modal__backdrop">
             {(backdrop || poster) && <img src={backdrop || poster} alt="" className="modal__backdrop-img"/>}
@@ -397,11 +383,10 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                     <div key={c.id} className="modal__cast-item" onClick={() => onActorClick?.(c)}>
                       <div className="modal__cast-avatar">
                         {c.profile_path
-                          ? <img src={`https://image.tmdb.org/t/p/w342${c.profile_path}`} alt={c.name}/>
+                          ? <img src={`https://image.tmdb.org/t/p/w185${c.profile_path}`} alt={c.name}/>
                           : <span className="modal__cast-initials">{c.name[0]}</span>}
                       </div>
                       <span className="modal__cast-name">{c.name}</span>
-  
                     </div>
                   ))}
                 </div>
@@ -424,6 +409,5 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
 
     </>
   );
-}
-);
+});
 export default MovieModal;
