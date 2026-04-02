@@ -131,9 +131,9 @@ export function StoreProvider({ children, userId }) {
   const isDisliked     = (id) => dislikedIds.includes(id);
 
   // ── Custom Lists ──────────────────────────────────────────────────────────
-  const createCustomList = (name, description = '', image = null) => {
+  const createCustomList = (name, description = '', image = null, opts = {}) => {
     const id = `list_${Date.now()}`;
-    setCustomLists(prev => ({ ...prev, [id]: { id, name, description, image, items: [], createdAt: Date.now() } }));
+    setCustomLists(prev => ({ ...prev, [id]: { id, name, description, image, items: [], createdAt: Date.now(), showProgress: opts.showProgress !== false, deadline: opts.deadline || null } }));
     return id;
   };
   const deleteCustomList = (listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; });

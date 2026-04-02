@@ -21,11 +21,7 @@ const BUILD_DATE = new Date().toISOString().slice(0,10).replace(/-/g,'');
 
 function VersionBadge() {
   const pkg = require('../package.json');
-  return (
-    <div className="version-badge">
-      v{pkg.version} · {BUILD_DATE}
-    </div>
-  );
+  return <div className="version-badge">v{pkg.version} · {BUILD_DATE}</div>;
 }
 
 function AppInner() {
@@ -34,6 +30,7 @@ function AppInner() {
   const { overrides } = useAdmin();
   const month = new Date().getMonth() + 1;
   const showSnow = overrides.snow || month === 12 || month === 1;
+
 
   return (
     <div className="app-shell">
