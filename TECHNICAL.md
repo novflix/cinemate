@@ -1,7 +1,7 @@
 # CineMate — Technical Documentation
 
 > Complete technical reference for the CineMate web application.  
-> Version: 1.0.3 | Stack: React 18 + Supabase + TMDB API
+> Version: 1.0.3 | Stack: React 19 + Supabase + TMDB API
 
 ---
 
@@ -75,6 +75,9 @@
   - [20. Environment Variables](#20-environment-variables)
   - [21. Database Schema](#21-database-schema)
     - [Data Sizes (Estimated)](#data-sizes-estimated)
+  - [22. Custom Lists](#22-custom-lists)
+  - [23. About Page / Landing](#23-about-page--landing)
+  - [24. Vercel Deployment & SPA Routing](#24-vercel-deployment--spa-routing)
 
 ---
 
@@ -118,7 +121,7 @@ CineMate is a **client-side React SPA** with no custom backend. All data lives i
 
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
-| UI Framework | React | 18.x | Component tree, hooks, rendering |
+| UI Framework | React | 19.x | Component tree, hooks, rendering |
 | Build Tool | Create React App | 5.x | Webpack, Babel, dev server |
 | Auth + DB | Supabase | JS v2 | Authentication, PostgreSQL, realtime |
 | Movie Data | TMDB API | v3 | Films, TV shows, cast, images |
@@ -280,6 +283,7 @@ Single React Context (`StoreContext`) holds all app state. The context value is 
 | `likedActors` | `{ [id]: Actor }` | Actors the user liked |
 | `dislikedIds` | `number[]` | Movie IDs hidden from recommendations |
 | `tvProgress` | `{ [id]: { season, episode, totalSeasons } }` | Series watch progress |
+| `customLists` | `{ [listId]: CustomList }` | User-created custom lists |
 | `pendingRating` | `Movie | null` | Triggers RatingPrompt overlay |
 | `showConfetti` | `boolean` | Triggers confetti animation |
 
@@ -309,7 +313,7 @@ All movies are normalized via `normalize()` before storage to keep saved data le
 // Debounced 1500ms after any state change
 syncToCloud(userId, {
   watched, watchlist, ratings, profile,
-  liked_actors, disliked_ids, tv_progress
+  liked_actors, disliked_ids, tv_progress, custom_lists
 })
 // → supabase.from('user_data').upsert(...)
 ```
@@ -870,6 +874,145 @@ Each season configures a special section on the Home page with themed genres.
 
 ---
 
+
+## 22. Custom Lists
+
+**Files:** `src/pages/Profile.js`, `src/store.js`
+
+Custom Lists allow users to create curated collections beyond the built-in Watchlist/Watched. Each list is independent, has its own metadata, and syncs to the cloud.
+
+### Data Shape
+
+```typescript
+interface CustomList {
+  id: string;            // "list_1712345678901"
+  name: string;
+  description: string;
+  image: string | null;  // base64 data URL (user upload)
+  items: NormalizedMovie[];
+  createdAt: number;     // Date.now()
+  showProgress: boolean; // show watched/total progress bar
+  deadline: string | null; // ISO date string "2025-12-31"
+}
+
+// Stored as: customLists[id] = CustomList
+```
+
+### Store Operations
+
+```javascript
+createCustomList(name, description, image, opts)
+  // opts: { showProgress, deadline }
+  // → generates id = `list_${Date.now()}`
+  // → returns id
+
+addToCustomList(listId, movie)     // adds if not duplicate
+removeFromCustomList(listId, id)   // removes by movie id
+updateListMeta(listId, meta)       // patches name/desc/image/opts
+deleteCustomList(listId)           // removes from state
+isInCustomList(listId, movieId)    // boolean check
+```
+
+### Progress Calculation
+
+Progress is computed at render time — not stored — by cross-referencing list items against the `watched[]` slice:
+
+```javascript
+const watchedCount = list.items.filter(m => isWatched(m.id)).length;
+const pct = total > 0 ? Math.round((watchedCount / total) * 100) : 0;
+```
+
+This means progress updates automatically when the user marks a film as watched anywhere in the app.
+
+### List Edit Page
+
+`ListEditPage` handles both create and edit flows:
+
+- **Create:** `listId = null` → `createCustomList()` on save, `setCurrentId()` to persist adds before explicit save
+- **Edit:** `listId = existingId` → pre-fills state from `customLists[listId]`, calls `updateListMeta()` on save
+- After save, navigates to `{ view: 'detail', id }` in both cases
+
+### List Detail Page
+
+- Shows progress bar + deadline if configured
+- Each poster has `movie-card__overlay`-style buttons (Watchlist + Watched) — identical markup and CSS to `MovieCard`
+- Buttons are always visible on mobile (no `hover: hover` required), appear on hover on desktop
+- Both buttons are full toggles: watched → `removeFromWatched`, watchlist → `removeFromWatchlist`
+- Edit button (pencil) in header navigates to `ListEditPage` with the current `listId`
+
+---
+
+## 23. About Page / Landing
+
+**Files:** `src/pages/About.js`, `src/pages/About.css`
+
+The About page doubles as a product landing page with several interactive elements.
+
+### Film Strip
+
+Animated scrolling strip of real TMDB posters (20 films, duplicated for seamless loop). Uses `requestAnimationFrame` with a mutable ref for position — avoids React re-renders entirely:
+
+```javascript
+const posRef = useRef(offset);
+const animate = () => {
+  posRef.current -= direction * (speed / 60);
+  if (posRef.current < -total) posRef.current += total;
+  trackRef.current.style.transform = `translateX(${posRef.current}px)`;
+  rafRef.current = requestAnimationFrame(animate);
+};
+```
+
+Two rows scroll in opposite directions at different speeds.
+
+### Mouse Parallax
+
+Hero section floating posters respond to mouse position via CSS custom properties:
+
+```javascript
+// On mousemove:
+el.style.setProperty('--mx', x.toFixed(3)); // -1 to 1
+el.style.setProperty('--my', y.toFixed(3));
+
+// In CSS:
+.ahp--1 { transform: translateX(calc(var(--mx, 0) * -12px)) ... }
+```
+
+No state updates — direct DOM manipulation for 60fps without React overhead.
+
+### Easter Eggs
+
+| Trigger | Effect |
+|---------|--------|
+| Konami Code `↑↑↓↓←→←→BA` | Full-screen overlay with spinning 🎬 |
+| Click logo 7× | "Кинофанат обнаружен!" tooltip appears |
+| Hint visible at page bottom | Opacity reveals on hover |
+
+### Quote Rotator
+
+Five film director/critic quotes cycle every 4.5s with fade transition. State-based opacity toggle avoids layout shift.
+
+### Interactive Rating Demo
+
+Fully functional 1–10 star picker with colour coding and Russian labels — demonstrates the rating system without requiring account creation.
+
+---
+
+## 24. Vercel Deployment & SPA Routing
+
+**File:** `vercel.json`
+
+Since CineMate uses tab-based navigation (not `react-router-dom`), all routing is handled via React state. The `vercel.json` rewrite ensures any URL path resolves to `index.html`:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+This is required for any direct URL access (e.g. bookmarks, shared links) to work — without it Vercel returns 404 for non-root paths.
+
+---
+
 ## 19. Build & Deployment
 
 ### Build
@@ -922,6 +1065,7 @@ create table if not exists public.user_data (
   liked_actors jsonb not null default '{}'::jsonb,
   disliked_ids jsonb not null default '[]'::jsonb,
   tv_progress  jsonb not null default '{}'::jsonb,
+  custom_lists jsonb not null default '{}'::jsonb,
   updated_at   timestamptz not null default now()
 );
 
@@ -945,10 +1089,11 @@ create index on public.user_data(user_id);
 | `ratings` | 0.5–5kb | ~20kb |
 | `liked_actors` | 0.2–2kb | ~5kb |
 | `tv_progress` | 0.1–2kb | ~10kb |
+| `custom_lists` | 1–20kb | ~200kb (many lists with images) |
 
 Supabase free tier allows 500MB total — with typical usage this supports **~20,000 users** before needing an upgrade.
 
 ---
 
-*Last updated: March 2026*  
+*Last updated: April 2026*  
 *CineMate v1.0.3*
