@@ -9,18 +9,40 @@ import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import './Recs.css';
 
-// ─── SIGNAL WEIGHTS ───────────────────────────────────────────────────────────
-// Rating 9-10  → strong positive on the MOVIE itself (get more like THIS movie)
-// Rating 7-8   → mild positive
-// Rating 4-6   → neutral / mild signal (don't penalise genres)
-// Rating 1-3   → negative on THIS movie, mild negative on director/cast
-// Watchlist    → positive signal (user wants to see this type)
-// Liked actor  → fetch all their movies, prioritise them
-// Disliked id  → never show again
+// ─── ERA DETECTION ────────────────────────────────────────────────────────────
+// Analyses the user's watched/watchlist to detect what era of films they like.
+// Returns { minYear, preferRecent } so the discover calls can filter accordingly.
+function detectEraPreference(watched, watchlist) {
+  const all = [...watched, ...watchlist];
+  if (all.length === 0) return { minYear: new Date().getFullYear() - 10, preferRecent: true };
 
+  const years = all
+    .map(m => parseInt((m.release_date || m.first_air_date || '').slice(0, 4)))
+    .filter(y => y > 1900);
+
+  if (years.length === 0) return { minYear: new Date().getFullYear() - 10, preferRecent: true };
+
+  const avg  = years.reduce((s, y) => s + y, 0) / years.length;
+  const min  = Math.min(...years);
+  // Median year
+  const sorted = [...years].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  // If the user's oldest saved movie is before 1990, they may enjoy classics
+  const enjoysClassics = min < 1985;
+  // Clamp: never go more than 15 years before the user's oldest saved title
+  // (unless they explicitly have classics)
+  const safeMin = enjoysClassics ? min - 5 : Math.max(median - 8, 1980);
+  const preferRecent = avg > (new Date().getFullYear() - 8);
+
+  return { minYear: safeMin, preferRecent, median };
+}
+
+// ─── SIGNAL WEIGHTS ───────────────────────────────────────────────────────────
 function buildProfile(watched, watchlist, ratings, likedActors, dislikedIds) {
-  const seedMovies   = [];
-  const genreBoost   = {};
+  const seedMovies = [];
+  const genreBoost = {};
+  const { minYear, preferRecent, median } = detectEraPreference(watched, watchlist);
 
   watched.forEach(m => {
     const r = ratings[m.id];
@@ -51,7 +73,7 @@ function buildProfile(watched, watchlist, ratings, likedActors, dislikedIds) {
   const posSeeds = seedMovies
     .filter(s => s.weight > 0)
     .sort((a, b) => b.weight - a.weight)
-    .slice(0, 8);
+    .slice(0, 10);
 
   const avoidIds = new Set([
     ...watched.map(m => m.id),
@@ -64,74 +86,152 @@ function buildProfile(watched, watchlist, ratings, likedActors, dislikedIds) {
     likedActorIds: Object.keys(likedActors).map(Number),
     genreBoost,
     avoidIds,
+    minYear,
+    preferRecent,
+    medianYear: median,
   };
 }
 
-async function fetchCandidates(profile, page, langCode) {
-  const { seedMovies, likedActorIds, genreBoost, avoidIds } = profile;
-  const results = [];
+// ─── YEAR FILTER HELPERS ─────────────────────────────────────────────────────
+function yearParams(minYear, preferRecent) {
+  const currentYear = new Date().getFullYear();
+  const params = { 'primary_release_date.gte': `${minYear}-01-01` };
+  // Optionally bias toward recent if user mostly watches new stuff
+  if (preferRecent) {
+    params['primary_release_date.gte'] = `${currentYear - 12}-01-01`;
+  }
+  return params;
+}
 
-  // Strategy 1: /recommendations for top-weighted seed movies
+function tvYearParams(minYear, preferRecent) {
+  const currentYear = new Date().getFullYear();
+  if (preferRecent) return { 'first_air_date.gte': `${currentYear - 10}-01-01` };
+  return { 'first_air_date.gte': `${minYear}-01-01` };
+}
+
+function buildDiscoverUrl(base, genreId, sortBy, voteMin, page, yearP) {
+  const q = new URLSearchParams({
+    with_genres: String(genreId),
+    sort_by: sortBy,
+    'vote_count.gte': String(voteMin),
+    page: String(page),
+    ...yearP,
+  });
+  return `${base}?${q}`;
+}
+
+async function fetchCandidates(profile, page, langCode) {
+  const { seedMovies, likedActorIds, genreBoost, avoidIds, minYear, preferRecent } = profile;
+  const results = [];
+  const lang = `language=${langCode}`;
+
+  // ── Strategy 1: /recommendations for top-weighted seed movies ──────────────
   if (seedMovies.length > 0) {
+    const numSeeds = Math.min(4, seedMovies.length);
     const picks = [];
-    for (let i = 0; i < Math.min(3, seedMovies.length); i++) {
+    for (let i = 0; i < numSeeds; i++) {
       picks.push(seedMovies[(page - 1 + i) % seedMovies.length]);
     }
     await Promise.all(picks.map(async seed => {
       try {
         const r = await fetch(
-          `https://api.themoviedb.org/3/${seed.media_type}/${seed.id}/recommendations?language=${langCode}&page=${page}`,
+          `https://api.themoviedb.org/3/${seed.media_type}/${seed.id}/recommendations?${lang}&page=${page}`,
           { headers: HEADERS }
         ).then(r => r.json());
-        (r.results || []).forEach(m => results.push({
-          ...m, media_type: seed.media_type, _source_weight: seed.weight,
-        }));
+        // Filter out old content from recommendations unless user likes classics
+        (r.results || [])
+          .filter(m => {
+            const y = parseInt((m.release_date || m.first_air_date || '0').slice(0, 4));
+            return !y || y >= minYear;
+          })
+          .forEach(m => results.push({ ...m, media_type: seed.media_type, _source_weight: seed.weight }));
       } catch {}
     }));
   }
 
-  // Strategy 2: liked actors filmographies
+  // ── Strategy 2: liked actors filmographies ─────────────────────────────────
   if (likedActorIds.length > 0) {
     const actorPick = likedActorIds[(page - 1) % likedActorIds.length];
     try {
       const r = await fetch(
-        `https://api.themoviedb.org/3/person/${actorPick}/movie_credits?language=${langCode}`,
+        `https://api.themoviedb.org/3/person/${actorPick}/movie_credits?${lang}`,
         { headers: HEADERS }
       ).then(r => r.json());
       (r.cast || [])
-        .filter(m => m.poster_path && (m.vote_average || 0) >= 5)
+        .filter(m => {
+          if (!m.poster_path || (m.vote_average || 0) < 5) return false;
+          const y = parseInt((m.release_date || '0').slice(0, 4));
+          return !y || y >= minYear;
+        })
         .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
         .slice(0, 20)
         .forEach(m => results.push({ ...m, media_type: 'movie', _source_weight: 3 }));
     } catch {}
   }
 
-  // Strategy 3: discover by boosted genres
+  // ── Strategy 3: discover by boosted genres WITH era filter ─────────────────
   const topGenres = Object.entries(genreBoost)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([g]) => Number(g));
 
   if (topGenres.length > 0) {
+    const yp  = yearParams(minYear, preferRecent);
+    const typ = tvYearParams(minYear, preferRecent);
+
     try {
       const [movies, tv] = await Promise.all([
-        fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${topGenres[0]}&sort_by=vote_average.desc&vote_count.gte=200&page=${page}`, { headers: HEADERS }).then(r => r.json()),
-        fetch(`https://api.themoviedb.org/3/discover/tv?language=${langCode}&with_genres=${topGenres[0]}&sort_by=vote_average.desc&vote_count.gte=50&page=${page}`, { headers: HEADERS }).then(r => r.json()),
+        fetch(
+          buildDiscoverUrl(
+            'https://api.themoviedb.org/3/discover/movie',
+            topGenres[0], 'vote_average.desc', 300, page,
+            { ...yp, language: langCode }
+          ), { headers: HEADERS }
+        ).then(r => r.json()),
+        fetch(
+          buildDiscoverUrl(
+            'https://api.themoviedb.org/3/discover/tv',
+            topGenres[0], 'vote_average.desc', 80, page,
+            { ...typ, language: langCode }
+          ), { headers: HEADERS }
+        ).then(r => r.json()),
       ]);
       (movies.results || []).forEach(m => results.push({ ...m, media_type: 'movie', _source_weight: 1 }));
       (tv.results    || []).forEach(m => results.push({ ...m, media_type: 'tv',    _source_weight: 1 }));
     } catch {}
+
     if (topGenres[1]) {
       try {
-        const r = await fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${topGenres[1]}&sort_by=popularity.desc&vote_count.gte=100&page=${page}`, { headers: HEADERS }).then(r => r.json());
+        const r = await fetch(
+          buildDiscoverUrl(
+            'https://api.themoviedb.org/3/discover/movie',
+            topGenres[1], 'popularity.desc', 150, page,
+            { ...yp, language: langCode }
+          ), { headers: HEADERS }
+        ).then(r => r.json());
         (r.results || []).forEach(m => results.push({ ...m, media_type: 'movie', _source_weight: 0.8 }));
       } catch {}
     }
+
+    if (topGenres[2]) {
+      try {
+        const r = await fetch(
+          buildDiscoverUrl(
+            'https://api.themoviedb.org/3/discover/movie',
+            topGenres[2], 'popularity.desc', 150, page,
+            { ...yp, language: langCode }
+          ), { headers: HEADERS }
+        ).then(r => r.json());
+        (r.results || []).forEach(m => results.push({ ...m, media_type: 'movie', _source_weight: 0.7 }));
+      } catch {}
+    }
   } else {
+    // Fallback: trending + top rated — still era-filtered
+    const yp = yearParams(minYear, preferRecent);
     try {
       const [tr, tv] = await Promise.all([
-        fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}&page=${page}`, { headers: HEADERS }).then(r => r.json()),
-        fetch(`https://api.themoviedb.org/3/tv/top_rated?language=${langCode}&page=${page}`, { headers: HEADERS }).then(r => r.json()),
+        fetch(`https://api.themoviedb.org/3/trending/movie/week?${lang}&page=${page}`, { headers: HEADERS }).then(r => r.json()),
+        fetch(`https://api.themoviedb.org/3/discover/tv?${lang}&sort_by=vote_average.desc&vote_count.gte=80&first_air_date.gte=${yp['primary_release_date.gte']}&page=${page}`, { headers: HEADERS }).then(r => r.json()),
       ]);
       (tr.results || []).forEach(m => results.push({ ...m, media_type: 'movie', _source_weight: 0.5 }));
       (tv.results || []).forEach(m => results.push({ ...m, media_type: 'tv',    _source_weight: 0.5 }));
@@ -144,6 +244,9 @@ async function fetchCandidates(profile, page, langCode) {
       if (!m.poster_path)     return false;
       if (avoidIds.has(m.id)) return false;
       if (seen.has(m.id))     return false;
+      // Final era guard: never show items older than minYear
+      const y = parseInt((m.release_date || m.first_air_date || '0').slice(0, 4));
+      if (y && y < minYear) return false;
       seen.add(m.id);
       return true;
     })
@@ -152,7 +255,10 @@ async function fetchCandidates(profile, page, langCode) {
       const srcWeight = m._source_weight || 1;
       let genreScore  = 0;
       (m.genre_ids || []).forEach(g => { genreScore += (genreBoost[g] || 0) * 0.15; });
-      return { ...m, _score: tmdbScore * srcWeight + genreScore };
+      // Slight recency boost: newer films score marginally higher
+      const releaseYear = parseInt((m.release_date || m.first_air_date || '2000').slice(0, 4));
+      const recencyBoost = Math.max(0, (releaseYear - 2000) / 200);
+      return { ...m, _score: tmdbScore * srcWeight + genreScore + recencyBoost };
     })
     .sort((a, b) => b._score - a._score);
 }

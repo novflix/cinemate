@@ -10,27 +10,68 @@
   overflow: hidden; background: var(--surface2); height: auto;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-/* Feature 13: flash animations */
+/* ── Flash animations ─────────────────────────────────────────────────────── */
 @keyframes flashGreen {
-  0%   { box-shadow: 0 0 0 0   rgba(34,197,94,0); }
-  30%  { box-shadow: 0 0 0 6px rgba(34,197,94,0.6); }
-  100% { box-shadow: 0 0 0 0   rgba(34,197,94,0); }
+  0%   { box-shadow: 0 0 0 0px  rgba(34,197,94,0),   inset 0 0 0 0 rgba(34,197,94,0); }
+  20%  { box-shadow: 0 0 0 8px  rgba(34,197,94,0.55), inset 0 0 22px rgba(34,197,94,0.18); }
+  55%  { box-shadow: 0 0 0 14px rgba(34,197,94,0.2),  inset 0 0 10px rgba(34,197,94,0.08); }
+  100% { box-shadow: 0 0 0 0px  rgba(34,197,94,0),   inset 0 0 0 0 rgba(34,197,94,0); }
 }
 @keyframes flashYellow {
-  0%   { box-shadow: 0 0 0 0   rgba(232,197,71,0); }
-  30%  { box-shadow: 0 0 0 6px rgba(232,197,71,0.65); }
-  100% { box-shadow: 0 0 0 0   rgba(232,197,71,0); }
+  0%   { box-shadow: 0 0 0 0px  rgba(232,197,71,0),    inset 0 0 0 0 rgba(232,197,71,0); }
+  20%  { box-shadow: 0 0 0 8px  rgba(232,197,71,0.6),  inset 0 0 22px rgba(232,197,71,0.2); }
+  55%  { box-shadow: 0 0 0 14px rgba(232,197,71,0.22), inset 0 0 10px rgba(232,197,71,0.08); }
+  100% { box-shadow: 0 0 0 0px  rgba(232,197,71,0),   inset 0 0 0 0 rgba(232,197,71,0); }
 }
-.movie-card__poster.flash-watched { animation: flashGreen  0.65s ease; }
-.movie-card__poster.flash-list    { animation: flashYellow 0.65s ease; }
+
+/* Card pop + flash for watched */
+@keyframes cardPopGreen {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.045); }
+  65%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+/* Card pop + flash for watchlist */
+@keyframes cardPopYellow {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.04); }
+  65%  { transform: scale(0.985); }
+  100% { transform: scale(1); }
+}
+
+.movie-card__poster.flash-watched {
+  animation: flashGreen 0.75s cubic-bezier(0.22,1,0.36,1), cardPopGreen 0.55s cubic-bezier(0.22,1,0.36,1);
+}
+.movie-card__poster.flash-list {
+  animation: flashYellow 0.75s cubic-bezier(0.22,1,0.36,1), cardPopYellow 0.55s cubic-bezier(0.22,1,0.36,1);
+}
 
 .movie-card__poster img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block; transition: transform 0.28s ease;
 }
-.movie-card:hover .movie-card__poster { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
+.movie-card:hover .movie-card__poster { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.5); }
 .movie-card:active .movie-card__poster img { transform: scale(0.97); }
 .movie-card__no-poster { position: absolute; inset: 0; background: var(--surface2); }
+
+/* Badge pop-in */
+@keyframes badgePop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.movie-card__badge {
+  animation: badgePop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Card fade-in when entering DOM */
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.movie-card {
+  animation: cardFadeIn 0.32s ease both;
+}
 
 /* genre line removed */
 
@@ -88,15 +129,25 @@
 .movie-card__btn.y { background: rgba(232,197,71,0.48); }
 .movie-card__btn:disabled { opacity: 0.3; pointer-events: none; }
 
-/* Feature 43: heartbeat animation on bookmark button */
+/* Heartbeat animation on bookmark button */
 @keyframes heartbeat {
   0%   { transform: scale(1); }
-  25%  { transform: scale(1.35); }
-  50%  { transform: scale(0.95); }
-  70%  { transform: scale(1.2); }
+  18%  { transform: scale(1.45); }
+  36%  { transform: scale(0.88); }
+  54%  { transform: scale(1.25); }
+  72%  { transform: scale(0.96); }
+  88%  { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
-.movie-card__btn.heartbeat { animation: heartbeat 0.6s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes heartbeatGlow {
+  0%,100% { box-shadow: none; }
+  30%     { box-shadow: 0 0 10px 3px rgba(232,197,71,0.55); }
+  70%     { box-shadow: 0 0 5px 1px rgba(232,197,71,0.25); }
+}
+.movie-card__btn.heartbeat {
+  animation: heartbeat 0.65s cubic-bezier(0.36,0.07,0.19,0.97),
+             heartbeatGlow 0.65s ease;
+}
 
 .movie-card__title {
   font-size: 12px; font-weight: 600; color: var(--text);

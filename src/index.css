@@ -124,16 +124,17 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 [data-theme="light"] .ambient-glow::after  { background: radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 70%); }
 
 /* ─── PERFORMANCE HINTS ─── */
-/* Tell browser to prepare GPU layers for animated elements */
+/* GPU layers only for actively animated elements — not static ones */
 .hero__bg, .hero__content { will-change: opacity, transform; }
-.movie-card__poster { will-change: transform; }
 .modal-overlay { will-change: opacity; }
+
+/* Remove blanket will-change on movie-card__poster — applied dynamically via JS only during flash */
 
 /* content-visibility: auto skips rendering off-screen grid items */
 .recs-grid > div,
 .poster-grid__item {
   content-visibility: auto;
-  contain-intrinsic-size: 0 195px;
+  contain-intrinsic-size: 0 220px;
 }
 
 /* Prevent layout thrash from scroll containers */
@@ -141,8 +142,12 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .zoom-carousel,
 .mood-bar,
 .recs-actors {
-  will-change: scroll-position;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll containers get their own compositing layer */
+.home-section__scroll {
+  transform: translateZ(0);
 }
 
 /* Avoid repaints on static elements */

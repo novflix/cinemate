@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useRef } from 'react';
 import { EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, CloseCircleLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -12,8 +12,8 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist,
           removeFromWatched, removeFromWatchlist, getRating, getTvProgress } = useStore();
   const { lang } = useTheme();
-  // Feature 13: flash state
   const [flash, setFlash] = useState(null); // 'watched' | 'list' | null
+  const flashTimer = useRef(null);
 
   const watched    = isWatched(movie.id);
   const inList     = isInWatchlist(movie.id);
@@ -24,30 +24,44 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
   const userRating = getRating(movie.id);
   const type       = movie.media_type || (movie.title ? 'movie' : 'tv');
   const progress   = type === 'tv' ? getTvProgress(movie.id) : null;
+
+  const triggerFlash = useCallback((kind) => {
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    setFlash(kind);
+    flashTimer.current = setTimeout(() => setFlash(null), 800);
+  }, []);
+
   const handleWatched = useCallback((e) => {
     e.stopPropagation();
     if (watched) { removeFromWatched(movie.id); return; }
     addToWatched({...movie, media_type: type});
-    setFlash('watched');
-    setTimeout(() => setFlash(null), 700);
-  }, [watched, movie, type, removeFromWatched, addToWatched]);
+    triggerFlash('watched');
+  }, [watched, movie, type, removeFromWatched, addToWatched, triggerFlash]);
 
-  const handleWatchlist = (e) => {
+  const handleWatchlist = useCallback((e) => {
     e.stopPropagation();
     if (inList) { removeFromWatchlist(movie.id); return; }
     addToWatchlist({...movie, media_type: type});
-    // Feature 43: heartbeat - handled by CSS class
-    setFlash('list');
-    setTimeout(() => setFlash(null), 700);
-  };
+    triggerFlash('list');
+  }, [inList, movie, type, removeFromWatchlist, addToWatchlist, triggerFlash]);
+
+  const handleClick = useCallback(() => {
+    if (onClick) onClick(movie);
+  }, [onClick, movie]);
+
+  const handleDislikeClick = useCallback((e) => {
+    e.stopPropagation();
+    onDislike(movie.id);
+  }, [onDislike, movie.id]);
 
   return (
-    <div className="movie-card" onClick={() => onClick && onClick(movie)}>
+    <div className="movie-card" onClick={handleClick}>
       <div
         className={"movie-card__poster" + (flash ? ` flash-${flash}` : '')}
+        style={flash ? { willChange: 'transform, box-shadow' } : undefined}
       >
         {poster
-          ? <img src={poster} alt={title} loading="lazy"/>
+          ? <img src={poster} alt={title} loading="lazy" decoding="async"/>
           : <div className="movie-card__no-poster"/>
         }
 
@@ -74,7 +88,7 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           </div>
         )}
         {onDislike && (
-          <button className="movie-card__dislike" onClick={e=>{e.stopPropagation();onDislike(movie.id);}}>
+          <button className="movie-card__dislike" onClick={handleDislikeClick}>
             <CloseCircleLinear size={13}/>
           </button>
         )}
