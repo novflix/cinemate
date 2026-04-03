@@ -1,20 +1,46 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 
-    <!-- PWA / Theme -->
+    <!-- ── Primary SEO ── -->
+    <title>CineMate — Personal Movie & TV Show Tracker</title>
+    <meta name="description" content="CineMate is a free app to track movies and TV shows you've watched, get personalized recommendations, build watchlists, and follow your series progress." />
+    <meta name="keywords" content="movie tracker, tv show tracker, watchlist app, movie recommendations, what to watch, film tracker, series tracker, personal cinema, movie log" />
+    <meta name="author" content="CineMate" />
+    <link rel="canonical" href="https://cinimate.fun/" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- ── Open Graph (Telegram, Facebook, Discord) ── -->
+    <meta property="og:type"         content="website" />
+    <meta property="og:url"          content="https://cinimate.fun/" />
+    <meta property="og:title"        content="CineMate — Personal Movie & TV Show Tracker" />
+    <meta property="og:description"  content="Track what you've watched, discover what to watch next, and follow your series progress. Free, no account required." />
+    <meta property="og:image"        content="https://cinimate.fun/logo512.png" />
+    <meta property="og:image:width"  content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale"       content="en_US" />
+    <meta property="og:site_name"    content="CineMate" />
+
+    <!-- ── Twitter Card ── -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:url"         content="https://cinimate.fun/" />
+    <meta name="twitter:title"       content="CineMate — Personal Movie & TV Show Tracker" />
+    <meta name="twitter:description" content="Track what you've watched, discover what to watch next, and follow your series progress." />
+    <meta name="twitter:image"       content="https://cinimate.fun/logo512.png" />
+
+    <!-- ── PWA / Theme ── -->
     <meta name="theme-color" content="#080810" />
     <meta name="background-color" content="#080810" />
 
-    <!-- Apple PWA -->
+    <!-- ── Apple PWA ── -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Cinimate" />
+    <meta name="apple-mobile-web-app-title" content="CineMate" />
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- Apple Touch Icons — iPhone uses these for home screen -->
+    <!-- ── Apple Touch Icons ── -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="apple-touch-icon" sizes="76x76"   href="/apple-touch-icon-76x76.png" />
     <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png" />
@@ -22,20 +48,41 @@
     <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
 
-    <!-- Favicon -->
+    <!-- ── Favicon ── -->
     <link rel="icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
 
-    <!-- Manifest -->
+    <!-- ── Manifest ── -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- SEO -->
-    <meta name="description" content="Cinimate — твой личный кинотеатр. Открывай фильмы, сохраняй списки и получай персональные рекомендации." />
-
-    <title>Cinimate</title>
+    <!-- ── Structured Data (Schema.org) ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CineMate",
+      "url": "https://cinimate.fun",
+      "description": "Free app to track movies and TV shows, get personalized recommendations, and manage your watchlist.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "inLanguage": ["en", "ru"],
+      "featureList": [
+        "Watched movies & TV shows log",
+        "Personalized recommendations",
+        "TV series progress tracker",
+        "Custom watchlists",
+        "Works without registration"
+      ]
+    }
+    </script>
   </head>
   <body>
-    <noscript>Включите JavaScript.</noscript>
+    <noscript>You need to enable JavaScript to run CineMate.</noscript>
     <div id="root"></div>
   </body>
 </html>
