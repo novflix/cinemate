@@ -41,7 +41,7 @@ const SideNav = memo(function SideNav({ active, onChange }) {
   return (
     <aside className="side-nav">
       <div className="side-nav__logo">
-        <span className="side-nav__logo-text">CINE<span>MATE</span></span>
+        <span className="side-nav__logo-text">CINI<span>MATE</span></span>
       </div>
       <nav className="side-nav__links">
         {tabs.map(({ id, label, Icon }) => (

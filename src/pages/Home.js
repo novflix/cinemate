@@ -12,7 +12,7 @@ import ScrollRow from '../components/ScrollRow';
 import './Home.css';
 
 // Session cache — avoids refetching on tab switch within same session
-const HOME_CACHE_KEY = 'cinemate_home_cache_v1';
+const HOME_CACHE_KEY = 'cinimate_home_cache_v1';
 function getHomeCache(lang) {
   try {
     const raw = sessionStorage.getItem(HOME_CACHE_KEY + '_' + lang);

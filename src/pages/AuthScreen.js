@@ -37,8 +37,8 @@ export default function AuthScreen({ onSkip }) {
       <div className="auth-content">
         <div className="auth-logo">
           <VideoLibraryLinear size={40} strokeWidth={1.5}/>
-          <h1 className="auth-logo__text">CINE<span>MATE</span></h1>
-          <p className="auth-logo__sub">{t(lang,'Твой личный кинотеатр','Your personal cinema')}</p>
+          <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
+          <p className="auth-logo__sub">{t(lang,'Твой личный кинотеатр','Your personal CINIma')}</p>
         </div>
 
         <div className="auth-welcome-btns">
@@ -90,7 +90,7 @@ export default function AuthScreen({ onSkip }) {
           ← {t(lang,'Назад','Back')}
         </button>
         <div className="auth-logo auth-logo--small">
-          <h1 className="auth-logo__text">CINE<span>MATE</span></h1>
+          <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
         </div>
         <h2 className="auth-form-title">
           {mode === 'login' ? t(lang,'Вход','Sign in') : t(lang,'Регистрация','Create account')}

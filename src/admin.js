@@ -5,7 +5,7 @@ const ADMIN_ID = process.env.REACT_APP_ADMIN_ID || null;
 const AdminContext = createContext(null);
 
 // Keys for localStorage admin overrides
-const ADMIN_KEY = 'cinemate_admin_overrides';
+const ADMIN_KEY = 'cinimate_admin_overrides';
 
 const defaultOverrides = {
   snow:     false,  // force snow

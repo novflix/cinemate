@@ -1,13 +1,13 @@
-# CineMate — Technical Documentation
+# Cinimate — Technical Documentation
 
-> Complete technical reference for the CineMate web application.  
+> Complete technical reference for the Cinimate web application.  
 > Version: 1.0.3 | Stack: React 19 + Supabase + TMDB API
 
 ---
 
 ## Table of Contents
 
-- [CineMate — Technical Documentation](#cinemate--technical-documentation)
+- [Cinimate — Technical Documentation](#cinimate--technical-documentation)
   - [Table of Contents](#table-of-contents)
   - [1. Architecture Overview](#1-architecture-overview)
   - [2. Tech Stack](#2-tech-stack)
@@ -83,7 +83,7 @@
 
 ## 1. Architecture Overview
 
-CineMate is a **client-side React SPA** with no custom backend. All data lives in two external services:
+Cinimate is a **client-side React SPA** with no custom backend. All data lives in two external services:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -135,7 +135,7 @@ CineMate is a **client-side React SPA** with no custom backend. All data lives i
 ## 3. Project Structure
 
 ```
-cinemate/
+cinimate/
 ├── public/
 │   ├── index.html              # PWA meta tags, Apple touch icons
 │   ├── manifest.json           # Web app manifest
@@ -379,7 +379,7 @@ Pages are fetched in parallel (not sequential) — this cuts load time from `N �
 
 Home page results are cached in `sessionStorage` for 5 minutes:
 ```javascript
-const key = 'cinemate_home_cache_v1_' + lang;
+const key = 'cinimate_home_cache_v1_' + lang;
 // TTL: Date.now() - ts > 5 * 60 * 1000
 ```
 
@@ -621,7 +621,7 @@ const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 ```javascript
 // Two-level cache:
 // 1. In-memory Map (instantaneous)
-// 2. localStorage key 'cinemate_localized_cache_v2' (persists across sessions)
+// 2. localStorage key 'cinimate_localized_cache_v2' (persists across sessions)
 
 // Batch size: 10 concurrent requests
 // Debounced localStorage write: 2000ms
@@ -675,7 +675,7 @@ const isAdmin = !!(ADMIN_ID && userId === ADMIN_ID);
 | ❄️ Snow | Force snow effect regardless of month |
 | 🗓 Season | Override detected season (Auto / Halloween / New Year / Summer / Winter / Spring / Autumn) |
 
-Settings persist in `localStorage` under `cinemate_admin_overrides`.
+Settings persist in `localStorage` under `cinimate_admin_overrides`.
 
 ---
 
@@ -700,7 +700,7 @@ apple-touch-icon-76x76.png   (iPad mini)
 ```html
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="CineMate"/>
+<meta name="apple-mobile-web-app-title" content="Cinimate"/>
 <meta name="viewport" content="..., viewport-fit=cover"/>
 ```
 
@@ -1001,7 +1001,7 @@ Fully functional 1–10 star picker with colour coding and Russian labels — de
 
 **File:** `vercel.json`
 
-Since CineMate uses tab-based navigation (not `react-router-dom`), all routing is handled via React state. The `vercel.json` rewrite ensures any URL path resolves to `index.html`:
+Since Cinimate uses tab-based navigation (not `react-router-dom`), all routing is handled via React state. The `vercel.json` rewrite ensures any URL path resolves to `index.html`:
 
 ```json
 {
@@ -1096,4 +1096,4 @@ Supabase free tier allows 500MB total — with typical usage this supports **~20
 ---
 
 *Last updated: April 2026*  
-*CineMate v1.0.3*
+*Cinimate v1.0.3*

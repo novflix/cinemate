@@ -202,10 +202,10 @@ export default function About() {
         <div className={"about-hero__content" + (heroVisible ? ' revealed' : '')}>
           <div className="about-hero__pill">
             <span className="about-hero__dot"/>
-            {ru ? 'Персональный кинотеатр' : 'Your personal cinema'}
+            {ru ? 'Персональный кинотеатр' : 'Your personal CINIma'}
           </div>
           <h1 className="about-hero__wordmark">
-            CINE<span>MATE</span>
+            CINI<span>MATE</span>
           </h1>
           <p className="about-hero__tagline">
             {ru
@@ -304,7 +304,7 @@ export default function About() {
 
       {/* ── Footer ── */}
       <footer className="about-footer">
-        <p className="about-footer__mark">CINE<span>MATE</span></p>
+        <p className="about-footer__mark">CINI<span>MATE</span></p>
         <p className="about-footer__sub">{ru ? 'Сделано с ❤️ для киноманов' : 'Made with ❤️ for film lovers'}</p>
         <p className="about-footer__tmdb">
           {ru ? 'Данные предоставлены The Movie Database (TMDB)' : 'Movie data provided by The Movie Database (TMDB)'}

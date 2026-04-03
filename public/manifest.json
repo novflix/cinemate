@@ -1,6 +1,6 @@
 {
-  "name": "CineMate",
-  "short_name": "CineMate",
+  "name": "Cinimate",
+  "short_name": "Cinimate",
   "description": "Твой личный кинотеатр",
   "start_url": "/",
   "display": "standalone",

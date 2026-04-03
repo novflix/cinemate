@@ -813,7 +813,7 @@ export default function Profile() {
     <div className="page profile-page">
       <div className="profile-topbar">
         <div>
-          <span className="profile-topbar__title">CINE<span>MATE</span></span>
+          <span className="profile-topbar__title">CINI<span>MATE</span></span>
           {user
             ? <p className="profile-topbar__email">{user.email}</p>
             : <p className="profile-topbar__email">{t(lang,'Гостевой режим','Guest mode')}</p>

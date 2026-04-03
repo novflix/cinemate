@@ -1,4 +1,4 @@
-![CineMate Banner](https://i.imgur.com/FFhyZ66.png)
+![Cinimate Banner](https://i.imgur.com/FFhyZ66.png)
 ---
 ## 📸 Screenshots
  
@@ -90,8 +90,8 @@
 ### Installation
  
 ```bash
-git clone https://github.com/YOUR_USERNAME/cinemate.git
-cd cinemate
+git clone https://github.com/YOUR_USERNAME/cinimate.git
+cd cinimate
 npm install
 ```
  
