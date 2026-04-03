@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef } from 'react';
 import {
-  TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear,
+  TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, PinLinear,
   ShareLinear,
   MoonLinear, Sun2Linear, GlobalLinear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear,
@@ -151,18 +151,32 @@ function SettingsModal({ onClose }) {
 }
 
 /* ─── Poster Grid ─── */
-function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgress }) {
+function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgress, pinnedIds, pinItem, unpinItem, lang }) {
+  const [pinAnim, setPinAnim] = useState(null);
+
+  const handlePin = (e, id) => {
+    e.stopPropagation();
+    const isPinned = pinnedIds && pinnedIds.includes(id);
+    setPinAnim(id);
+    setTimeout(() => setPinAnim(null), 700);
+    if (isPinned) unpinItem(id);
+    else pinItem(id);
+  };
+
   if (!items.length) return null;
   return (
     <div className="poster-grid">
       {items.map(m => {
-        const poster = tmdb.posterUrl(m.poster_path);
-        const title  = m.title || m.name || m._fallback_title || '';
-        const rating = getRating(m.id);
+        const poster   = tmdb.posterUrl(m.poster_path);
+        const title    = m.title || m.name || m._fallback_title || '';
+        const rating   = getRating(m.id);
+        const isPinned = pinnedIds && pinnedIds.includes(m.id);
+        const isAnim   = pinAnim === m.id;
         return (
-          <div key={m.id} className="poster-grid__item" onClick={() => onSelect(m)}>
+          <div key={m.id} className={`poster-grid__item${isPinned ? ' poster-grid__item--pinned' : ''}`} onClick={() => onSelect(m)}>
             <div className="poster-grid__poster">
               {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
+              {isPinned && <div className="poster-grid__pin-glow"/>}
               {listTab === 'watched' && rating && (
                 <div className="poster-grid__rating"><span>★</span>{rating}</div>
               )}
@@ -177,6 +191,15 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
                   </div>
                 );
               })()}
+              {listTab === 'watchlist' && (
+                <button
+                  className={`poster-grid__pin${isPinned ? ' poster-grid__pin--active' : ''}${isAnim ? ' poster-grid__pin--burst' : ''}`}
+                  onClick={e => handlePin(e, m.id)}
+                  title={isPinned ? t(lang,'Открепить','Unpin') : t(lang,'Закрепить','Pin to top')}
+                >
+                  <PinLinear size={12}/>
+                </button>
+              )}
               <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();onRemove(m.id);}}>
                 <TrashBinMinimalistic2Linear size={11}/>
               </button>
@@ -188,10 +211,9 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
     </div>
   );
 }
-
-function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect, removeFromWatched, removeFromWatchlist, getRating, getTvProgress, lang }) {
+function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect, removeFromWatched, removeFromWatchlist, getRating, getTvProgress, lang, pinnedIds, pinItem, unpinItem }) {
   if (listTab === 'watched') {
-    return <PosterGrid items={displayItems} onSelect={onSelect} onRemove={removeFromWatched} listTab="watched" getRating={getRating}/>;
+    return <PosterGrid items={displayItems} onSelect={onSelect} onRemove={removeFromWatched} listTab="watched" getRating={getRating} lang={lang}/>;
   }
   const watching = localizedWatchlist.filter(m => (m.media_type==='tv'||(!m.title&&m.name)) && getTvProgress(m.id));
   const queued   = localizedWatchlist.filter(m => !watching.find(w => w.id===m.id));
@@ -200,12 +222,12 @@ function WatchlistContent({ listTab, displayItems, localizedWatchlist, onSelect,
       {watching.length > 0 && (
         <>
           <p className="profile-watching-label"><TVLinear size={13}/> {t(lang,'Смотрю сейчас','Currently watching')}</p>
-          <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+          <PosterGrid items={watching} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress} pinnedIds={pinnedIds} pinItem={pinItem} unpinItem={unpinItem} lang={lang}/>
           {queued.length > 0 && <div className="profile-watching-divider" data-label={lang==='ru'?'В очереди':'Up next'}/>}
         </>
       )}
       {queued.length > 0 && (
-        <PosterGrid items={queued} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress}/>
+        <PosterGrid items={queued} onSelect={onSelect} onRemove={removeFromWatchlist} listTab="watchlist" getRating={getRating} getTvProgress={getTvProgress} pinnedIds={pinnedIds} pinItem={pinItem} unpinItem={unpinItem} lang={lang}/>
       )}
     </>
   );
@@ -715,11 +737,11 @@ function CustomListsGrid({ customLists, onOpenList, onEditList, onCreateList, de
 /* ─── Main Profile ─── */
 export default function Profile() {
   const {
-    profile, setProfile, watched, watchlist,
+    profile, setProfile, watched, watchlist, sortedWatchlist,
     removeFromWatched, removeFromWatchlist, getRating, syncing,
     getTvProgress, customLists, createCustomList, deleteCustomList,
     addToCustomList, removeFromCustomList, updateListMeta,
-    totalWatchMinutes,
+    pinnedIds, pinWatchlistItem, unpinWatchlistItem,
   } = useStore();
   const { user } = useAuth();
   const { lang } = useTheme();
@@ -736,10 +758,7 @@ export default function Profile() {
 
 
   const localizedWatched   = useLocalizedMovies(watched,        lang);
-  const localizedWatchlist = useLocalizedMovies(watchlist, lang);
-
-  // Feature 7: watch time display
-  const watchHours = Math.round(totalWatchMinutes / 60);
+  const localizedWatchlist = useLocalizedMovies(sortedWatchlist, lang);
 
   const handleSave   = () => { setProfile({...profile, name: name.trim()||'Кинолюб', bio}); setEditing(false); };
   const handleAvatar = (e) => {
@@ -839,10 +858,7 @@ export default function Profile() {
         <div className="profile-stat"><span className="profile-stat__val">{watchlist.length}</span><span className="profile-stat__label">{t(lang,'В очереди','Queued')}</span></div>
         <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>!m.media_type||m.media_type==='movie').length}</span><span className="profile-stat__label">{t(lang,'Фильмов','Movies')}</span></div>
         <div className="profile-stat"><span className="profile-stat__val">{watched.filter(m=>m.media_type==='tv').length}</span><span className="profile-stat__label">{t(lang,'Сериалов','Series')}</span></div>
-        <div className="profile-stat profile-stat--accent" title={t(lang,`~${totalWatchMinutes} минут`,`~${totalWatchMinutes} minutes`)}>
-          <span className="profile-stat__val">{watchHours > 0 ? watchHours : '<1'}</span>
-          <span className="profile-stat__label">{t(lang,'Часов','Hours')}</span>
-        </div>
+
       </div>
 
       <div className="profile-roulette"><Roulette onMovieClick={openMovie}/></div>
@@ -885,6 +901,9 @@ export default function Profile() {
             getRating={getRating}
             getTvProgress={getTvProgress}
             lang={lang}
+            pinnedIds={pinnedIds}
+            pinItem={pinWatchlistItem}
+            unpinItem={unpinWatchlistItem}
           />
         )}
       </div>
