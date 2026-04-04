@@ -1,7 +1,7 @@
 {
   "name": "Cinimate",
   "short_name": "Cinimate",
-  "description": "Твой личный кинотеатр",
+  "description": "Your personal cinema",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
