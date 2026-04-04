@@ -15,11 +15,11 @@ import de from './locales/de.json';
 //   4. Add the TMDB language code to TMDB_LANG_MAP in api.js
 // ──────────────────────────────────────────────────────────────────────────
 export const SUPPORTED_LANGUAGES = [
-  { code: 'ru', label: 'Русский',    flag: '🇷🇺' },
-  { code: 'en', label: 'English',    flag: '🇪🇳' },
-  { code: 'es', label: 'Español',    flag: '🇪🇸' },
-  { code: 'fr', label: 'Français',   flag: '🇫🇷' },
-  { code: 'de', label: 'Deutsch',    flag: '🇩🇪' },
+  { code: 'ru', label: 'Русский',    countryCode: 'ru' },
+  { code: 'en', label: 'English',    countryCode: 'gb' },
+  { code: 'es', label: 'Español',    countryCode: 'es' },
+  { code: 'fr', label: 'Français',   countryCode: 'fr' },
+  { code: 'de', label: 'Deutsch',    countryCode: 'de' },
   // Example future additions:
   // { code: 'pt', label: 'Português', flag: '🇧🇷' },
   // { code: 'it', label: 'Italiano',  flag: '🇮🇹' },

@@ -30,6 +30,7 @@ function SettingsModal({ onClose }) {
   const { isAdmin, overrides, setOverride } = useAdmin();
   const [registerMode, setRegisterMode] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [langChanging, setLangChanging] = useState(false);
   const [regEmail, setRegEmail] = useState('');
   const [regPass,  setRegPass]  = useState('');
   const [regError, setRegError] = useState('');
@@ -75,13 +76,13 @@ function SettingsModal({ onClose }) {
           </div>
           <div className="settings-section">
             <p className="settings-label">{t('profile.language')}</p>
-            <div className="lang-picker">
+            <div className={"lang-picker" + (langChanging ? " lang-changing" : "")}>
               {/* Collapsed: show current lang + change button */}
               {(() => {
                 const current = SUPPORTED_LANGUAGES.find(l => l.code === lang) || SUPPORTED_LANGUAGES[0];
                 return (
                   <div className="lang-picker__current">
-                    <span className="lang-picker__flag">{current.flag}</span>
+                    <span className={`fi fi-${current.countryCode} lang-picker__flag`}></span>
                     <span className="lang-picker__label">{current.label}</span>
                     <button
                       className={"lang-picker__toggle" + (langOpen ? " open" : "")}
@@ -94,16 +95,28 @@ function SettingsModal({ onClose }) {
               })()}
               {/* Expanded list */}
               {langOpen && (
-                <div className="lang-picker__list">
-                  {SUPPORTED_LANGUAGES.map(({ code, label, flag }) => {
+                <div className="lang-picker__list lang-picker__list--animate">
+                  {SUPPORTED_LANGUAGES.map(({ code, label, countryCode }, idx) => {
                     const active = lang === code;
                     return (
                       <button
                         key={code}
                         className={"lang-picker__item" + (active ? " active" : "")}
-                        onClick={() => { setLang(code); setLangOpen(false); }}
+                        style={{ animationDelay: `${idx * 40}ms` }}
+                        onClick={() => {
+                          if (lang !== code) {
+                            setLangChanging(true);
+                            setTimeout(() => {
+                              setLang(code);
+                              setLangOpen(false);
+                              setLangChanging(false);
+                            }, 320);
+                          } else {
+                            setLangOpen(false);
+                          }
+                        }}
                       >
-                        <span className="lang-picker__flag">{flag}</span>
+                        <span className={`fi fi-${countryCode} lang-picker__flag`}></span>
                         <span className="lang-picker__label">{label}</span>
                         {active && <CheckCircleLinear size={15} className="lang-picker__check"/>}
                       </button>
