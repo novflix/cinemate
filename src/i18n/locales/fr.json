@@ -268,5 +268,13 @@
     "Très bien",
     "Excellent",
     "Chef-d'œuvre"
-  ]
+  ],
+  "moods": {
+    "all": "Tout",
+    "fun": "Fun",
+    "scary": "Horreur",
+    "action": "Action",
+    "drama": "Émotion",
+    "mind": "Réflexion"
+  }
 }

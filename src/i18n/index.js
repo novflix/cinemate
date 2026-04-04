@@ -6,6 +6,10 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
 import de from './locales/de.json';
+import pt from './locales/pt.json';
+import it from './locales/it.json';
+import tr from './locales/tr.json';
+import zh from './locales/zh.json';
 
 // ─── Supported languages ───────────────────────────────────────────────────
 // To add a new language:
@@ -20,14 +24,10 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'es', label: 'Español',    countryCode: 'es' },
   { code: 'fr', label: 'Français',   countryCode: 'fr' },
   { code: 'de', label: 'Deutsch',    countryCode: 'de' },
-  // Example future additions:
-  // { code: 'pt', label: 'Português', flag: '🇧🇷' },
-  // { code: 'it', label: 'Italiano',  flag: '🇮🇹' },
-  // { code: 'zh', label: '中文',       flag: '🇨🇳' },
-  // { code: 'ja', label: '日本語',     flag: '🇯🇵' },
-  // { code: 'ko', label: '한국어',     flag: '🇰🇷' },
-  // { code: 'ar', label: 'العربية',   flag: '🇸🇦' },
-  // { code: 'tr', label: 'Türkçe',    flag: '🇹🇷' },
+  { code: 'pt', label: 'Português',  countryCode: 'br' },
+  { code: 'it', label: 'Italiano',   countryCode: 'it' },
+  { code: 'tr', label: 'Türkçe',     countryCode: 'tr' },
+  { code: 'zh', label: '中文',        countryCode: 'cn' },
 ];
 
 i18n
@@ -39,6 +39,10 @@ i18n
       es: { translation: es },
       fr: { translation: fr },
       de: { translation: de },
+      pt: { translation: pt },
+      it: { translation: it },
+      tr: { translation: tr },
+      zh: { translation: zh },
     },
     lng: localStorage.getItem('lang') || 'en',
     fallbackLng: 'en',

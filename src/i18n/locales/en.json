@@ -268,5 +268,13 @@
     "Great",
     "Excellent",
     "Masterpiece"
-  ]
+  ],
+  "moods": {
+    "all": "All",
+    "fun": "Fun",
+    "scary": "Scary",
+    "action": "Action",
+    "drama": "Drama",
+    "mind": "Mind"
+  }
 }

@@ -11,6 +11,10 @@ const TMDB_LANG_MAP = {
   es: 'es-ES',
   fr: 'fr-FR',
   de: 'de-DE',
+  pt: 'pt-BR',
+  it: 'it-IT',
+  tr: 'tr-TR',
+  zh: 'zh-CN',
 };
 const getLang = () => {
   try {

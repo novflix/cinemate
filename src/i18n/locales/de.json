@@ -268,5 +268,13 @@
     "Toll",
     "Ausgezeichnet",
     "Meisterwerk"
-  ]
+  ],
+  "moods": {
+    "all": "Alles",
+    "fun": "Spaß",
+    "scary": "Horror",
+    "action": "Action",
+    "drama": "Drama",
+    "mind": "Denken"
+  }
 }

@@ -268,5 +268,13 @@
     "Muy bueno",
     "Excelente",
     "Obra maestra"
-  ]
+  ],
+  "moods": {
+    "all": "Todo",
+    "fun": "Divertido",
+    "scary": "Terror",
+    "action": "Acción",
+    "drama": "Drama",
+    "mind": "Reflexivo"
+  }
 }

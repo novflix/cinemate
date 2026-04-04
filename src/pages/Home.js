@@ -29,12 +29,12 @@ function setHomeCache(lang, data) {
 
 
 const MOODS = [
-  { id: 'all',    ru: 'Всё',       en: 'All',     icon: '✦', genres: [] },
-  { id: 'fun',    ru: 'Весело',    en: 'Fun',     icon: '😄', genres: [35,10751] },
-  { id: 'scary',  ru: 'Страшно',   en: 'Scary',   icon: '😱', genres: [27,53] },
-  { id: 'action', ru: 'Экшен',     en: 'Action',  icon: '💥', genres: [28,12] },
-  { id: 'drama',  ru: 'Поплакать', en: 'Drama',   icon: '😢', genres: [18,10749] },
-  { id: 'mind',   ru: 'Подумать',  en: 'Mind',    icon: '🧠', genres: [878,9648,99] },
+  { id: 'all',    icon: '✦', genres: [] },
+  { id: 'fun',    icon: '😄', genres: [35,10751] },
+  { id: 'scary',  icon: '😱', genres: [27,53] },
+  { id: 'action', icon: '💥', genres: [28,12] },
+  { id: 'drama',  icon: '😢', genres: [18,10749] },
+  { id: 'mind',   icon: '🧠', genres: [878,9648,99] },
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -291,7 +291,7 @@ export default function Home() {
         {MOODS.map(m=>(
           <button key={m.id} className={"mood-btn"+(mood===m.id?' active':'')} onClick={()=>setMood(m.id)}>
             <span className="mood-btn__icon">{m.icon}</span>
-            <span className="mood-btn__label">{lang==='ru'?m.ru:m.en}</span>
+            <span className="mood-btn__label">{t(`moods.${m.id}`)}</span>
           </button>
         ))}
       </div>
