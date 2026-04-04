@@ -208,7 +208,22 @@
     "uiFramework": "UI Çerçevesi",
     "dbAuth": "DB + Auth",
     "titles": "900k+ başlık",
-    "deployment": "Deploy"
+    "deployment": "Deploy",
+    "tagline": "Filmleri keşfet. Listeler oluştur.\nGerçekten işe yarayan öneriler al.",
+    "free": "Ücretsiz",
+    "noAds": "Reklamsız",
+    "scrollDown": "Daha fazlası için kaydırın",
+    "featuresLabel": "Özellikler",
+    "featuresTitle": "Mükemmel bir film gecesi için\nihtiyacınız olan her şey",
+    "howLabel": "Nasıl çalışır",
+    "howTitle": "Mükemmel bir sıraya\nüç adım",
+    "algoLabel": "Algoritma",
+    "algoTitle": "Senden öğrenen\nöneriler",
+    "algoSub": "Uygulamadaki her eylem bir sonraki öneriyi şekillendirir",
+    "techLabel": "Kaputun altında",
+    "techTitle": "Teknoloji yığını",
+    "footerSub": "Film severler için ❤️ ile yapıldı",
+    "footerTmdb": "Film verileri The Movie Database (TMDB) tarafından sağlanmaktadır"
   },
   "countdown": {
     "days": "{{count}}g sonra",

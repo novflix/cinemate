@@ -208,7 +208,22 @@
     "uiFramework": "UI Framework",
     "dbAuth": "DB + Auth",
     "titles": "900k+ titles",
-    "deployment": "Deployment"
+    "deployment": "Deployment",
+    "tagline": "Discover films. Build your lists.\nGet recommendations that actually work.",
+    "free": "Free",
+    "noAds": "No ads",
+    "scrollDown": "Scroll down to learn more",
+    "featuresLabel": "Features",
+    "featuresTitle": "Everything for\nthe perfect movie night",
+    "howLabel": "How it works",
+    "howTitle": "Three steps to\na perfect queue",
+    "algoLabel": "The Algorithm",
+    "algoTitle": "Recommendations that\nlearn from you",
+    "algoSub": "Every action in the app shapes the next recommendation",
+    "techLabel": "Under the hood",
+    "techTitle": "Tech stack",
+    "footerSub": "Made with ❤️ for film lovers",
+    "footerTmdb": "Movie data provided by The Movie Database (TMDB)"
   },
   "countdown": {
     "days": "in {{count}}d",

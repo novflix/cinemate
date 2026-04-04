@@ -208,7 +208,22 @@
     "uiFramework": "UI 框架",
     "dbAuth": "数据库 + 认证",
     "titles": "90万+ 作品",
-    "deployment": "部署"
+    "deployment": "部署",
+    "tagline": "发现好片。建立片单。\n获得真正有效的推荐。",
+    "free": "免费",
+    "noAds": "无广告",
+    "scrollDown": "向下滚动了解更多",
+    "featuresLabel": "功能",
+    "featuresTitle": "完美观影之夜\n所需的一切",
+    "howLabel": "如何使用",
+    "howTitle": "三步打造\n完美片单",
+    "algoLabel": "算法",
+    "algoTitle": "从你身上\n学习的推荐",
+    "algoSub": "应用中的每个操作都会影响下一次推荐",
+    "techLabel": "技术细节",
+    "techTitle": "技术栈",
+    "footerSub": "用 ❤️ 为影迷们打造",
+    "footerTmdb": "电影数据由 The Movie Database (TMDB) 提供"
   },
   "countdown": {
     "days": "{{count}}天后",

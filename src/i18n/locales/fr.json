@@ -208,7 +208,22 @@
     "uiFramework": "Interface",
     "dbAuth": "BDD + Authentification",
     "titles": "900k+ titres",
-    "deployment": "Déploiement"
+    "deployment": "Déploiement",
+    "tagline": "Découvrez des films. Créez vos listes.\nObtenez des recommandations qui fonctionnent vraiment.",
+    "free": "Gratuit",
+    "noAds": "Sans pub",
+    "scrollDown": "Faites défiler pour en savoir plus",
+    "featuresLabel": "Fonctionnalités",
+    "featuresTitle": "Tout ce qu'il faut pour\nune soirée cinéma parfaite",
+    "howLabel": "Comment ça marche",
+    "howTitle": "Trois étapes pour\nune file parfaite",
+    "algoLabel": "L'Algorithme",
+    "algoTitle": "Des recommandations qui\napprennent de vous",
+    "algoSub": "Chaque action dans l'app façonne la prochaine recommandation",
+    "techLabel": "Sous le capot",
+    "techTitle": "Stack technique",
+    "footerSub": "Fait avec ❤️ pour les cinéphiles",
+    "footerTmdb": "Données fournies par The Movie Database (TMDB)"
   },
   "countdown": {
     "days": "dans {{count}} j",

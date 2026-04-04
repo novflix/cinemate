@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState, memo } from 'react';
-import { useTheme } from '../theme';
 import { MagicStickLinear, TVLinear, StarLinear, ShuffleLinear, GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear, SmileCircleLinear, VideoLibraryLinear, BoltCircleLinear, CheckCircleLinear, AltArrowRightLinear, PlayLinear, Chart2Linear, ClockCircleLinear, LayersLinear, Server2Linear } from 'solar-icon-set';
 import './About.css';
 
@@ -107,7 +106,6 @@ const TechCard = memo(function TechCard({ tech, delay }) {
 
 /* ─── Main ─── */
 export default function About() {
-  const { lang } = useTheme();
   const { t: tr } = useTranslation();
   const [heroRef, heroVisible] = useReveal(0.01);
 
@@ -190,14 +188,12 @@ export default function About() {
             CINI<span>MATE</span>
           </h1>
           <p className="about-hero__tagline">
-            {lang === 'ru'
-              ? 'Открывай фильмы. Строй списки.\nПолучай рекомендации которые реально работают.'
-              : 'Discover films. Build your lists.\nGet recommendations that actually work.'}
+            {tr('about.tagline')}
           </p>
           <div className="about-hero__badges">
             {[
-              { icon: <CheckCircleLinear size={13}/>, label: lang === 'ru' ? 'Бесплатно' : 'Free' },
-              { icon: <ForbiddenCircleLinear size={13}/>, label: lang === 'ru' ? 'Без рекламы' : 'No ads' },
+              { icon: <CheckCircleLinear size={13}/>, label: tr('about.free') },
+              { icon: <ForbiddenCircleLinear size={13}/>, label: tr('about.noAds') },
               { icon: <CloudLinear size={13}/>, label: tr('about.cloudSync') },
               { icon: <PlayLinear size={13}/>, label: 'PWA' },
             ].map((b, i) => (
@@ -208,7 +204,7 @@ export default function About() {
           </div>
           <div className="about-hero__cta">
             <AltArrowRightLinear size={14}/>
-            {lang === 'ru' ? 'Прокрути вниз чтобы узнать больше' : 'Scroll down to learn more'}
+            {tr('about.scrollDown')}
           </div>
         </div>
         <div className="about-hero__scroll-line"/>
@@ -228,9 +224,9 @@ export default function About() {
       {/* ── Features ── */}
       <section className="about-section">
         <header className="about-section__header">
-          <div className="about-pill">✦ {lang === 'ru' ? 'Возможности' : 'Features'}</div>
+          <div className="about-pill">✦ {tr('about.featuresLabel')}</div>
           <h2 className="about-h2">
-            {lang === 'ru' ? 'Всё что нужно для\nидеального киновечера' : 'Everything for\nthe perfect movie night'}
+            {tr('about.featuresTitle')}
           </h2>
         </header>
         <div className="about-features-grid">
@@ -242,9 +238,9 @@ export default function About() {
       <section className="about-section about-section--alt">
         <div className="about-section-inner">
           <header className="about-section__header">
-            <div className="about-pill">✦ {lang === 'ru' ? 'Как это работает' : 'How it works'}</div>
+            <div className="about-pill">✦ {tr('about.howLabel')}</div>
             <h2 className="about-h2">
-              {lang === 'ru' ? 'Три шага до\nидеальной подборки' : 'Three steps to\na perfect queue'}
+              {tr('about.howTitle')}
             </h2>
           </header>
           <div className="about-steps">
@@ -256,14 +252,12 @@ export default function About() {
       {/* ── Algorithm ── */}
       <section className="about-section">
         <header className="about-section__header">
-          <div className="about-pill">✦ {lang === 'ru' ? 'Алгоритм' : 'The Algorithm'}</div>
+          <div className="about-pill">✦ {tr('about.algoLabel')}</div>
           <h2 className="about-h2">
-            {lang === 'ru' ? 'Рекомендации которые\nучатся на тебе' : 'Recommendations that\nlearn from you'}
+            {tr('about.algoTitle')}
           </h2>
           <p className="about-h2-sub">
-            {lang === 'ru'
-              ? 'Каждое действие в приложении влияет на следующую подборку'
-              : 'Every action in the app shapes the next recommendation'}
+            {tr('about.algoSub')}
           </p>
         </header>
         <div className="about-algo">
@@ -275,8 +269,8 @@ export default function About() {
       <section className="about-section about-section--alt">
         <div className="about-section-inner">
           <header className="about-section__header">
-            <div className="about-pill">✦ {lang === 'ru' ? 'Под капотом' : 'Under the hood'}</div>
-            <h2 className="about-h2">{lang === 'ru' ? 'Технологии' : 'Tech stack'}</h2>
+            <div className="about-pill">✦ {tr('about.techLabel')}</div>
+            <h2 className="about-h2">{tr('about.techTitle')}</h2>
           </header>
           <div className="about-tech-grid">
             {tech.map((t, i) => <TechCard key={i} tech={t} delay={i * 70}/>)}
@@ -287,9 +281,9 @@ export default function About() {
       {/* ── Footer ── */}
       <footer className="about-footer">
         <p className="about-footer__mark">CINI<span>MATE</span></p>
-        <p className="about-footer__sub">{lang === 'ru' ? 'Сделано с ❤️ для киноманов' : 'Made with ❤️ for film lovers'}</p>
+        <p className="about-footer__sub">{tr('about.footerSub')}</p>
         <p className="about-footer__tmdb">
-          {lang === 'ru' ? 'Данные предоставлены The Movie Database (TMDB)' : 'Movie data provided by The Movie Database (TMDB)'}
+          {tr('about.footerTmdb')}
         </p>
       </footer>
 
