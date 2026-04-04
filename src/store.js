@@ -67,7 +67,7 @@ export function StoreProvider({ children, userId }) {
   const [watched,      setWatched]      = useState(() => load('watched',       []));
   const [watchlist,    setWatchlist]    = useState(() => load('watchlist',     []));
   const [ratings,      setRatings]      = useState(() => load('ratings',       {}));
-  const [profile,      setProfile]      = useState(() => load('profile',       { name: 'Кинолюб', avatar: null, bio: '' }));
+  const [profile,      setProfile]      = useState(() => load('profile',       { name: 'Ciniphile', avatar: null, bio: '' }));
   const [likedActors,  setLikedActors]  = useState(() => load('likedActors',   {}));
   // Fix #6: dislikedIds stored as array in cloud/localStorage but used as Set internally
   const [dislikedIds,  setDislikedIds]  = useState(() => {

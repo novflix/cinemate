@@ -2,11 +2,13 @@ import { useState, useEffect, memo } from 'react';
 import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
+import { useTranslation } from 'react-i18next';
 import { useDominantColor } from '../hooks/useDominantColor';
 import './MovieModal.css';
 
 function WhereToWatch({ movieId, type, lang, title }) {
+  const { t } = useTranslation();
   const [providers, setProviders] = useState(null);
   useEffect(() => {
     if (!movieId) return;
@@ -24,7 +26,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
   const enc = encodeURIComponent(title || '');
   return (
     <div className="modal__where">
-      <h4>{t(lang,'Где посмотреть','Where to watch')}</h4>
+      <h4>{t('modal.whereToWatch')}</h4>
       <div className="modal__where-list">
         {all.map(p => {
           const svc = STREAMING_LINKS[p.provider_id];
@@ -36,7 +38,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
               {logo ? <img src={logo} alt={p.provider_name}/> : <span>▶</span>}
               <span className="modal__where-name">
                 {svc?.name || p.provider_name}
-                {!streaming && <span className="modal__where-tag">{t(lang,'аренда','rent')}</span>}
+                {!streaming && <span className="modal__where-tag">{t('modal.rent')}</span>}
               </span>
               <LinkMinimalisticLinear size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
             </a>
@@ -49,6 +51,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
 
 // Inline rating row shown inside modal for watched movies
 function InlineRating({ movieId, lang, getRating, rateMovie }) {
+  const { t } = useTranslation();
   const current = getRating(movieId);
   const [hovered, setHovered] = useState(0);
   const COLORS = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
@@ -57,7 +60,7 @@ function InlineRating({ movieId, lang, getRating, rateMovie }) {
 
   return (
     <div className="modal__rating-row">
-      <p className="modal__rating-label">{t(lang, 'Ваша оценка', 'Your rating')}</p>
+      <p className="modal__rating-label">{t('modal.yourRating')}</p>
       <div className="modal__rating-stars">
         {[1,2,3,4,5,6,7,8,9,10].map(n => (
           <button
@@ -82,7 +85,7 @@ function InlineRating({ movieId, lang, getRating, rateMovie }) {
 
 // ─── TV Progress Tracker ─────────────────────────────────────────────────────
 function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear }) {
-  const ru = lang === 'ru';
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [season,  setSeason]  = useState(progress?.season  || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
@@ -122,7 +125,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
           <div className="tv-tracker__badge" onClick={handleOpen}>
             <MonitorLinear size={16} className="tv-tracker__badge-icon"/>
             <div className="tv-tracker__badge-info">
-              <span className="tv-tracker__badge-pos">{ru?'Сезон':'Season'} {progress.season} · {ru?'Серия':'Episode'} {progress.episode}</span>
+              <span className="tv-tracker__badge-pos">{t('tvtracker.seasonBadge')} {progress.season} · {t('tvtracker.episodeBadge')} {progress.episode}</span>
               {totalSeasons > 1 && (
                 <div className="tv-tracker__bar">
                   <div className="tv-tracker__bar-fill" style={{
@@ -135,12 +138,12 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
           </div>
         ) : (
           <button className="tv-tracker__start" onClick={handleOpen}>
-            <span className="tv-tracker__start-inner"><MonitorLinear size={14}/><span>{ru ? 'Отметить прогресс' : 'Track progress'}</span></span>
+            <span className="tv-tracker__start-inner"><MonitorLinear size={14}/><span>{t('tvtracker.trackProgress')}</span></span>
           </button>
         )}
         {progress && (
           <button className="tv-tracker__clear" onClick={onClear}>
-            <RefreshCircleLinear size={11}/> {ru ? 'Сбросить' : 'Reset'}
+            <RefreshCircleLinear size={11}/> {t('tvtracker.reset')}
           </button>
         )}
       </div>
@@ -149,7 +152,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
         <div className="tv-tracker__editor">
           <div className="tv-tracker__controls">
             <label>
-              <span>{ru ? 'Сезон' : 'Season'}</span>
+              <span>{t('tvtracker.season')}</span>
               <div className="tv-tracker__spinner">
                 <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
                 <span>{season}</span>
@@ -157,7 +160,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
               </div>
             </label>
             <label>
-              <span>{ru ? 'Серия' : 'Episode'}</span>
+              <span>{t('tvtracker.episode')}</span>
               <div className="tv-tracker__spinner">
                 <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
                 <span>{episode}{episodesInSeason ? `/${episodesInSeason}` : ''}</span>
@@ -166,8 +169,8 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
             </label>
           </div>
           <div className="tv-tracker__editor-actions">
-            <button className="tv-tracker__save" onClick={handleSave}>{ru ? 'Сохранить' : 'Save'}</button>
-            <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{ru ? 'Отмена' : 'Cancel'}</button>
+            <button className="tv-tracker__save" onClick={handleSave}>{t('tvtracker.save')}</button>
+            <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{t('tvtracker.cancel')}</button>
           </div>
         </div>
       )}
@@ -177,9 +180,9 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
 // ─── More Menu (⋯ button next to title) ──────────────────────────────────────
 function MoreMenu({ movie, lang }) {
+  const { t } = useTranslation();
   const { customLists, addToCustomList, removeFromCustomList, isInCustomList } = useStore();
   const [panel, setPanel] = useState('closed');
-  const ru = lang === 'ru';
 
   const lists     = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
   const inAnyList = lists.some(l => isInCustomList(l.id, movie.id));
@@ -210,7 +213,7 @@ function MoreMenu({ movie, lang }) {
                 onClick={() => setPanel('lists')}
               >
                 <ListLinear size={15}/>
-                <span>{ru ? 'В список' : 'Add to list'}</span>
+                <span>{t('tvtracker.addToList')}</span>
                 {inAnyList && <span className="modal__more-dot"/>}
               </button>
             )}
@@ -219,13 +222,13 @@ function MoreMenu({ movie, lang }) {
               <>
                 <div className="modal__more-lists-header">
                   <button className="modal__more-back" onClick={() => setPanel('main')}>
-                    ‹ {ru ? 'Назад' : 'Back'}
+                    ‹ {t('tvtracker.back')}
                   </button>
-                  <span>{ru ? 'Добавить в список' : 'Add to list'}</span>
+                  <span>{t('tvtracker.addToListFull')}</span>
                 </div>
                 {lists.length === 0 && (
                   <p className="modal__more-empty">
-                    {ru ? 'Нет списков — создай в профиле' : 'No lists — create in profile'}
+                    {t('tvtracker.noLists')}
                   </p>
                 )}
                 {lists.map(list => {
@@ -257,10 +260,12 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [overviewExpanded, setOverviewExpanded] = useState(false);
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const watched  = movie ? isWatched(movie.id)     : false;
   const inList   = movie ? isInWatchlist(movie.id) : false;
   const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
-  const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
   // Fix #9: use large poster for dominant color extraction
   const posterUrl = tmdb.posterUrl(movie?.poster_path, 'w342');
   const accentColor = useDominantColor(posterUrl);
@@ -287,7 +292,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const poster   = tmdb.posterUrl(details?.poster_path || movie.poster_path, 'w780');
   const rating   = (details?.vote_average || movie.vote_average)?.toFixed(1);
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
-  const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t(lang,'ч','h')} ${details.runtime%60}${t(lang,'м','m')}` : null;
+  const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t('modal.hours')} ${details.runtime%60}${t('modal.minutes')}` : null;
   const seasons  = details?.number_of_seasons;
   const cast     = details?.credits?.cast?.slice(0,12) || [];
   const progress = movie ? getTvProgress(movie.id) : null;
@@ -334,9 +339,9 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 {year    && <span>{year}</span>}
                 {rating  && <span><StarLinear size={11} fill="currentColor"/>{rating}</span>}
                 {runtime && <span><ClockCircleLinear size={11}/>{runtime}</span>}
-                {seasons && <span><TVLinear size={11}/>{seasons} {t(lang,'сез.','seas.')}</span>}
+                {seasons && <span><TVLinear size={11}/>{seasons} {t('modal.seasons')}</span>}
                 <span className="modal__type-badge">
-                  {type==='tv' ? <><TVLinear size={10}/>{t(lang,'Сериал','Series')}</> : <><VideoLibraryLinear size={10}/>{t(lang,'Фильм','Movie')}</>}
+                  {type==='tv' ? <><TVLinear size={10}/>{t('modal.series')}</> : <><VideoLibraryLinear size={10}/>{t('modal.movie')}</>}
                 </span>
               </div>
               {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
@@ -352,8 +357,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 {overview.length > 180 && (
                   <button className="modal__overview-toggle" onClick={() => setOverviewExpanded(v => !v)}>
                     {overviewExpanded
-                      ? t(lang, 'Свернуть', 'Show less')
-                      : t(lang, 'Читать полностью', 'Read more')}
+                      ? t('modal.showLess')
+                      : t('modal.readMore')}
                   </button>
                 )}
               </div>
@@ -377,7 +382,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
 
             {cast.length > 0 && (
               <div className="modal__cast">
-                <h4>{t(lang,'В ролях','Cast')}</h4>
+                <h4>{t('modal.cast')}</h4>
                 <div className="modal__cast-list">
                   {cast.map(c => (
                     <div key={c.id} className="modal__cast-item" onClick={() => onActorClick?.(c)}>
@@ -395,12 +400,12 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
 
             <div className="modal__actions">
               <button className={"modal__action-btn"+(watched?" active-green":"")} onClick={handleMarkWatched}>
-                {watched ? <><EyeClosedLinear size={15}/>{t(lang,'Смотрел','Watched')}</> : <><EyeLinear size={15}/>{t(lang,'Уже смотрел','Mark watched')}</>}
+                {watched ? <><EyeClosedLinear size={15}/>{t('modal.watched')}</> : <><EyeLinear size={15}/>{t('modal.markWatched')}</>}
               </button>
               <button className={"modal__action-btn secondary"+(inList&&!watched?" active-yellow":"")}
                 onClick={() => inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type})}
                 disabled={watched}>
-                {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t(lang,'В списке','In list')}</> : <><BookmarkLinear size={15}/>{t(lang,'Хочу посмотреть','Watchlist')}</>}
+                {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t('modal.inList')}</> : <><BookmarkLinear size={15}/>{t('modal.watchlist')}</>}
               </button>
             </div>
           </div>

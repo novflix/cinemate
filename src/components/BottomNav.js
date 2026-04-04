@@ -1,36 +1,23 @@
 import { memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home2Linear, MagicStickLinear, MagniferLinear, UserLinear } from 'solar-icon-set';
-import { useTheme, t } from '../theme';
+import { useTranslation } from 'react-i18next';
 import './BottomNav.css';
 
-const TAB_TO_PATH = {
-  home:    '/',
-  recs:    '/recs',
-  search:  '/search',
-  profile: '/profile',
-};
-
-const PATH_TO_TAB = {
-  '/':        'home',
-  '/recs':    'recs',
-  '/search':  'search',
-  '/profile': 'profile',
-};
+const TAB_TO_PATH = { home:'/', recs:'/recs', search:'/search', profile:'/profile' };
+const PATH_TO_TAB = { '/':'home', '/recs':'recs', '/search':'search', '/profile':'profile' };
 
 const BottomNav = memo(function BottomNav({ active, onChange }) {
-  const { lang } = useTheme();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Derive from URL if active not passed
   const currentTab = active || PATH_TO_TAB[location.pathname] || 'home';
 
   const tabs = [
-    { id: 'home',    label: t(lang,'Главная','Home'),    Icon: Home2Linear },
-    { id: 'recs',    label: t(lang,'Для вас','For You'), Icon: MagicStickLinear },
-    { id: 'search',  label: t(lang,'Поиск','Search'),    Icon: MagniferLinear },
-    { id: 'profile', label: t(lang,'Профиль','Profile'), Icon: UserLinear },
+    { id: 'home',    label: t('nav.home'),    Icon: Home2Linear },
+    { id: 'recs',    label: t('nav.recs'),    Icon: MagicStickLinear },
+    { id: 'search',  label: t('nav.search'),  Icon: MagniferLinear },
+    { id: 'profile', label: t('nav.profile'), Icon: UserLinear },
   ];
 
   const handleClick = (id) => {

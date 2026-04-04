@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AltArrowLeftLinear, HeartLinear, CalendarLinear, PinLinear, VideoLibraryLinear, TVLinear } from 'solar-icon-set';
 import { HEADERS } from '../api';
 import { useStore } from '../store';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
 import './ActorPage.css';
 
@@ -12,6 +13,7 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
   const [details, setDetails] = useState(null);
   const [credits, setCredits] = useState([]);
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const langCode = lang === 'ru' ? 'ru-RU' : 'en-US';
 
   useEffect(() => {
@@ -63,8 +65,8 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
             <h1 className="actor-page__name">{name}</h1>
             {details?.known_for_department && <p className="actor-page__dept">{details.known_for_department}</p>}
             <div className="actor-page__counts">
-              {movieCount > 0 && <span><VideoLibraryLinear size={11}/> {movieCount} {t(lang,'фильмов','movies')}</span>}
-              {tvCount > 0 && <span><TVLinear size={11}/> {tvCount} {t(lang,'сериалов','series')}</span>}
+              {movieCount > 0 && <span><VideoLibraryLinear size={11}/> {movieCount} {t('actor.movies')}</span>}
+              {tvCount > 0 && <span><TVLinear size={11}/> {tvCount} {t('actor.series')}</span>}
             </div>
           </div>
         </div>
@@ -80,7 +82,7 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
 
         {bio && (
           <div className="actor-page__bio-wrap">
-            <h3 className="actor-page__section-title">{t(lang,'Биография','Biography')}</h3>
+            <h3 className="actor-page__section-title">{t('actor.biography')}</h3>
             <ActorBio bio={bio}/>
           </div>
         )}
@@ -88,7 +90,7 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
         {credits.length > 0 && (
           <div className="actor-page__filmography">
             <h3 className="actor-page__section-title">
-              {t(lang,'Фильмография','Filmography')}
+              {t('actor.filmography')}
               <span className="actor-page__count-badge">{credits.length}</span>
             </h3>
             <div className="actor-page__films-grid">

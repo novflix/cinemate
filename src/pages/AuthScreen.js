@@ -1,13 +1,13 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LetterLinear, LockLinear, EyeLinear, EyeClosedLinear, VideoLibraryLinear, DangerCircleLinear, CheckCircleLinear } from 'solar-icon-set';
 import { useAuth } from '../auth';
-import { useTheme, t } from '../theme';
 import './AuthScreen.css';
 
 
 export default function AuthScreen({ onSkip }) {
   const { signIn, signUp, loading } = useAuth();
-  const { lang } = useTheme();
+  const { t } = useTranslation();
   const [mode,     setMode]     = useState('welcome');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -19,15 +19,15 @@ export default function AuthScreen({ onSkip }) {
   const handleAuth = async (e) => {
     e.preventDefault();
     setError(''); setSuccess('');
-    if (!email || !password) { setError(t(lang,'Заполни все поля','Fill in all fields')); return; }
-    if (password.length < 6) { setError(t(lang,'Пароль минимум 6 символов','Password min 6 chars')); return; }
+    if (!email || !password) { setError(t('auth.fillAllFields')); return; }
+    if (password.length < 6) { setError(t('auth.passwordMin6')); return; }
     if (mode === 'login') {
       const { error } = await signIn(email, password);
-      if (error) { setError(t(lang,'Неверный email или пароль','Wrong email or password')); setShake(true); setTimeout(()=>setShake(false),600); }
+      if (error) { setError(t('auth.wrongCredentials')); setShake(true); setTimeout(()=>setShake(false),600); }
     } else {
       const { error } = await signUp(email, password);
       if (error) setError(error.message);
-      else setSuccess(t(lang,'Проверь почту для подтверждения','Check your email to confirm'));
+      else setSuccess(t('auth.checkEmail'));
     }
   };
 
@@ -38,18 +38,18 @@ export default function AuthScreen({ onSkip }) {
         <div className="auth-logo">
           <VideoLibraryLinear size={40} strokeWidth={1.5}/>
           <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
-          <p className="auth-logo__sub">{t(lang,'Твой личный кинотеатр','Your personal CINIma')}</p>
+          <p className="auth-logo__sub">{t('auth.personalCinima')}</p>
         </div>
 
         <div className="auth-welcome-btns">
           <button className="auth-btn auth-btn--primary" onClick={() => setMode('register')}>
-            {t(lang,'Создать аккаунт по email','Sign up with email')}
+            {t('auth.signUpEmail')}
           </button>
           <button className="auth-btn auth-btn--outline" onClick={() => setMode('login')}>
-            {t(lang,'Войти по email','Sign in with email')}
+            {t('auth.signInEmail')}
           </button>
           <button className="auth-btn auth-btn--ghost" onClick={() => setMode('skip-warn')}>
-            {t(lang,'Пропустить','Skip for now')}
+            {t('auth.skipForNow')}
           </button>
         </div>
       </div>
@@ -62,19 +62,16 @@ export default function AuthScreen({ onSkip }) {
       <div className="auth-content">
         <div className="auth-warn-card">
           <DangerCircleLinear size={40} strokeWidth={1.5} className="auth-warn-icon"/>
-          <h2 className="auth-warn-title">{t(lang,'Данные не сохранятся','Data won\'t be saved')}</h2>
+          <h2 className="auth-warn-title">{t('auth.dataWontBeSaved')}</h2>
           <p className="auth-warn-text">
-            {t(lang,
-              'Без аккаунта все твои списки, оценки и настройки хранятся только на этом устройстве. При очистке кэша или переустановке приложения они будут удалены безвозвратно.',
-              'Without an account your lists, ratings and settings are stored only on this device. Clearing cache or reinstalling will permanently delete them.'
-            )}
+            {t('auth.dataWontBeSavedDesc')}
           </p>
           <div className="auth-warn-btns">
             <button className="auth-btn auth-btn--primary" onClick={() => setMode('register')}>
-              {t(lang,'Создать аккаунт','Create account')}
+              {t('auth.createAccount')}
             </button>
             <button className="auth-btn auth-btn--ghost" onClick={onSkip}>
-              {t(lang,'Всё равно продолжить','Continue anyway')}
+              {t('auth.continueAnyway')}
             </button>
           </div>
         </div>
@@ -87,16 +84,16 @@ export default function AuthScreen({ onSkip }) {
       <div className="auth-bg"/>
       <div className="auth-content">
         <button className="auth-back" onClick={() => { setMode('welcome'); setError(''); setSuccess(''); }}>
-          ← {t(lang,'Назад','Back')}
+          ← {t('auth.back')}
         </button>
         <div className="auth-logo auth-logo--small">
           <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
         </div>
         <h2 className="auth-form-title">
-          {mode === 'login' ? t(lang,'Вход','Sign in') : t(lang,'Регистрация','Create account')}
+          {mode === 'login' ? t('auth.signIn') : t('auth.register')}
         </h2>
         <div className="auth-divider" style={{marginBottom:12}}>
-          <span>{t(lang,'или через email','or with email')}</span>
+          <span>{t('auth.orWithEmail')}</span>
         </div>
 
         <form className={"auth-form"+(shake?" auth-form--shake":"")} onSubmit={handleAuth}>
@@ -107,7 +104,7 @@ export default function AuthScreen({ onSkip }) {
           </div>
           <div className="auth-field">
             <LockLinear size={16} className="auth-field__icon"/>
-            <input type={showPass?'text':'password'} placeholder={t(lang,'Пароль','Password')}
+            <input type={showPass?'text':'password'} placeholder={t('auth.password')}
               value={password} onChange={e => setPassword(e.target.value)} className="auth-field__input"
               autoComplete={mode==='login'?'current-password':'new-password'}/>
             <button type="button" className="auth-field__toggle" onClick={() => setShowPass(s=>!s)}>
@@ -119,17 +116,17 @@ export default function AuthScreen({ onSkip }) {
           {success && <div className="auth-success"><CheckCircleLinear size={14}/> {success}</div>}
 
           <button type="submit" className="auth-btn auth-btn--primary auth-btn--full" disabled={loading}>
-            {loading ? '...' : mode==='login' ? t(lang,'Войти','Sign in') : t(lang,'Создать аккаунт','Create account')}
+            {loading ? '...' : mode==='login' ? t('auth.signInBtn') : t('auth.createAccount')}
           </button>
         </form>
 
         <button className="auth-switch" onClick={() => { setMode(mode==='login'?'register':'login'); setError(''); setSuccess(''); }}>
           {mode==='login'
-            ? t(lang,'Нет аккаунта? Зарегистрироваться','No account? Sign up')
-            : t(lang,'Уже есть аккаунт? Войти','Already have account? Sign in')}
+            ? t('auth.noAccount')
+            : t('auth.haveAccount')}
         </button>
         <button className="auth-btn auth-btn--ghost auth-skip-link" onClick={() => setMode('skip-warn')}>
-          {t(lang,'Пропустить','Skip')}
+          {t('auth.skip')}
         </button>
       </div>
     </div>

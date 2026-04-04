@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MagniferLinear, CloseCircleLinear, FilterLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
 import { useStore } from '../store';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
@@ -180,6 +181,7 @@ export default function Search() {
   const loaderRef = useRef(null);
   const loadingMoreRef = useRef(false);
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const { watched } = useStore();
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 
@@ -274,14 +276,14 @@ export default function Search() {
   return (
     <div className="page search-page">
       <div className="search-header">
-        <h1 className="search-header__title">{t(lang, 'Поиск', 'Search')}</h1>
+        <h1 className="search-header__title">{t('search.title')}</h1>
 
         <div className="search-top-row">
           <div className="search-bar">
             <MagniferLinear size={16} className="search-bar__icon"/>
             <input
               className="search-bar__input"
-              placeholder={t(lang, 'Название, год, жанр...', 'Title, year, genre...')}
+              placeholder={t('search.placeholder')}
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoComplete="off" spellCheck="false"
@@ -303,7 +305,7 @@ export default function Search() {
           <div className="search-filters">
             {/* Type */}
             <div className="search-filter-row">
-              <span className="search-filter-label">{t(lang, 'Тип', 'Type')}</span>
+              <span className="search-filter-label">{t('search.type')}</span>
               <div className="search-filter-chips">
                 {TYPE_OPTIONS.map(o => (
                   <button key={o.value}
@@ -317,7 +319,7 @@ export default function Search() {
 
             {/* Sort */}
             <div className="search-filter-row">
-              <span className="search-filter-label">{t(lang, 'Сортировка', 'Sort')}</span>
+              <span className="search-filter-label">{t('search.sort')}</span>
               <div className="search-filter-chips">
                 {SORT_OPTIONS.map(o => (
                   <button key={o.value}
@@ -331,7 +333,7 @@ export default function Search() {
 
             {/* Year range */}
             <div className="search-filter-row">
-              <span className="search-filter-label">{t(lang, 'Год', 'Year')}</span>
+              <span className="search-filter-label">{t('search.year')}</span>
               <div className="search-filter-chips">
                 {YEAR_RANGES.map((r, i) => (
                   <button key={i}
@@ -345,7 +347,7 @@ export default function Search() {
 
             {/* Genres */}
             <div className="search-filter-row">
-              <span className="search-filter-label">{t(lang, 'Жанры', 'Genres')}</span>
+              <span className="search-filter-label">{t('search.genres')}</span>
               <div className="search-filter-chips search-filter-chips--wrap">
                 {GENRES.map(g => (
                   <button key={g.id}
@@ -359,26 +361,26 @@ export default function Search() {
 
             {activeFilterCount > 0 && (
               <button className="search-filter-clear" onClick={clearFilters}>
-                {t(lang, 'Сбросить фильтры', 'Clear filters')}
+                {t('search.clearFilters')}
               </button>
             )}
           </div>
         )}
       </div>
 
-      {!showingFiltered && <h3 className="search-trending-label">{t(lang, 'В тренде сегодня', 'Trending today')}</h3>}
+      {!showingFiltered && <h3 className="search-trending-label">{t('search.trendingToday')}</h3>}
       {showingFiltered && !loading && results.length > 0 && searchTab === 'movies' && (
-        <p className="search-results-count">{t(lang, `Найдено: ${results.length}`, `Found: ${results.length}`)}</p>
+        <p className="search-results-count">{t('search.found', {count: results.length})}</p>
       )}
 
       {/* Feature 50: search mode tabs */}
       {query.trim() && (
         <div className="search-tabs">
           <button className={"search-tab-btn" + (searchTab === 'movies' ? ' active' : '')} onClick={() => setSearchTab('movies')}>
-            {t(lang, 'Фильмы и сериалы', 'Movies & Shows')}
+            {t('search.moviesAndShows')}
           </button>
           <button className={"search-tab-btn" + (searchTab === 'actors' ? ' active' : '')} onClick={() => setSearchTab('actors')}>
-            {t(lang, 'Актёры', 'Actors')}
+            {t('search.actors')}
           </button>
         </div>
       )}
@@ -390,13 +392,13 @@ export default function Search() {
           <MagniferLinear size={32} strokeWidth={1}/>
           {!query.trim() && activeFilterCount > 0 ? (
             <>
-              <p>{t(lang, 'Настройте фильтры и увидите результаты', 'Adjust filters to see results')}</p>
-              <p className="search-empty__hint">{t(lang, 'Или введите название для поиска', 'Or type a title to search')}</p>
+              <p>{t('search.adjustFilters')}</p>
+              <p className="search-empty__hint">{t('search.orTypeTitle')}</p>
             </>
           ) : (
             <>
-              <p>{t(lang, `Ничего по «${query || 'выбранным фильтрам'}»`, `Nothing for "${query || 'selected filters'}"`)}</p>
-              <p className="search-empty__hint">{t(lang, 'Попробуй изменить фильтры', 'Try changing filters')}</p>
+              <p>{t('search.nothingFor', {query: query || t('search.selectedFilters')})}</p>
+              <p className="search-empty__hint">{t('search.tryChanging')}</p>
             </>
           )}
         </div>
@@ -412,7 +414,7 @@ export default function Search() {
               </div>
               <p className="search-actor-card__name">{a.name}</p>
               {a._watchedCount > 0 && (
-                <p className="search-actor-card__watched">{t(lang, `${a._watchedCount} смотрел`, `${a._watchedCount} watched`)}</p>
+                <p className="search-actor-card__watched">{t('search.actorWatched', {count: a._watchedCount})}</p>
               )}
             </div>
           ))}
@@ -421,7 +423,7 @@ export default function Search() {
       {searchTab === 'actors' && !loading && query.trim() && actorResults.length === 0 && (
         <div className="search-empty">
           <MagniferLinear size={32} strokeWidth={1}/>
-          <p>{t(lang, `Актёры не найдены по «${query}»`, `No actors found for "${query}"`)}</p>
+          <p>{t('search.noActorsFor', {query})}</p>
         </div>
       )}
 

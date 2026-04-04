@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HEADERS } from '../api';
 import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
 import { useStore } from '../store';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import './Recs.css';
@@ -464,6 +465,7 @@ async function fetchCandidates(profile, page, langCode) {
 export default function Recs() {
   const { watched, watchlist, ratings, likedActors, dislikedIds, addDisliked, tvProgress } = useStore();
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const [items,   setItems]   = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -478,7 +480,8 @@ export default function Recs() {
   const loadingRef = useRef(false);
   const profileRef = useRef(null);
   const pageRef    = useRef(1);
-  const langCode   = lang === 'en' ? 'en-US' : 'ru-RU';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+  const langCode   = TMDB_LANG_MAP[lang] || 'en-US';
   const allSaved   = useMemo(() => [...watched, ...watchlist], [watched, watchlist]);
 
   useEffect(() => {
@@ -566,13 +569,13 @@ export default function Recs() {
     <div className="page recs-page">
       <div className="recs-header">
         <div>
-          <h1 className="recs-header__title">{t(lang,'Для вас','For You')}</h1>
+          <h1 className="recs-header__title">{t('home.forYou')}</h1>
           <p className="recs-header__sub">
             {!hasSignals
-              ? t(lang,'Добавь фильмы или поставь лайк актёру','Save movies or like an actor to start')
+              ? t('home.saveMoviesHint')
               : Object.keys(likedActors).length > 0
-              ? t(lang,'Любимые актёры + твои оценки · наведи на карточку чтобы убрать','Based on your ratings & liked actors · hover to remove')
-              : t(lang,'На основе твоих оценок и списков · наведи на карточку чтобы убрать','Based on your ratings & lists · hover to remove')}
+              ? t('home.basedOnRatingsActors')
+              : t('home.basedOnRatingsLists')}
           </p>
         </div>
         <button className={"recs-refresh"+(loading?" spinning":"")} onClick={doReset} disabled={loading}>
@@ -597,8 +600,8 @@ export default function Recs() {
       {noData && (
         <div className="recs-empty">
           <MagicStickLinear size={44} strokeWidth={1}/>
-          <h3>{t(lang,'Пока пусто','Nothing yet')}</h3>
-          <p>{t(lang,'Добавь фильмы в списки, оцени просмотренные или поставь лайк любимому актёру','Save movies, rate what you watched, or like a favourite actor')}</p>
+          <h3>{t('home.nothingYet')}</h3>
+          <p>{t('home.startHint')}</p>
         </div>
       )}
 

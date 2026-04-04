@@ -3,7 +3,21 @@ const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
 export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
 
-const getLang = () => { try { return localStorage.getItem('lang') === 'en' ? 'en-US' : 'ru-RU'; } catch { return 'ru-RU'; } };
+// Maps app language codes to TMDB language codes.
+// To add a new language: add its code here and create the corresponding locale file.
+const TMDB_LANG_MAP = {
+  ru: 'ru-RU',
+  en: 'en-US',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+};
+const getLang = () => {
+  try {
+    const code = localStorage.getItem('lang') || 'en';
+    return TMDB_LANG_MAP[code] || 'en-US';
+  } catch { return 'en-US'; }
+};
 
 // ─── Session-level details cache (fix #9) ────────────────────────────────────
 const _detailsCache = new Map();

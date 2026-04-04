@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { ShuffleLinear, CloseCircleLinear, EyeLinear, LinkMinimalisticLinear } from 'solar-icon-set';
 import { tmdb } from '../api';
 import { useStore } from '../store';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
+import { useTranslation } from 'react-i18next';
 import { useLocalizedMovies } from '../useLocalizedMovies';
 import './Roulette.css';
 
@@ -47,6 +48,7 @@ function Particles({ active }) {
 export default function Roulette({ onMovieClick }) {
   const { watchlist, addToWatched } = useStore();
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const [open,      setOpen]      = useState(false);
   const [spinning,  setSpinning]  = useState(false);
   const [winner,    setWinner]    = useState(null);
@@ -100,7 +102,7 @@ export default function Roulette({ onMovieClick }) {
     return (
       <button className="roulette-trigger" onClick={handleOpen}>
         <ShuffleLinear size={18}/>
-        <span>{t(lang,'Что посмотреть?','What to watch?')}</span>
+        <span>{t('roulette.whatToWatch')}</span>
       </button>
     );
   }
@@ -109,13 +111,13 @@ export default function Roulette({ onMovieClick }) {
     <div className="roulette-overlay" onClick={!spinning ? handleClose : undefined}>
       <div className="roulette-modal" onClick={e => e.stopPropagation()}>
         <div className="roulette-header">
-          <h2 className="roulette-title">{t(lang,'Крутим рулетку','Spin the wheel')}</h2>
+          <h2 className="roulette-title">{t('roulette.spinWheel')}</h2>
           {!spinning && <button className="roulette-close" onClick={handleClose}><CloseCircleLinear size={18}/></button>}
         </div>
 
         {items.length < 2 ? (
           <div className="roulette-empty">
-            <p>{t(lang,'Добавь хотя бы 2 фильма в «Хочу посмотреть»','Add at least 2 movies to your watchlist')}</p>
+            <p>{t('roulette.addMoviesHint')}</p>
           </div>
         ) : (
           <>
@@ -144,17 +146,17 @@ export default function Roulette({ onMovieClick }) {
                     <img className="roulette-result__poster" src={tmdb.posterUrl(winner.poster_path)} alt=""/>
                   )}
                   <div className="roulette-result__info">
-                    <p className="roulette-result__label">{t(lang,'Смотри сегодня!','Watch tonight!')}</p>
+                    <p className="roulette-result__label">{t('roulette.watchTonight')}</p>
                     <p className="roulette-result__title">{winner.title || winner.name}</p>
                     <p className="roulette-result__year">{(winner.release_date||winner.first_air_date||'').slice(0,4)}</p>
                   </div>
                 </div>
                 <div className="roulette-result__actions">
                   <button className="roulette-result__btn primary" onClick={() => { handleClose(); setTimeout(() => onMovieClick?.(winner), 320); }}>
-                    <LinkMinimalisticLinear size={15}/> {t(lang,'Открыть','Open')}
+                    <LinkMinimalisticLinear size={15}/> {t('roulette.open')}
                   </button>
                   <button className="roulette-result__btn" onClick={() => { addToWatched(winner); handleClose(); }}>
-                    <EyeLinear size={15}/> {t(lang,'Смотрел','Watched')}
+                    <EyeLinear size={15}/> {t('roulette.watched')}
                   </button>
                 </div>
               </div>
@@ -163,7 +165,7 @@ export default function Roulette({ onMovieClick }) {
             <div className="roulette-footer">
               <button className={"roulette-spin-btn"+(spinning?" spinning":"")} onClick={spin} disabled={spinning}>
                 <ShuffleLinear size={18}/>
-                {spinning ? t(lang,'Крутится…','Spinning…') : winner ? t(lang,'Ещё раз!','Again!') : t(lang,'Крутить!','Spin!')}
+                {spinning ? t('roulette.spinning') : winner ? t('roulette.again') : t('roulette.spin')}
               </button>
             </div>
           </>

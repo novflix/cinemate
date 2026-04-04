@@ -71,8 +71,17 @@ async function fetchLocalized(id, mediaType, langCode) {
 // Hook: given a list of stored (language-neutral) entries,
 // returns them hydrated with localized data in the current language.
 // Shows fallback data instantly, replaces with real data as fetches complete.
+// Maps app language codes to TMDB language codes (must match TMDB_LANG_MAP in api.js)
+const TMDB_LANG_MAP = {
+  ru: 'ru-RU',
+  en: 'en-US',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+};
+
 export function useLocalizedMovies(entries, lang) {
-  const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
   const [localized, setLocalized] = useState([]);
   const mountedRef = useRef(true);
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState, memo } from 'react';
 import { useTheme } from '../theme';
 import { MagicStickLinear, TVLinear, StarLinear, ShuffleLinear, GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear, SmileCircleLinear, VideoLibraryLinear, BoltCircleLinear, CheckCircleLinear, AltArrowRightLinear, PlayLinear, Chart2Linear, ClockCircleLinear, LayersLinear, Server2Linear } from 'solar-icon-set';
@@ -103,89 +104,70 @@ const TechCard = memo(function TechCard({ tech, delay }) {
   );
 });
 
+
 /* ─── Main ─── */
 export default function About() {
   const { lang } = useTheme();
-  const ru = lang === 'ru';
+  const { t: tr } = useTranslation();
   const [heroRef, heroVisible] = useReveal(0.01);
 
   const features = [
     { icon: MagicStickLinear, accent: '#e8c547',
-      title: ru ? 'Умные рекомендации' : 'Smart Recommendations',
-      tag:   ru ? 'Главное' : 'Core',
-      desc:  ru ? 'Алгоритм строит твой вкусовой профиль из оценок, лайков актёров и списков. Чем больше смотришь — тем точнее.' : 'Algorithm builds a taste profile from ratings, liked actors and lists. The more you use it, the sharper it gets.' },
+      title: tr('about.smartRecs'),     tag: tr('about.smartRecsTag'),
+      desc:  tr('about.smartRecsDesc') },
     { icon: StarLinear, accent: '#f97316',
-      title: ru ? 'Рейтинги 1–10' : 'Ratings 1–10',
-      desc:  ru ? 'Оценивай после просмотра. 9–10 = сильный сигнал для похожих фильмов. 1–3 = только этот фильм плохой, не жанр.' : 'Rate after watching. 9–10 = strong signal for similar films. 1–3 = just this film, not the whole genre.' },
+      title: tr('about.ratings'),
+      desc:  tr('about.ratingsDesc') },
     { icon: TVLinear, accent: '#3b82f6',
-      title: ru ? 'Трекер сериалов' : 'Series Tracker',
-      tag:   ru ? 'Новое' : 'New',
-      desc:  ru ? 'Отмечай на каком сезоне и серии. Сериалы в процессе выделяются отдельно в очереди.' : 'Track which season and episode you\'re on. In-progress shows appear at the top of your queue.' },
+      title: tr('about.seriesTracker'), tag: tr('about.seriesTrackerTag'),
+      desc:  tr('about.seriesTrackerDesc') },
     { icon: ShuffleLinear, accent: '#8b5cf6',
-      title: ru ? 'Рулетка' : 'Roulette',
-      desc:  ru ? 'Крути рулетку — она выберет фильм из очереди. Полезно когда не можешь решить.' : 'Spin the wheel to pick from your queue. Perfect when you can\'t decide.' },
+      title: tr('about.roulette'),
+      desc:  tr('about.rouletteDesc') },
     { icon: ForbiddenCircleLinear, accent: '#ef4444',
-      title: ru ? '«Не интересно»' : '"Not Interested"',
-      desc:  ru ? 'Нажми ✕ на карточке — фильм исчезнет навсегда. Алгоритм запомнит и не покажет снова.' : 'Tap ✕ on a card — it vanishes forever. The algorithm learns and never shows it again.' },
+      title: tr('about.notInterested'),
+      desc:  tr('about.notInterestedDesc') },
     { icon: HeartLinear, accent: '#ec4899',
-      title: ru ? 'Любимые актёры' : 'Liked Actors',
-      desc:  ru ? 'Лайкни актёра — его фильмография сразу подтягивается в рекомендации с высоким приоритетом.' : 'Like an actor and their filmography gets high-priority placement in your recs.' },
+      title: tr('about.likedActors'),
+      desc:  tr('about.likedActorsDesc') },
     { icon: GlobalLinear, accent: '#22c55e',
-      title: ru ? 'Два языка' : 'Two Languages',
-      desc:  ru ? 'Полная локализация: постеры, описания, названия — на выбранном языке.' : 'Full localisation: posters, overviews and titles switch to your chosen language.' },
+      title: tr('about.twoLanguages'),
+      desc:  tr('about.twoLanguagesDesc') },
     { icon: CloudLinear, accent: '#0ea5e9',
-      title: ru ? 'Облачный синк' : 'Cloud Sync',
-      desc:  ru ? 'Войди через email — все данные доступны на любом устройстве.' : 'Sign in with email and everything syncs across every device.' },
+      title: tr('about.cloudSync'),
+      desc:  tr('about.cloudSyncDesc') },
     { icon: SmileCircleLinear, accent: '#eab308',
-      title: ru ? 'Фильтр настроения' : 'Mood Filter',
-      desc:  ru ? 'Выбери вайб — «Страшно», «Экшен», «Поплакать» — получи нужную подборку мгновенно.' : 'Pick a vibe — Scary, Action, Drama — and get a tuned feed instantly.' },
+      title: tr('about.moodFilter'),
+      desc:  tr('about.moodFilterDesc') },
   ];
 
   const stats = [
-    { n: 900000, suffix: '+', label: ru ? 'фильмов и сериалов' : 'films & shows', icon: <VideoLibraryLinear size={18}/> },
-    { n: 50,     suffix: '+', label: ru ? 'в каждой секции'   : 'per section',   icon: <LayersLinear size={18}/> },
-    { n: 10,     suffix: '/10', label: ru ? 'шкала оценок'    : 'rating scale',  icon: <Chart2Linear size={18}/> },
-    { n: 5,      suffix: ' min', label: ru ? 'до первых рекомендаций' : 'to first recs', icon: <ClockCircleLinear size={18}/> },
+    { n: 900000, suffix: '+', label: tr('about.filmsShows'),  icon: <VideoLibraryLinear size={18}/> },
+    { n: 50,     suffix: '+', label: tr('about.perSection'),  icon: <LayersLinear size={18}/> },
+    { n: 10,  suffix: '/10',  label: tr('about.ratingScale'), icon: <Chart2Linear size={18}/> },
+    { n: 5,  suffix: ' min',  label: tr('about.toFirstRecs'), icon: <ClockCircleLinear size={18}/> },
   ];
 
   const steps = [
-    { Icon: VideoLibraryLinear,
-      title: ru ? 'Сохраняй' : 'Save',
-      desc:  ru ? 'Добавляй в «Хочу посмотреть» и отмечай просмотренные. Для сериалов — указывай сезон.' : 'Add to Watchlist and mark what you\'ve seen. For shows, track your exact episode.' },
-    { Icon: StarLinear,
-      title: ru ? 'Оценивай' : 'Rate',
-      desc:  ru ? 'Ставь оценки 1–10 после просмотра. Каждая оценка точнее настраивает алгоритм.' : 'Rate 1–10 after watching. Every rating fine-tunes the algorithm further.' },
-    { Icon: MagicStickLinear,
-      title: ru ? 'Открывай' : 'Discover',
-      desc:  ru ? 'Вкладка «Для вас» — бесконечная лента подобранных именно под тебя фильмов.' : 'The "For You" tab is an infinite feed tuned precisely to your taste.' },
+    { Icon: VideoLibraryLinear, title: tr('about.save'),     desc: tr('about.saveDesc') },
+    { Icon: StarLinear,         title: tr('about.rate'),     desc: tr('about.rateDesc') },
+    { Icon: MagicStickLinear,   title: tr('about.discover'), desc: tr('about.discoverDesc') },
   ];
 
   const algo = [
-    { icon: <StarLinear size={15}/>, color: '#e8c547',
-      title: ru ? 'Оценка 9–10' : 'Rating 9–10',
-      desc:  ru ? 'Сильнейший seed. Через TMDB /recommendations ищем максимально похожие фильмы.' : 'Strongest seed. TMDB /recommendations finds the most similar films.' },
-    { icon: <StarLinear size={15}/>, color: '#84cc16',
-      title: ru ? 'Оценка 5–8' : 'Rating 5–8',
-      desc:  ru ? 'Мягкий позитивный сигнал. Фильм используется как seed с меньшим весом.' : 'Soft positive signal. Film is used as a seed with lower weight.' },
-    { icon: <StarLinear size={15}/>, color: '#6b7280',
-      title: ru ? 'Оценка 1–3' : 'Rating 1–3',
-      desc:  ru ? 'Штрафуется только этот фильм. Жанр не страдает — плохой Железный человек ≠ ненавижу экшен.' : 'Only this film is penalised. Genre is untouched — one bad film ≠ hate the genre.' },
-    { icon: <HeartLinear size={15}/>, color: '#ec4899',
-      title: ru ? 'Лайк актёра' : 'Liked actor',
-      desc:  ru ? 'Фильмография добавляется в кандидаты с весом 3× — выше чем просто жанровый discover.' : 'Filmography added as candidates with 3× weight — higher than genre discover.' },
-    { icon: <BoltCircleLinear size={15}/>, color: '#8b5cf6',
-      title: ru ? 'Очередь' : 'Watchlist',
-      desc:  ru ? 'Жанры очереди буcтятся. Пользователь сам выбрал — значит похожее тоже зайдёт.' : 'Queue genres get boosted. You chose these — similar content likely fits too.' },
-    { icon: <ForbiddenCircleLinear size={15}/>, color: '#ef4444',
-      title: ru ? '«Не интересно»' : 'Not interested',
-      desc:  ru ? 'ID в чёрный список навсегда. Синхронизируется в облако, работает после переустановки.' : 'ID blacklisted permanently. Syncs to cloud — survives reinstalls.' },
+    { icon: <StarLinear size={15}/>, color: '#e8c547', title: tr('about.rating910'),        desc: tr('about.rating910Desc') },
+    { icon: <StarLinear size={15}/>, color: '#84cc16', title: tr('about.rating58'),         desc: tr('about.rating58Desc') },
+    { icon: <StarLinear size={15}/>, color: '#6b7280', title: tr('about.rating13'),         desc: tr('about.rating13Desc') },
+    { icon: <HeartLinear size={15}/>, color: '#ec4899', title: tr('about.likedActor'),      desc: tr('about.likedActorDesc') },
+    { icon: <BoltCircleLinear size={15}/>, color: '#8b5cf6', title: tr('about.watchlistAlgo'), desc: tr('about.watchlistAlgoDesc') },
+    { icon: <ForbiddenCircleLinear size={15}/>, color: '#ef4444', title: tr('about.notInterestedAlgo'), desc: tr('about.notInterestedAlgoDesc') },
   ];
 
   const tech = [
-    { name: 'React 18',  icon: <Server2Linear size={18}/>,      color: '#61DAFB', sub: ru ? 'Интерфейс'       : 'UI Framework' },
-    { name: 'Supabase',  icon: <CloudLinear size={18}/>,     color: '#3ECF8E', sub: ru ? 'БД + Авторизация' : 'DB + Auth' },
-    { name: 'TMDB',      icon: <VideoLibraryLinear size={18}/>,      color: '#01D277', sub: ru ? '900k+ тайтлов'   : '900k+ titles' },
-    { name: 'Vercel',    icon: <BoltCircleLinear size={18}/>,       color: '#aaa',    sub: ru ? 'Деплой'           : 'Deployment' },
+    { name: 'React 18', icon: <Server2Linear size={18}/>,      color: '#61DAFB', sub: tr('about.uiFramework') },
+    { name: 'Supabase', icon: <CloudLinear size={18}/>,         color: '#3ECF8E', sub: tr('about.dbAuth') },
+    { name: 'TMDB',     icon: <VideoLibraryLinear size={18}/>,  color: '#01D277', sub: tr('about.titles') },
+    { name: 'Vercel',   icon: <BoltCircleLinear size={18}/>,    color: '#aaa',    sub: tr('about.deployment') },
   ];
 
   return (
@@ -202,22 +184,22 @@ export default function About() {
         <div className={"about-hero__content" + (heroVisible ? ' revealed' : '')}>
           <div className="about-hero__pill">
             <span className="about-hero__dot"/>
-            {ru ? 'Персональный кинотеатр' : 'Your personal CINIma'}
+            {tr('auth.personalCinima')}
           </div>
           <h1 className="about-hero__wordmark">
             CINI<span>MATE</span>
           </h1>
           <p className="about-hero__tagline">
-            {ru
+            {lang === 'ru'
               ? 'Открывай фильмы. Строй списки.\nПолучай рекомендации которые реально работают.'
               : 'Discover films. Build your lists.\nGet recommendations that actually work.'}
           </p>
           <div className="about-hero__badges">
             {[
-              { icon: <CheckCircleLinear size={13}/>, label: ru ? 'Бесплатно'     : 'Free' },
-              { icon: <ForbiddenCircleLinear         size={13}/>, label: ru ? 'Без рекламы'   : 'No ads' },
-              { icon: <CloudLinear       size={13}/>, label: ru ? 'Облачный синк' : 'Cloud sync' },
-              { icon: <PlayLinear        size={13}/>, label: 'PWA' },
+              { icon: <CheckCircleLinear size={13}/>, label: lang === 'ru' ? 'Бесплатно' : 'Free' },
+              { icon: <ForbiddenCircleLinear size={13}/>, label: lang === 'ru' ? 'Без рекламы' : 'No ads' },
+              { icon: <CloudLinear size={13}/>, label: tr('about.cloudSync') },
+              { icon: <PlayLinear size={13}/>, label: 'PWA' },
             ].map((b, i) => (
               <span key={i} className="about-hero__badge">
                 {b.icon} {b.label}
@@ -226,7 +208,7 @@ export default function About() {
           </div>
           <div className="about-hero__cta">
             <AltArrowRightLinear size={14}/>
-            {ru ? 'Прокрути вниз чтобы узнать больше' : 'Scroll down to learn more'}
+            {lang === 'ru' ? 'Прокрути вниз чтобы узнать больше' : 'Scroll down to learn more'}
           </div>
         </div>
         <div className="about-hero__scroll-line"/>
@@ -246,9 +228,9 @@ export default function About() {
       {/* ── Features ── */}
       <section className="about-section">
         <header className="about-section__header">
-          <div className="about-pill">✦ {ru ? 'Возможности' : 'Features'}</div>
+          <div className="about-pill">✦ {lang === 'ru' ? 'Возможности' : 'Features'}</div>
           <h2 className="about-h2">
-            {ru ? 'Всё что нужно для\nидеального киновечера' : 'Everything for\nthe perfect movie night'}
+            {lang === 'ru' ? 'Всё что нужно для\nидеального киновечера' : 'Everything for\nthe perfect movie night'}
           </h2>
         </header>
         <div className="about-features-grid">
@@ -260,9 +242,9 @@ export default function About() {
       <section className="about-section about-section--alt">
         <div className="about-section-inner">
           <header className="about-section__header">
-            <div className="about-pill">✦ {ru ? 'Как это работает' : 'How it works'}</div>
+            <div className="about-pill">✦ {lang === 'ru' ? 'Как это работает' : 'How it works'}</div>
             <h2 className="about-h2">
-              {ru ? 'Три шага до\nидеальной подборки' : 'Three steps to\na perfect queue'}
+              {lang === 'ru' ? 'Три шага до\nидеальной подборки' : 'Three steps to\na perfect queue'}
             </h2>
           </header>
           <div className="about-steps">
@@ -274,12 +256,12 @@ export default function About() {
       {/* ── Algorithm ── */}
       <section className="about-section">
         <header className="about-section__header">
-          <div className="about-pill">✦ {ru ? 'Алгоритм' : 'The Algorithm'}</div>
+          <div className="about-pill">✦ {lang === 'ru' ? 'Алгоритм' : 'The Algorithm'}</div>
           <h2 className="about-h2">
-            {ru ? 'Рекомендации которые\nучатся на тебе' : 'Recommendations that\nlearn from you'}
+            {lang === 'ru' ? 'Рекомендации которые\nучатся на тебе' : 'Recommendations that\nlearn from you'}
           </h2>
           <p className="about-h2-sub">
-            {ru
+            {lang === 'ru'
               ? 'Каждое действие в приложении влияет на следующую подборку'
               : 'Every action in the app shapes the next recommendation'}
           </p>
@@ -293,8 +275,8 @@ export default function About() {
       <section className="about-section about-section--alt">
         <div className="about-section-inner">
           <header className="about-section__header">
-            <div className="about-pill">✦ {ru ? 'Под капотом' : 'Under the hood'}</div>
-            <h2 className="about-h2">{ru ? 'Технологии' : 'Tech stack'}</h2>
+            <div className="about-pill">✦ {lang === 'ru' ? 'Под капотом' : 'Under the hood'}</div>
+            <h2 className="about-h2">{lang === 'ru' ? 'Технологии' : 'Tech stack'}</h2>
           </header>
           <div className="about-tech-grid">
             {tech.map((t, i) => <TechCard key={i} tech={t} delay={i * 70}/>)}
@@ -305,9 +287,9 @@ export default function About() {
       {/* ── Footer ── */}
       <footer className="about-footer">
         <p className="about-footer__mark">CINI<span>MATE</span></p>
-        <p className="about-footer__sub">{ru ? 'Сделано с ❤️ для киноманов' : 'Made with ❤️ for film lovers'}</p>
+        <p className="about-footer__sub">{lang === 'ru' ? 'Сделано с ❤️ для киноманов' : 'Made with ❤️ for film lovers'}</p>
         <p className="about-footer__tmdb">
-          {ru ? 'Данные предоставлены The Movie Database (TMDB)' : 'Movie data provided by The Movie Database (TMDB)'}
+          {lang === 'ru' ? 'Данные предоставлены The Movie Database (TMDB)' : 'Movie data provided by The Movie Database (TMDB)'}
         </p>
       </footer>
 

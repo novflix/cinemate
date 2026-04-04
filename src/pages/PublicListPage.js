@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ListLinear, AltArrowLeftLinear } from 'solar-icon-set';
 import { supabase } from '../supabase';
 import { tmdb } from '../api';
-import { useTheme } from '../theme';
 import MovieModal from '../components/MovieModal';
 import './PublicListPage.css';
 
 export default function PublicListPage() {
   const { listId }    = useParams();
   const navigate      = useNavigate();
-  const { lang }      = useTheme();
-  const ru            = lang === 'ru';
+  const { t }         = useTranslation();
 
   const [list,    setList]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,10 +49,10 @@ export default function PublicListPage() {
   if (error || !list) return (
     <div className="plp-error">
       <ListLinear size={48} strokeWidth={1}/>
-      <h2>{ru ? 'Список не найден' : 'List not found'}</h2>
-      <p>{ru ? 'Возможно, ссылка устарела или список был удалён.' : 'The link may be outdated or the list was deleted.'}</p>
+      <h2>{t('publiclist.notFound')}</h2>
+      <p>{t('publiclist.notFoundDesc')}</p>
       <button className="plp-home-btn" onClick={() => navigate('/')}>
-        {ru ? 'На главную' : 'Go home'}
+        {t('publiclist.goHome')}
       </button>
     </div>
   );
@@ -84,17 +83,17 @@ export default function PublicListPage() {
             {list.description && <p className="plp-desc">{list.description}</p>}
             <div className="plp-submeta">
               <span className="plp-author">
-                {ru ? `Автор: ${list.author_name || 'Аноним'}` : `By ${list.author_name || 'Anonymous'}`}
+                {t('publiclist.by', {name: list.author_name || t('profile.anonymous')})}
               </span>
-              <span className="plp-count">· {items.length} {ru ? 'проектов' : 'titles'}</span>
+              <span className="plp-count">· {items.length} {t('publiclist.titles')}</span>
             </div>
           </div>
         </div>
 
         <button className="plp-share-btn" onClick={handleCopyLink}>
           {copied
-            ? (ru ? '✓ Скопировано!' : '✓ Copied!')
-            : (ru ? 'Скопировать ссылку' : 'Copy link')}
+            ? (t('publiclist.copied'))
+            : (t('publiclist.copyLink'))}
         </button>
       </div>
 
@@ -102,7 +101,7 @@ export default function PublicListPage() {
       {items.length === 0 ? (
         <div className="plp-empty">
           <ListLinear size={38} strokeWidth={1}/>
-          <p>{ru ? 'Список пуст' : 'List is empty'}</p>
+          <p>{t('publiclist.listEmpty')}</p>
         </div>
       ) : (
         <div className="plp-grid">

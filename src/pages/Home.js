@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
 import { useAdmin } from '../admin';
 import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
@@ -112,9 +113,11 @@ const SectionRow = memo(function SectionRow({ items, onSelect, showCountdown=fal
 });
 
 function TogetherSection({ onSelect, lang }) {
+  const { t } = useTranslation();
   const [activeTag, setActiveTag] = useState('date');
   const [movies, setMovies] = useState({});
-  const langCode = lang==='en'?'en-US':'ru-RU';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
 
   useEffect(() => {
     TOGETHER_TAGS.forEach(tag => {
@@ -133,7 +136,7 @@ function TogetherSection({ onSelect, lang }) {
   const current = movies[activeTag] || [];
   return (
     <div className="home-section together-section">
-      <h3 className="home-section__title"><HeartLinear size={15} className="home-section__icon"/>{t(lang,'Не смотри один','Watch Together')}</h3>
+      <h3 className="home-section__title"><HeartLinear size={15} className="home-section__icon"/>{t('profile.watchTogether')}</h3>
       <div className="together-tags">
         {TOGETHER_TAGS.map(tag=>(
           <button key={tag.id} className={"together-tag"+(activeTag===tag.id?' active':'')} onClick={()=>setActiveTag(tag.id)}>
@@ -176,6 +179,7 @@ export default function Home() {
   const { selected, openMovie, closeMovie } = useMovieModal();
   const navigate = useNavigate();
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const { overrides } = useAdmin();
   const langCode = lang==='en'?'en-US':'ru-RU';
   const currentYear = new Date().getFullYear();
@@ -260,21 +264,21 @@ export default function Home() {
       seasonData,
     ]);
     sections = [
-      { icon:ClapperboardLinear, title:t(lang,'Сейчас в кино','Now Playing'),   items:nowP.slice(0,50),  countdown:false, gold:false },
-      { icon:CalendarDateLinear, title:t(lang,'Скоро в кино','Coming Soon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
-      { icon:MagicStickLinear,     title:t(lang,`Новинки ${currentYear}`,`New ${currentYear}`), items:newY.slice(0,50), countdown:false, gold:false },
-      { icon:FlameLinear,        title:t(lang,'Популярные фильмы','Popular Movies'),  items:popM.slice(0,50),  countdown:false, gold:false },
-      { icon:CupFirstLinear,       title:t(lang,'Лучшие фильмы','Top Movies'),          items:topM.slice(0,50),  countdown:false, gold:true  },
-      { icon:TVLinear,          title:t(lang,'Популярные сериалы','Popular Series'), items:popTV.slice(0,50), countdown:false, gold:false },
-      { icon:CupFirstLinear,       title:t(lang,'Лучшие сериалы','Top Series'),         items:topTV.slice(0,50), countdown:false, gold:true  },
+      { icon:ClapperboardLinear, title:t('home.nowPlaying'),   items:nowP.slice(0,50),  countdown:false, gold:false },
+      { icon:CalendarDateLinear, title:t('home.comingSoon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
+      { icon:MagicStickLinear,     title:t('home.newYear', {year: currentYear}), items:newY.slice(0,50), countdown:false, gold:false },
+      { icon:FlameLinear,        title:t('home.popularMovies'),  items:popM.slice(0,50),  countdown:false, gold:false },
+      { icon:CupFirstLinear,       title:t('home.topMovies'),          items:topM.slice(0,50),  countdown:false, gold:true  },
+      { icon:TVLinear,          title:t('home.popularSeries'), items:popTV.slice(0,50), countdown:false, gold:false },
+      { icon:CupFirstLinear,       title:t('home.topSeries'),         items:topTV.slice(0,50), countdown:false, gold:true  },
       ...(seas.length?[{icon:MagicStickLinear,title:seasonCfg[lang==='en'?'en':'ru'],items:seas.slice(0,20),countdown:false,gold:false}]:[]),
     ];
   } else if (allData && moodData) {
     const cfg=MOODS.find(m=>m.id===mood);
     const [movies,tv]=dedup([moodData.movies,moodData.tv]);
     sections=[
-      {icon:FlameLinear,title:t(lang,`Фильмы — ${cfg.ru}`,`Movies — ${cfg.en}`),items:movies.slice(0,50),countdown:false,gold:false},
-      {icon:TVLinear,  title:t(lang,`Сериалы — ${cfg.ru}`,`Series — ${cfg.en}`),items:tv.slice(0,50),   countdown:false,gold:false},
+      {icon:FlameLinear,title:lang === 'ru' ? `Фильмы — ${cfg.ru}` : `Movies — ${cfg.en}`,items:movies.slice(0,50),countdown:false,gold:false},
+      {icon:TVLinear,  title:lang === 'ru' ? `Сериалы — ${cfg.ru}` : `Series — ${cfg.en}`,items:tv.slice(0,50),   countdown:false,gold:false},
     ];
   }
 
@@ -299,7 +303,7 @@ export default function Home() {
               <div className="home-section">
                 <h3 className="home-section__title home-section__title--trending">
                   <FlameLinear size={15} className="home-section__icon"/>
-                  {t(lang,'В тренде','Trending')}
+                  {t('home.trending')}
                 </h3>
                 <SectionRow items={allData.trending.slice(0,10)} onSelect={openMovie}/>
               </div>

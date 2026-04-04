@@ -1,18 +1,16 @@
 import { useState, memo } from 'react';
 import { CloseCircleLinear, StarLinear } from 'solar-icon-set';
 import { useStore } from '../store';
-import { useTheme, t } from '../theme';
+import { useTranslation } from 'react-i18next';
 import { tmdb } from '../api';
 import { SparkBurst } from './Effects';
 import './RatingPrompt.css';
 
-const LABELS_RU = ['','Ужасно','Плохо','Слабо','Ниже среднего','Средне','Неплохо','Хорошо','Отлично','Великолепно','Шедевр'];
-const LABELS_EN = ['','Terrible','Bad','Poor','Below avg','Average','Decent','Good','Great','Excellent','Masterpiece'];
 const COLORS    = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
 
 const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
   const { rateMovie, getRating } = useStore();
-  const { lang } = useTheme();
+  const { t } = useTranslation();
   const [hovered,  setHovered]  = useState(0);
   const [selected, setSelected] = useState(getRating(movie?.id) || 0);
   const [phase,    setPhase]    = useState('pick');
@@ -23,7 +21,8 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
   const title  = movie.title || movie.name || movie._fallback_title || '';
   const poster = tmdb.posterUrl(movie.poster_path);
   const display = hovered || selected;
-  const label  = lang === 'ru' ? LABELS_RU[display] : LABELS_EN[display];
+  const labels = t('ratingLabels', { returnObjects: true });
+  const label  = labels[display] || '';
   const color  = COLORS[display] || 'var(--accent)';
 
   const handleRate = (score) => {
@@ -49,8 +48,8 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
           <div>
             <p className="rating-prompt__ask">
               {phase === 'pick'
-                ? t(lang, 'Как вам фильм?', 'How was it?')
-                : t(lang, 'Оценка сохранена', 'Rating saved')}
+                ? t('rating.howWasIt')
+                : t('rating.ratingSaved')}
             </p>
             <p className="rating-prompt__title">{title}</p>
           </div>
@@ -77,12 +76,12 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
             <div className="rating-prompt__label-row">
               {display > 0
                 ? <p className="rating-prompt__label" style={{ color }}><StarLinear size={13} fill={color}/> {display}/10 — {label}</p>
-                : <p className="rating-prompt__hint">{t(lang, 'Нажми на цифру', 'Tap a number')}</p>
+                : <p className="rating-prompt__hint">{t('rating.tapNumber')}</p>
               }
             </div>
 
             <button className="rating-prompt__skip" onClick={onClose}>
-              {t(lang,'Пропустить','Skip')}
+              {t('rating.skip')}
             </button>
           </>
         )}

@@ -1,7 +1,6 @@
 import { useState, memo, useCallback, useRef } from 'react';
 import { EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, CloseCircleLinear } from 'solar-icon-set';
 import { useStore } from '../store';
-import { useTheme } from '../theme';
 import { tmdb } from '../api';
 import Countdown from './Countdown';
 import './MovieCard.css';
@@ -11,7 +10,6 @@ export const GENRE_COLORS = {};
 const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = false, onDislike = null }) {
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist,
           removeFromWatched, removeFromWatchlist, getRating, getTvProgress } = useStore();
-  const { lang } = useTheme();
   const [flash, setFlash] = useState(null); // 'watched' | 'list' | null
   const flashTimer = useRef(null);
 
@@ -75,7 +73,7 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
         ) : null}
 
         {showCountdown && movie.release_date && (
-          <Countdown releaseDate={movie.release_date} lang={lang}/>
+          <Countdown releaseDate={movie.release_date}/>
         )}
 
         {progress && (

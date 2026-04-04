@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AltArrowLeftLinear, StarLinear, VideoLibraryLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
-import { useTheme, t } from '../theme';
+import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import './CollectionPage.css';
@@ -13,6 +14,7 @@ export default function CollectionPage({ item, onBack }) {
   const [loading, setLoading] = useState(true);
   const [selected,setSelected]= useState(null);
   const { lang } = useTheme();
+  const { t } = useTranslation();
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
 
   useEffect(() => {
@@ -57,10 +59,10 @@ export default function CollectionPage({ item, onBack }) {
         <div className="collection-page__hero-content">
           {item.logo && <img className="collection-page__logo" src={item.logo} alt={item.name}/>}
           <div>
-            <p className="collection-page__type">{item.type === 'collection' ? t(lang,'Коллекция','Collection') : t(lang,'Студия','Studio')}</p>
+            <p className="collection-page__type">{item.type === 'collection' ? t('collection.collection') : t('collection.studio')}</p>
             <h1 className="collection-page__title">{info?.name || item.name}</h1>
             <div className="collection-page__meta">
-              {movies.length > 0 && <span><VideoLibraryLinear size={12}/> {movies.length} {t(lang,'фильмов','films')}</span>}
+              {movies.length > 0 && <span><VideoLibraryLinear size={12}/> {movies.length} {t('collection.films')}</span>}
               {avgRating > 0 && <span><StarLinear size={12} fill="currentColor"/> {avgRating}</span>}
             </div>
           </div>
