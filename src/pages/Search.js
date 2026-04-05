@@ -49,6 +49,54 @@ const TYPE_OPTIONS = [
   { value: 'tv',    ru: 'Сериалы',  en: 'Series' },
 ];
 
+// Relevance scoring: rewards exact/prefix title matches, penalises obscure/old/low-rated results
+function scoreRelevance(m, q) {
+  const title = (m.title || m.name || '').toLowerCase();
+  const orig  = (m.original_title || m.original_name || '').toLowerCase();
+  const query = q.toLowerCase().trim();
+  let score = 0;
+
+  // ── Title match tier ────────────────────────────────────────────────────
+  if (title === query || orig === query) score += 10000;
+  else if (title.startsWith(query) || orig.startsWith(query)) score += 5000;
+  else if (new RegExp('\\b' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(title)) score += 2000;
+  else if (title.includes(query) || orig.includes(query)) score += 500;
+
+  // ── Popularity boost (log scale) ────────────────────────────────────────
+  const pop = m.popularity || 0;
+  score += Math.log10(Math.max(pop, 1)) * 10;
+
+  // ── Vote count penalty — filters out unaired/garbage entries ────────────
+  const votes = m.vote_count || 0;
+  if (votes < 10)        score -= 500;
+  else if (votes < 50)   score -= 300;
+  else if (votes < 200)  score -= 100;
+
+  // ── Rating penalty — low-rated titles sink to the bottom ────────────────
+  const rating = m.vote_average || 0;
+  if (votes >= 50) {
+    if (rating < 4.0)      score -= 400;
+    else if (rating < 5.5) score -= 150;
+    else if (rating < 6.5) score -= 30;
+    if (rating >= 7.5) score += 50;
+    if (rating >= 8.5) score += 100;
+  }
+
+  // ── Year penalty — very old obscure titles sink ──────────────────────────
+  const dateStr = m.release_date || m.first_air_date || '';
+  const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) : null;
+  if (year) {
+    if (year < 1970)      score -= 300;
+    else if (year < 1980) score -= 200;
+    else if (year < 1990) score -= 100;
+    else if (year >= new Date().getFullYear() - 5) score += 30;
+  } else {
+    score -= 150;
+  }
+
+  return score;
+}
+
 async function enhancedSearch(query, langCode, filters, page = 1) {
   const q = query.trim();
   const hasFilters = filters.genres.length > 0 || filters.yearRange || filters.sort !== 'popularity.desc' || filters.type !== 'all';
@@ -89,12 +137,18 @@ async function enhancedSearch(query, langCode, filters, page = 1) {
 
   const types = filters.type === 'all' ? ['movie', 'tv'] : [filters.type];
 
-  // Text search with page
-  await Promise.all(types.map(async type => {
-    try {
-      const r = await fetch(`https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(q)}&language=${langCode}&page=${page}`, { headers: HEADERS }).then(r => r.json());
-      add(r.results || [], type);
-    } catch {}
+  // Text search — fetch pages 1+2 on initial load to get more candidates for re-ranking
+  await Promise.all(types.flatMap(type => {
+    const pages = page === 1 ? [1, 2] : [page];
+    return pages.map(async pg => {
+      try {
+        const r = await fetch(
+          `https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(q)}&language=${langCode}&page=${pg}`,
+          { headers: HEADERS }
+        ).then(r => r.json());
+        add(r.results || [], type);
+      } catch {}
+    });
   }));
 
   // Year detection
@@ -105,8 +159,8 @@ async function enhancedSearch(query, langCode, filters, page = 1) {
     await Promise.all(types.map(async type => {
       const dateField = type === 'tv' ? 'first_air_date_year' : 'primary_release_year';
       const endpoint = rest
-        ? `https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(rest)}&${dateField}=${year}&language=${langCode}&page=${page}`
-        : `https://api.themoviedb.org/3/discover/${type}?${dateField === 'first_air_date_year' ? 'first_air_date_year' : 'primary_release_year'}=${year}&sort_by=popularity.desc&language=${langCode}&page=${page}`;
+        ? `https://api.themoviedb.org/3/search/${type}?query=${encodeURIComponent(rest)}&${dateField}=${year}&language=${langCode}&page=1`
+        : `https://api.themoviedb.org/3/discover/${type}?${dateField}=${year}&sort_by=popularity.desc&language=${langCode}&page=1`;
       try {
         const r = await fetch(endpoint, { headers: HEADERS }).then(r => r.json());
         add(r.results || [], type);
@@ -116,7 +170,7 @@ async function enhancedSearch(query, langCode, filters, page = 1) {
 
   let arr = [...seen.values()];
 
-  // Apply genre filter to text search results
+  // Apply genre filter
   if (filters.genres.length) {
     arr = arr.filter(m => (m.genre_ids || []).some(g => filters.genres.includes(g)));
   }
@@ -131,18 +185,20 @@ async function enhancedSearch(query, langCode, filters, page = 1) {
     });
   }
 
-  // Sort
-  if (filters.sort === 'vote_average.desc') arr.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
-  else if (filters.sort === 'release_date.desc') arr.sort((a, b) => (b.release_date || b.first_air_date || '').localeCompare(a.release_date || a.first_air_date || ''));
-  else if (filters.sort === 'release_date.asc') arr.sort((a, b) => (a.release_date || a.first_air_date || '').localeCompare(b.release_date || b.first_air_date || ''));
-  else arr.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+  // Sort — user-selected sort overrides relevance; default = relevance scoring
+  if (filters.sort === 'vote_average.desc') {
+    arr.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+  } else if (filters.sort === 'release_date.desc') {
+    arr.sort((a, b) => (b.release_date || b.first_air_date || '').localeCompare(a.release_date || a.first_air_date || ''));
+  } else if (filters.sort === 'release_date.asc') {
+    arr.sort((a, b) => (a.release_date || a.first_air_date || '').localeCompare(b.release_date || b.first_air_date || ''));
+  } else {
+    // Default: relevance-first (exact > prefix > word-boundary > substring > popularity)
+    arr.sort((a, b) => scoreRelevance(b, q) - scoreRelevance(a, q));
+  }
 
   return arr;
 }
-
-const DEFAULT_FILTERS = { genres: [], yearRange: null, sort: 'popularity.desc', type: 'all' };
-
-// Feature 50: search actors
 async function searchActors(query, langCode, watched) {
   if (!query.trim()) return [];
   try {
@@ -162,6 +218,8 @@ async function searchActors(query, langCode, watched) {
   } catch { return []; }
 }
 
+const DEFAULT_FILTERS = { genres: [], yearRange: null, sort: 'popularity.desc', type: 'all' };
+
 export default function Search() {
   const [query,    setQuery]    = useState('');
   const [results,  setResults]  = useState([]);
@@ -177,13 +235,15 @@ export default function Search() {
   // Feature 50: actor search tab
   const [searchTab, setSearchTab] = useState('movies'); // 'movies' | 'actors'
   const [actorResults, setActorResults] = useState([]);
-  const timer = useRef();
+  const movieTimer = useRef();
+  const actorTimer = useRef();
   const loaderRef = useRef(null);
   const loadingMoreRef = useRef(false);
   const { lang } = useTheme();
   const { t } = useTranslation();
   const { watched } = useStore();
-  const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const SEARCH_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode = SEARCH_LANG_MAP[lang] || 'en-US';
 
   const setFilter = useCallback((key, val) => {
     setFilters(prev => ({ ...prev, [key]: val }));
@@ -211,13 +271,13 @@ export default function Search() {
 
   // Initial search — fires on query/filter change
   useEffect(() => {
-    clearTimeout(timer.current);
+    clearTimeout(movieTimer.current);
     const hasFilters = activeFilterCount > 0;
     if (!query.trim() && !hasFilters) { setResults([]); setLoading(false); setPage(1); setHasMore(true); return; }
     setLoading(true);
     setPage(1);
     setHasMore(true);
-    timer.current = setTimeout(async () => {
+    movieTimer.current = setTimeout(async () => {
       const r = await enhancedSearch(query, langCode, filters, 1);
       setResults(r);
       setLoading(false);
@@ -259,10 +319,10 @@ export default function Search() {
 
   // Feature 50: actor search
   useEffect(() => {
-    clearTimeout(timer.current);
+    clearTimeout(actorTimer.current);
     if (!query.trim() || searchTab !== 'actors') { setActorResults([]); return; }
     setLoading(true);
-    timer.current = setTimeout(async () => {
+    actorTimer.current = setTimeout(async () => {
       const r = await searchActors(query, langCode, watched);
       setActorResults(r);
       setLoading(false);
