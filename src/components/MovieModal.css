@@ -136,43 +136,93 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 }
 
 /* ─── TV Progress Tracker ─── */
+/* ── TV Tracker row (badge + clear btn) ── */
 .tv-tracker__row {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: stretch; gap: 8px;
   margin: 0 0 16px;
 }
+
+/* Start button (no progress yet) */
 .tv-tracker__start {
-  flex: 1; padding: 10px 14px; border-radius: 12px;
-  background: var(--surface2); border: 1px dashed var(--border);
-  color: var(--text2); font-size: 13px; font-weight: 600;
+  flex: 1; padding: 12px 16px; border-radius: 14px;
+  background: var(--surface2); border: 1px dashed rgba(232,197,71,0.35);
+  color: var(--text3); font-size: 13px; font-weight: 600;
   transition: all 0.2s; text-align: left;
 }
-.tv-tracker__start:hover { border-color: var(--accent); color: var(--accent); }
+.tv-tracker__start:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,197,71,0.06); }
+.tv-tracker__start-inner { display: flex; align-items: center; gap: 8px; }
 
+/* Badge (progress exists) */
 .tv-tracker__badge {
   flex: 1; display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 12px; cursor: pointer;
-  background: rgba(232,197,71,0.07); border: 1px solid rgba(232,197,71,0.2);
-  transition: all 0.2s;
+  padding: 10px 12px; border-radius: 14px; cursor: pointer;
+  background: rgba(232,197,71,0.07); border: 1px solid rgba(232,197,71,0.22);
+  transition: all 0.2s; min-width: 0;
 }
-.tv-tracker__badge:hover { background: rgba(232,197,71,0.13); }
-.tv-tracker__badge-icon { font-size: 16px; flex-shrink: 0; }
-.tv-tracker__badge-info { flex: 1; min-width: 0; }
-.tv-tracker__badge-pos  { font-size: 12px; font-weight: 700; color: var(--accent); display: block; margin-bottom: 4px; }
-.tv-tracker__badge-edit { font-size: 13px; opacity: 0.5; flex-shrink: 0; }
+.tv-tracker__badge:hover { background: rgba(232,197,71,0.13); border-color: rgba(232,197,71,0.4); }
+
+/* Left side: icon + position label */
+.tv-tracker__badge-left {
+  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+}
+.tv-tracker__badge-icon { color: var(--accent); flex-shrink: 0; }
+.tv-tracker__badge-pos-wrap { display: flex; flex-direction: column; }
+.tv-tracker__badge-pos {
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  white-space: nowrap;
+}
+.tv-tracker__badge-total { font-size: 11px; font-weight: 500; color: var(--text3); }
+.tv-tracker__badge-done {
+  font-size: 10px; font-weight: 800; color: #22c55e;
+  background: rgba(34,197,94,0.12); padding: 2px 6px;
+  border-radius: 6px; border: 1px solid rgba(34,197,94,0.25);
+  flex-shrink: 0; margin-left: 2px;
+}
+
+/* Right side: % + bar + pips */
+.tv-tracker__badge-right {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;
+}
+.tv-tracker__badge-pct-row {
+  display: flex; align-items: center; justify-content: flex-end; gap: 5px;
+}
+.tv-tracker__badge-pct-val {
+  font-size: 11px; font-weight: 800; color: var(--accent);
+}
+.tv-tracker__badge-edit { opacity: 0.45; flex-shrink: 0; }
+
+/* Progress bar */
 .tv-tracker__bar {
-  height: 3px; border-radius: 2px; background: rgba(255,255,255,0.1);
+  height: 4px; border-radius: 3px;
+  background: rgba(255,255,255,0.08); overflow: hidden;
 }
 .tv-tracker__bar-fill {
-  height: 100%; border-radius: 2px; background: var(--accent);
-  transition: width 0.4s ease;
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #fff));
+  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
 }
+
+/* Season pip dots */
+.tv-tracker__pips {
+  display: flex; align-items: center; gap: 3px; flex-wrap: wrap;
+}
+.tv-tracker__pip {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  transition: background 0.2s; flex-shrink: 0;
+}
+.tv-tracker__pip.done    { background: var(--accent); opacity: 0.5; }
+.tv-tracker__pip.current { background: var(--accent); box-shadow: 0 0 0 2px rgba(232,197,71,0.3); }
+.tv-tracker__pips-more { font-size: 9px; color: var(--text3); font-weight: 600; }
+
+/* Clear / reset button — icon only, compact */
 .tv-tracker__clear {
-  font-size: 11px; color: var(--text3); font-weight: 600;
-  padding: 6px 10px; border-radius: 8px;
+  width: 38px; flex-shrink: 0;
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
   background: var(--surface2); border: 1px solid var(--border);
-  white-space: nowrap; transition: all 0.2s;
+  color: var(--text3); transition: all 0.2s;
 }
-.tv-tracker__clear:hover { color: #f87171; border-color: rgba(239,68,68,0.3); }
+.tv-tracker__clear:hover { color: #f87171; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); }
 
 /* Full panel — same style as RatingPrompt */
 .tv-tracker__overlay {
@@ -383,37 +433,76 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   font-size: 12px; font-weight: 700; color: var(--accent); padding: 0;
 }
 
-/* ── tv-tracker spinner controls ── */
+/* ── tv-tracker editor (expanded state) ── */
 .tv-tracker__editor {
-  background: var(--surface2); border-radius: 14px; padding: 14px;
+  background: var(--surface2); border-radius: 16px; padding: 14px 14px 12px;
   margin-top: 8px; border: 1px solid var(--border);
+  animation: fadeIn 0.15s ease;
 }
+
+/* Preview bar at top of editor */
+.tv-tracker__editor-preview {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.tv-tracker__editor-bar {
+  flex: 1; height: 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.08); overflow: hidden;
+}
+.tv-tracker__editor-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #fff));
+  transition: width 0.3s ease;
+}
+.tv-tracker__editor-pct {
+  font-size: 11px; font-weight: 800; color: var(--accent);
+  min-width: 32px; text-align: right; flex-shrink: 0;
+}
+
+/* Season + Episode side-by-side controls */
 .tv-tracker__controls {
-  display: flex; gap: 20px; margin-bottom: 14px;
+  display: flex; align-items: stretch; gap: 0;
+  background: var(--surface); border-radius: 12px;
+  border: 1px solid var(--border); overflow: hidden;
+  margin-bottom: 12px;
 }
-.tv-tracker__controls label {
-  display: flex; flex-direction: column; gap: 6px; flex: 1;
+.tv-tracker__control-divider {
+  width: 1px; background: var(--border); flex-shrink: 0;
 }
-.tv-tracker__controls label > span {
+.tv-tracker__control-block {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 12px 8px 10px; gap: 10px;
+}
+.tv-tracker__control-label {
   font-size: 10px; font-weight: 700; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 0.8px;
+  text-transform: uppercase; letter-spacing: 0.9px;
 }
-.tv-tracker__spinner {
-  display: flex; align-items: center; gap: 0;
-  background: var(--surface); border-radius: 10px; overflow: hidden;
-  border: 1px solid var(--border);
+
+/* Stepper: − VALUE + */
+.tv-tracker__stepper {
+  display: flex; align-items: center; gap: 0; width: 100%;
 }
-.tv-tracker__spinner button {
-  width: 36px; height: 36px; flex-shrink: 0;
+.tv-tracker__step-btn {
+  width: 34px; height: 34px; flex-shrink: 0;
   font-size: 20px; font-weight: 300; color: var(--text2);
+  background: var(--surface2); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.12s;
 }
-.tv-tracker__spinner button:hover { background: var(--accent); color: #000; }
-.tv-tracker__spinner > span {
-  flex: 1; text-align: center; font-size: 14px; font-weight: 700;
-  color: var(--text);
+.tv-tracker__step-btn:hover:not(:disabled) { background: var(--accent); color: #000; }
+.tv-tracker__step-btn:disabled { opacity: 0.3; cursor: default; }
+.tv-tracker__step-val {
+  flex: 1; text-align: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 32px;
+  letter-spacing: 0.5px; color: var(--text); line-height: 1;
 }
+.tv-tracker__of {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500; color: var(--text3);
+}
+.tv-tracker__of.loading { opacity: 0.4; }
+
+/* Action buttons */
 .tv-tracker__editor-actions { display: flex; gap: 8px; }
 .tv-tracker__save {
   flex: 2; padding: 11px; border-radius: 12px;
@@ -427,87 +516,22 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   font-size: 13px; font-weight: 600; transition: all 0.15s;
   border: 1px solid var(--border);
 }
-/* ── TV Tracker — improved badge UI ── */
-.tv-tracker__badge-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 5px;
-}
-.tv-tracker__badge-pos {
-  font-size: 12px; font-weight: 700; color: var(--accent);
-}
-.tv-tracker__badge-total {
-  font-size: 11px; font-weight: 500; color: var(--text3);
-}
-.tv-tracker__badge-done {
-  font-size: 11px; font-weight: 800; color: #22c55e;
-  background: rgba(34,197,94,0.12); padding: 1px 6px;
-  border-radius: 6px; border: 1px solid rgba(34,197,94,0.25);
-  flex-shrink: 0; margin-left: 6px;
-}
 
-/* Bar row with percentage */
-.tv-tracker__bar-row {
-  display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+/* Full panel styles (legacy, kept for safety) */
+.tv-tracker__overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: calc(var(--nav-h) + 12px);
+  animation: fadeIn 0.2s ease;
 }
-.tv-tracker__bar {
-  flex: 1; height: 4px; border-radius: 3px;
-  background: rgba(255,255,255,0.08); overflow: hidden;
+@media (min-width: 900px) {
+  .tv-tracker__overlay { align-items: center; padding-bottom: 0; }
 }
-.tv-tracker__bar-fill {
-  height: 100%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, #fff) 100%);
-  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
-}
-.tv-tracker__bar-pct {
-  font-size: 10px; font-weight: 700; color: var(--accent);
-  min-width: 28px; text-align: right; flex-shrink: 0;
-}
-
-/* Season pip dots */
-.tv-tracker__pips {
-  display: flex; align-items: center; gap: 3px; flex-wrap: wrap;
-}
-.tv-tracker__pip {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(255,255,255,0.12);
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-.tv-tracker__pip.done    { background: var(--accent); opacity: 0.55; }
-.tv-tracker__pip.current { background: var(--accent); box-shadow: 0 0 0 2px rgba(232,197,71,0.3); }
-.tv-tracker__pips-more {
-  font-size: 9px; color: var(--text3); font-weight: 600;
-}
-
-/* Editor preview bar */
-.tv-tracker__editor-preview {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 14px;
-}
-.tv-tracker__editor-bar {
-  flex: 1; height: 6px; border-radius: 4px;
-  background: rgba(255,255,255,0.08); overflow: hidden;
-}
-.tv-tracker__editor-bar-fill {
-  height: 100%; border-radius: 4px;
-  background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, #fff) 100%);
-  transition: width 0.3s ease;
-}
-.tv-tracker__editor-pct {
-  font-size: 11px; font-weight: 800; color: var(--accent);
-  min-width: 32px; text-align: right; flex-shrink: 0;
-}
-
-/* Spinner value with /total fraction */
-.tv-tracker__spinner-val {
-  flex: 1; text-align: center; font-size: 14px; font-weight: 700; color: var(--text);
-}
-.tv-tracker__of {
-  font-size: 11px; font-weight: 500; color: var(--text3);
-}
-
-/* Loading hint */
-.tv-tracker__fetching {
-  font-size: 11px; color: var(--text3); text-align: center;
-  margin: -6px 0 10px; opacity: 0.7;
+.tv-tracker__panel {
+  width: 100%; max-width: 360px; margin: 0 16px;
+  background: var(--bg2); border-radius: 24px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  animation: slideUp 0.35s cubic-bezier(0.16,1,0.3,1);
 }

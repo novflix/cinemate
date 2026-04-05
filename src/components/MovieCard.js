@@ -81,7 +81,7 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
             <span>S{progress.season}·E{progress.episode}</span>
             <div className="movie-card__progress-bar">
               <div className="movie-card__progress-fill"
-                style={{width:`${Math.min(100,((progress.season-1)/Math.max(progress.totalSeasons||1,1))*100+100/Math.max(progress.totalSeasons||1,1))}%`}}/>
+                style={{width:`${(()=>{const ts=Math.max(progress.totalSeasons||1,1);const eps=progress.episodesInSeason||null;const slot=100/ts;const base=(progress.season-1)*slot;const frac=(eps&&eps>1)?((progress.episode-1)/(eps-1)):0;return Math.min(100,Math.max(0,base+slot*frac));})()}%`}}/>
             </div>
           </div>
         )}

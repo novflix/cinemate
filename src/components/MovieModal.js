@@ -105,7 +105,6 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   const [season,  setSeason]  = useState(progress?.season  || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
   const [episodesInSeason, setEpisodesInSeason] = useState(null);
-  // Cache fetched episode counts per season to avoid re-fetching
   const epCache = useRef({});
 
   useEffect(() => {
@@ -137,7 +136,6 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   };
 
   const handleSave = () => {
-    // Also save episodesInSeason so badge can show accurate progress without re-fetching
     onChange({ season, episode, totalSeasons, episodesInSeason });
     setOpen(false);
   };
@@ -152,12 +150,13 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
   return (
     <>
+      {/* ── Compact badge / start button ───────────────────────────────── */}
       <div className="tv-tracker__row">
         {progress ? (
           <div className="tv-tracker__badge" onClick={handleOpen}>
-            <MonitorLinear size={16} className="tv-tracker__badge-icon"/>
-            <div className="tv-tracker__badge-info">
-              <div className="tv-tracker__badge-header">
+            <div className="tv-tracker__badge-left">
+              <MonitorLinear size={15} className="tv-tracker__badge-icon"/>
+              <div className="tv-tracker__badge-pos-wrap">
                 <span className="tv-tracker__badge-pos">
                   {t('tvtracker.seasonBadge')} {progress.season}
                   {' · '}
@@ -166,17 +165,20 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
                     ? <span className="tv-tracker__badge-total">/{progress.episodesInSeason}</span>
                     : null}
                 </span>
-                {isFinished && <span className="tv-tracker__badge-done">✓</span>}
               </div>
-              <div className="tv-tracker__bar-row">
-                <div className="tv-tracker__bar">
-                  <div className="tv-tracker__bar-fill" style={{ width: `${badgePct}%` }}/>
-                </div>
-                <span className="tv-tracker__bar-pct">{Math.round(badgePct)}%</span>
+              {isFinished && <span className="tv-tracker__badge-done">✓</span>}
+            </div>
+            <div className="tv-tracker__badge-right">
+              <div className="tv-tracker__badge-pct-row">
+                <span className="tv-tracker__badge-pct-val">{Math.round(badgePct)}%</span>
+                <PenLinear size={11} className="tv-tracker__badge-edit"/>
+              </div>
+              <div className="tv-tracker__bar">
+                <div className="tv-tracker__bar-fill" style={{ width: `${badgePct}%` }}/>
               </div>
               {ts > 1 && (
                 <div className="tv-tracker__pips">
-                  {Array.from({ length: Math.min(ts, 14) }, (_, i) => (
+                  {Array.from({ length: Math.min(ts, 16) }, (_, i) => (
                     <span
                       key={i}
                       className={
@@ -186,27 +188,30 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
                       }
                     />
                   ))}
-                  {ts > 14 && <span className="tv-tracker__pips-more">+{ts - 14}</span>}
+                  {ts > 16 && <span className="tv-tracker__pips-more">+{ts - 16}</span>}
                 </div>
               )}
             </div>
-            <PenLinear size={12} className="tv-tracker__badge-edit"/>
           </div>
         ) : (
           <button className="tv-tracker__start" onClick={handleOpen}>
-            <span className="tv-tracker__start-inner"><MonitorLinear size={14}/><span>{t('tvtracker.trackProgress')}</span></span>
+            <span className="tv-tracker__start-inner">
+              <MonitorLinear size={14}/>
+              <span>{t('tvtracker.trackProgress')}</span>
+            </span>
           </button>
         )}
         {progress && (
-          <button className="tv-tracker__clear" onClick={onClear}>
-            <RefreshCircleLinear size={11}/> {t('tvtracker.reset')}
+          <button className="tv-tracker__clear" onClick={onClear} title={t('tvtracker.reset')}>
+            <RefreshCircleLinear size={13}/>
           </button>
         )}
       </div>
 
+      {/* ── Expanded editor ─────────────────────────────────────────────── */}
       {open && (
         <div className="tv-tracker__editor">
-          {/* Live preview bar inside editor */}
+          {/* Live progress bar */}
           <div className="tv-tracker__editor-preview">
             <div className="tv-tracker__editor-bar">
               <div className="tv-tracker__editor-bar-fill" style={{ width: `${editorPct}%` }}/>
@@ -214,34 +219,55 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
             <span className="tv-tracker__editor-pct">{Math.round(editorPct)}%</span>
           </div>
 
+          {/* Season + Episode controls */}
           <div className="tv-tracker__controls">
-            <label>
-              <span>{t('tvtracker.season')}</span>
-              <div className="tv-tracker__spinner">
-                <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
-                <span className="tv-tracker__spinner-val">
-                  {season}{ts > 1 ? <span className="tv-tracker__of">/{ts}</span> : null}
+            <div className="tv-tracker__control-block">
+              <span className="tv-tracker__control-label">{t('tvtracker.season')}</span>
+              <div className="tv-tracker__stepper">
+                <button
+                  className="tv-tracker__step-btn"
+                  onClick={() => setSeason(s => Math.max(1, s - 1))}
+                  disabled={season <= 1}
+                >−</button>
+                <span className="tv-tracker__step-val">
+                  {season}
+                  {ts > 1 && <span className="tv-tracker__of">/{ts}</span>}
                 </span>
-                <button onClick={() => setSeason(s => Math.min(ts, s + 1))}>+</button>
+                <button
+                  className="tv-tracker__step-btn"
+                  onClick={() => setSeason(s => Math.min(ts, s + 1))}
+                  disabled={season >= ts}
+                >+</button>
               </div>
-            </label>
-            <label>
-              <span>{t('tvtracker.episode')}</span>
-              <div className="tv-tracker__spinner">
-                <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
-                <span className="tv-tracker__spinner-val">
-                  {episode}{episodesInSeason ? <span className="tv-tracker__of">/{episodesInSeason}</span> : null}
+            </div>
+
+            <div className="tv-tracker__control-divider"/>
+
+            <div className="tv-tracker__control-block">
+              <span className="tv-tracker__control-label">{t('tvtracker.episode')}</span>
+              <div className="tv-tracker__stepper">
+                <button
+                  className="tv-tracker__step-btn"
+                  onClick={() => setEpisode(e => Math.max(1, e - 1))}
+                  disabled={episode <= 1}
+                >−</button>
+                <span className="tv-tracker__step-val">
+                  {episode}
+                  {episodesInSeason
+                    ? <span className="tv-tracker__of">/{episodesInSeason}</span>
+                    : <span className="tv-tracker__of loading">…</span>}
                 </span>
-                <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
+                <button
+                  className="tv-tracker__step-btn"
+                  onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}
+                >+</button>
               </div>
-            </label>
+            </div>
           </div>
-          {!episodesInSeason && (
-            <p className="tv-tracker__fetching">Loading episode count…</p>
-          )}
+
           <div className="tv-tracker__editor-actions">
-            <button className="tv-tracker__save" onClick={handleSave}>{t('tvtracker.save')}</button>
             <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{t('tvtracker.cancel')}</button>
+            <button className="tv-tracker__save" onClick={handleSave}>{t('tvtracker.save')}</button>
           </div>
         </div>
       )}
