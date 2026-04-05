@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
@@ -84,20 +84,42 @@ function InlineRating({ movieId, lang, getRating, rateMovie }) {
 
 
 // ─── TV Progress Tracker ─────────────────────────────────────────────────────
+// Progress formula: seasons carry most of the weight (each completed season = 1/totalSeasons of bar).
+// Within the current season, episode progress adds a fractional amount inside the current season slot.
+// This means jumping a season moves the bar much more than jumping an episode, which is logical.
+function calcProgress(season, episode, episodesInSeason, totalSeasons) {
+  const ts = Math.max(totalSeasons || 1, 1);
+  const eps = episodesInSeason || null;
+  const slotSize = 100 / ts;                            // % per season
+  const seasonsDone = season - 1;
+  const baseFromSeasons = seasonsDone * slotSize;       // fully done seasons
+  // Episode fraction within current season slot
+  const episodeFraction = (eps && eps > 1) ? (episode - 1) / (eps - 1) : 0;
+  const withinSlot = slotSize * episodeFraction;
+  return Math.min(100, Math.max(0, baseFromSeasons + withinSlot));
+}
+
 function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [season,  setSeason]  = useState(progress?.season  || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
   const [episodesInSeason, setEpisodesInSeason] = useState(null);
+  // Cache fetched episode counts per season to avoid re-fetching
+  const epCache = useRef({});
 
   useEffect(() => {
     if (!open) return;
+    if (epCache.current[season]) {
+      setEpisodesInSeason(epCache.current[season]);
+      return;
+    }
     setEpisodesInSeason(null);
     fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?language=en-US`, { headers: HEADERS })
       .then(r => r.json())
       .then(data => {
         const count = data.episodes?.length || null;
+        if (count) epCache.current[season] = count;
         setEpisodesInSeason(count);
         if (count && episode > count) setEpisode(count);
       })
@@ -106,6 +128,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   }, [open, season, id]);
 
   const maxEpisode = episodesInSeason || 999;
+  const ts = totalSeasons || 1;
 
   const handleOpen = () => {
     setSeason(progress?.season   || 1);
@@ -114,9 +137,18 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   };
 
   const handleSave = () => {
-    onChange({ season, episode, totalSeasons });
+    // Also save episodesInSeason so badge can show accurate progress without re-fetching
+    onChange({ season, episode, totalSeasons, episodesInSeason });
     setOpen(false);
   };
+
+  const badgePct  = calcProgress(progress?.season || 1, progress?.episode || 1, progress?.episodesInSeason || null, ts);
+  const editorPct = calcProgress(season, episode, episodesInSeason, ts);
+
+  const isFinished = progress &&
+    progress.season >= ts &&
+    progress.episodesInSeason &&
+    progress.episode >= progress.episodesInSeason;
 
   return (
     <>
@@ -125,12 +157,36 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
           <div className="tv-tracker__badge" onClick={handleOpen}>
             <MonitorLinear size={16} className="tv-tracker__badge-icon"/>
             <div className="tv-tracker__badge-info">
-              <span className="tv-tracker__badge-pos">{t('tvtracker.seasonBadge')} {progress.season} · {t('tvtracker.episodeBadge')} {progress.episode}</span>
-              {totalSeasons > 1 && (
+              <div className="tv-tracker__badge-header">
+                <span className="tv-tracker__badge-pos">
+                  {t('tvtracker.seasonBadge')} {progress.season}
+                  {' · '}
+                  {t('tvtracker.episodeBadge')} {progress.episode}
+                  {progress.episodesInSeason
+                    ? <span className="tv-tracker__badge-total">/{progress.episodesInSeason}</span>
+                    : null}
+                </span>
+                {isFinished && <span className="tv-tracker__badge-done">✓</span>}
+              </div>
+              <div className="tv-tracker__bar-row">
                 <div className="tv-tracker__bar">
-                  <div className="tv-tracker__bar-fill" style={{
-                    width: `${Math.min(100, ((progress.season - 1) / totalSeasons) * 100 + 100 / totalSeasons)}%`
-                  }}/>
+                  <div className="tv-tracker__bar-fill" style={{ width: `${badgePct}%` }}/>
+                </div>
+                <span className="tv-tracker__bar-pct">{Math.round(badgePct)}%</span>
+              </div>
+              {ts > 1 && (
+                <div className="tv-tracker__pips">
+                  {Array.from({ length: Math.min(ts, 14) }, (_, i) => (
+                    <span
+                      key={i}
+                      className={
+                        'tv-tracker__pip' +
+                        (i < (progress.season - 1) ? ' done' :
+                         i === progress.season - 1  ? ' current' : '')
+                      }
+                    />
+                  ))}
+                  {ts > 14 && <span className="tv-tracker__pips-more">+{ts - 14}</span>}
                 </div>
               )}
             </div>
@@ -150,24 +206,39 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
 
       {open && (
         <div className="tv-tracker__editor">
+          {/* Live preview bar inside editor */}
+          <div className="tv-tracker__editor-preview">
+            <div className="tv-tracker__editor-bar">
+              <div className="tv-tracker__editor-bar-fill" style={{ width: `${editorPct}%` }}/>
+            </div>
+            <span className="tv-tracker__editor-pct">{Math.round(editorPct)}%</span>
+          </div>
+
           <div className="tv-tracker__controls">
             <label>
               <span>{t('tvtracker.season')}</span>
               <div className="tv-tracker__spinner">
                 <button onClick={() => setSeason(s => Math.max(1, s - 1))}>−</button>
-                <span>{season}</span>
-                <button onClick={() => setSeason(s => Math.min(totalSeasons || 99, s + 1))}>+</button>
+                <span className="tv-tracker__spinner-val">
+                  {season}{ts > 1 ? <span className="tv-tracker__of">/{ts}</span> : null}
+                </span>
+                <button onClick={() => setSeason(s => Math.min(ts, s + 1))}>+</button>
               </div>
             </label>
             <label>
               <span>{t('tvtracker.episode')}</span>
               <div className="tv-tracker__spinner">
                 <button onClick={() => setEpisode(e => Math.max(1, e - 1))}>−</button>
-                <span>{episode}{episodesInSeason ? `/${episodesInSeason}` : ''}</span>
+                <span className="tv-tracker__spinner-val">
+                  {episode}{episodesInSeason ? <span className="tv-tracker__of">/{episodesInSeason}</span> : null}
+                </span>
                 <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
               </div>
             </label>
           </div>
+          {!episodesInSeason && (
+            <p className="tv-tracker__fetching">Loading episode count…</p>
+          )}
           <div className="tv-tracker__editor-actions">
             <button className="tv-tracker__save" onClick={handleSave}>{t('tvtracker.save')}</button>
             <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{t('tvtracker.cancel')}</button>
@@ -178,7 +249,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
   );
 }
 
-// ─── More Menu (⋯ button next to title) ──────────────────────────────────────
+// ─── More Menu (three dots button next to title) ──────────────────────────────────────
 function MoreMenu({ movie, lang }) {
   const { t } = useTranslation();
   const { customLists, addToCustomList, removeFromCustomList, isInCustomList } = useStore();
@@ -222,7 +293,7 @@ function MoreMenu({ movie, lang }) {
               <>
                 <div className="modal__more-lists-header">
                   <button className="modal__more-back" onClick={() => setPanel('main')}>
-                    ‹ {t('tvtracker.back')}
+                    {String.fromCharCode(8249)} {t('tvtracker.back')}
                   </button>
                   <span>{t('tvtracker.addToListFull')}</span>
                 </div>
@@ -266,7 +337,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
   const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
   const langCode = TMDB_LANG_MAP[lang] || 'en-US';
-  // Fix #9: use large poster for dominant color extraction
   const posterUrl = tmdb.posterUrl(movie?.poster_path, 'w342');
   const accentColor = useDominantColor(posterUrl);
 
@@ -288,7 +358,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const overview = details?.overview || movie.overview  || '';
   const year     = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0,4);
   const backdrop = tmdb.backdropUrl(details?.backdrop_path || movie.backdrop_path);
-  // Fix: use large poster in modal
   const poster   = tmdb.posterUrl(details?.poster_path || movie.poster_path, 'w780');
   const rating   = (details?.vote_average || movie.vote_average)?.toFixed(1);
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
@@ -317,7 +386,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
             '--modal-accent-border': `rgba(${accentColor}, 0.35)`,
           } : {}}
         >
-          {/* Feature 9: dominant color border accent */}
           {accentColor && <div className="modal__accent-border" style={{background: `rgb(${accentColor})`}}/>}
 
           <div className="modal__backdrop">
@@ -356,9 +424,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 </p>
                 {overview.length > 180 && (
                   <button className="modal__overview-toggle" onClick={() => setOverviewExpanded(v => !v)}>
-                    {overviewExpanded
-                      ? t('modal.showLess')
-                      : t('modal.readMore')}
+                    {overviewExpanded ? t('modal.showLess') : t('modal.readMore')}
                   </button>
                 )}
               </div>
@@ -411,7 +477,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
           </div>
         </div>
       </div>
-
     </>
   );
 });

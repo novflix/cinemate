@@ -427,3 +427,87 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   font-size: 13px; font-weight: 600; transition: all 0.15s;
   border: 1px solid var(--border);
 }
+/* ── TV Tracker — improved badge UI ── */
+.tv-tracker__badge-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 5px;
+}
+.tv-tracker__badge-pos {
+  font-size: 12px; font-weight: 700; color: var(--accent);
+}
+.tv-tracker__badge-total {
+  font-size: 11px; font-weight: 500; color: var(--text3);
+}
+.tv-tracker__badge-done {
+  font-size: 11px; font-weight: 800; color: #22c55e;
+  background: rgba(34,197,94,0.12); padding: 1px 6px;
+  border-radius: 6px; border: 1px solid rgba(34,197,94,0.25);
+  flex-shrink: 0; margin-left: 6px;
+}
+
+/* Bar row with percentage */
+.tv-tracker__bar-row {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+}
+.tv-tracker__bar {
+  flex: 1; height: 4px; border-radius: 3px;
+  background: rgba(255,255,255,0.08); overflow: hidden;
+}
+.tv-tracker__bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, #fff) 100%);
+  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+}
+.tv-tracker__bar-pct {
+  font-size: 10px; font-weight: 700; color: var(--accent);
+  min-width: 28px; text-align: right; flex-shrink: 0;
+}
+
+/* Season pip dots */
+.tv-tracker__pips {
+  display: flex; align-items: center; gap: 3px; flex-wrap: wrap;
+}
+.tv-tracker__pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.tv-tracker__pip.done    { background: var(--accent); opacity: 0.55; }
+.tv-tracker__pip.current { background: var(--accent); box-shadow: 0 0 0 2px rgba(232,197,71,0.3); }
+.tv-tracker__pips-more {
+  font-size: 9px; color: var(--text3); font-weight: 600;
+}
+
+/* Editor preview bar */
+.tv-tracker__editor-preview {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.tv-tracker__editor-bar {
+  flex: 1; height: 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.08); overflow: hidden;
+}
+.tv-tracker__editor-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 80%, #fff) 100%);
+  transition: width 0.3s ease;
+}
+.tv-tracker__editor-pct {
+  font-size: 11px; font-weight: 800; color: var(--accent);
+  min-width: 32px; text-align: right; flex-shrink: 0;
+}
+
+/* Spinner value with /total fraction */
+.tv-tracker__spinner-val {
+  flex: 1; text-align: center; font-size: 14px; font-weight: 700; color: var(--text);
+}
+.tv-tracker__of {
+  font-size: 11px; font-weight: 500; color: var(--text3);
+}
+
+/* Loading hint */
+.tv-tracker__fetching {
+  font-size: 11px; color: var(--text3); text-align: center;
+  margin: -6px 0 10px; opacity: 0.7;
+}

@@ -28,13 +28,16 @@ function setHomeCache(lang, data) {
 }
 
 
+// TMDB uses different genre IDs for movies vs TV.
+// 'genres' = movie genre IDs, 'tvGenres' = TV-specific overrides (falls back to genres if not set)
+// Key differences: Action(28→10759), Adventure(12→10759), Sci-Fi(878→10765), Family(10751→10762)
 const MOODS = [
-  { id: 'all',    icon: '✦', genres: [] },
-  { id: 'fun',    icon: '😄', genres: [35,10751] },
-  { id: 'scary',  icon: '😱', genres: [27,53] },
-  { id: 'action', icon: '💥', genres: [28,12] },
-  { id: 'drama',  icon: '😢', genres: [18,10749] },
-  { id: 'mind',   icon: '🧠', genres: [878,9648,99] },
+  { id: 'all',    icon: '✦', genres: [],              tvGenres: [],                ru: 'Всё',       en: 'All'     },
+  { id: 'fun',    icon: '😄', genres: [35,10751],     tvGenres: [35,10762,10751],  ru: 'Весёлое',   en: 'Fun'     },
+  { id: 'scary',  icon: '😱', genres: [27,53],        tvGenres: [27,53],           ru: 'Страшное',  en: 'Scary'   },
+  { id: 'action', icon: '💥', genres: [28,12],        tvGenres: [10759],           ru: 'Экшн',      en: 'Action'  },
+  { id: 'drama',  icon: '😢', genres: [18,10749],     tvGenres: [18,10749],        ru: 'Драма',     en: 'Drama'   },
+  { id: 'mind',   icon: '🧠', genres: [878,9648,99],  tvGenres: [10765,9648,99],   ru: 'Для ума',   en: 'Mindful' },
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -235,14 +238,16 @@ export default function Home() {
     const cfg=MOODS.find(m=>m.id===mood);
     if(!cfg?.genres.length){setMoodData(null);return;}
     setMoodLoading(true);
-    const g=cfg.genres.join('|');
+    const gMovie = cfg.genres.join('|');
+    // TV uses different genre IDs than movies — use tvGenres if defined
+    const gTv = (cfg.tvGenres?.length ? cfg.tvGenres : cfg.genres).join('|');
     Promise.all([
-      tmdb.discover('movie',{with_genres:g,sort_by:'popularity.desc','vote_count.gte':200,'primary_release_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
-      tmdb.discover('tv',   {with_genres:g,sort_by:'popularity.desc','vote_count.gte':50, 'first_air_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
+      tmdb.discover('movie',{with_genres:gMovie,sort_by:'popularity.desc','vote_count.gte':200,'primary_release_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
+      tmdb.discover('tv',   {with_genres:gTv,  sort_by:'popularity.desc','vote_count.gte':50, 'first_air_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
     ]).then(([movies,tv])=>{
       setMoodData({
-        movies:(movies.results||[]).map(m=>({...m,media_type:'movie'})),
-        tv:    (tv.results   ||[]).map(m=>({...m,media_type:'tv'})),
+        movies:(movies.results||[]).filter(m=>m.poster_path).map(m=>({...m,media_type:'movie'})),
+        tv:    (tv.results   ||[]).filter(m=>m.poster_path).map(m=>({...m,media_type:'tv'})),
       });
       setMoodLoading(false);
     }).catch(()=>setMoodLoading(false));
@@ -276,9 +281,10 @@ export default function Home() {
   } else if (allData && moodData) {
     const cfg=MOODS.find(m=>m.id===mood);
     const [movies,tv]=dedup([moodData.movies,moodData.tv]);
+    const moodLabel = cfg ? t(`moods.${cfg.id}`) : mood;
     sections=[
-      {icon:FlameLinear,title:lang === 'ru' ? `Фильмы — ${cfg.ru}` : `Movies — ${cfg.en}`,items:movies.slice(0,50),countdown:false,gold:false},
-      {icon:TVLinear,  title:lang === 'ru' ? `Сериалы — ${cfg.ru}` : `Series — ${cfg.en}`,items:tv.slice(0,50),   countdown:false,gold:false},
+      {icon:FlameLinear,title:lang === 'ru' ? `Фильмы — ${moodLabel}` : `Movies — ${moodLabel}`,items:movies.slice(0,50),countdown:false,gold:false},
+      {icon:TVLinear,  title:lang === 'ru' ? `Сериалы — ${moodLabel}` : `Series — ${moodLabel}`,items:tv.slice(0,50),   countdown:false,gold:false},
     ];
   }
 
