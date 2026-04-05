@@ -24,7 +24,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'es', label: 'Español',    countryCode: 'es' },
   { code: 'fr', label: 'Français',   countryCode: 'fr' },
   { code: 'de', label: 'Deutsch',    countryCode: 'de' },
-  { code: 'pt', label: 'Português',  countryCode: 'br' },
+  { code: 'pt', label: 'Português',  countryCode: 'pt' },
   { code: 'it', label: 'Italiano',   countryCode: 'it' },
   { code: 'tr', label: 'Türkçe',     countryCode: 'tr' },
   { code: 'zh', label: '中文',        countryCode: 'cn' },

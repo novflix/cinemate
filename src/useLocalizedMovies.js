@@ -78,6 +78,10 @@ const TMDB_LANG_MAP = {
   es: 'es-ES',
   fr: 'fr-FR',
   de: 'de-DE',
+  pt: 'pt-BR',
+  it: 'it-IT',
+  tr: 'tr-TR',
+  zh: 'zh-CN',
 };
 
 export function useLocalizedMovies(entries, lang) {
@@ -91,9 +95,12 @@ export function useLocalizedMovies(entries, lang) {
   }, []);
 
   useEffect(() => {
-    if (!entries.length) { setLocalized([]); return; }
+    // Per-run cancelled flag — prevents stale fetches from overwriting fresh state
+    let cancelled = false;
 
-    // Build initial list from cache (instant, no flicker)
+    if (!entries.length) { setLocalized([]); return () => { cancelled = true; }; }
+
+    // Build initial list from cache for the CURRENT language (instant, no flicker)
     const initial = entries.map(entry => {
       const cacheKey = `${entry.id}-${entry.media_type}-${langCode}`;
       const cached = memCache[cacheKey] || persistedCache[cacheKey];
@@ -101,19 +108,20 @@ export function useLocalizedMovies(entries, lang) {
       // Fallback: show stored data with fallback title
       return {
         ...entry,
-        title: entry._fallback_title || '',
-        name:  entry._fallback_title || '',
+        title: entry._fallback_title || entry.title || '',
+        name:  entry._fallback_title || entry.name  || '',
       };
     });
+    // Set immediately so language change shows cached translations instantly
     setLocalized(initial);
 
-    // Fetch missing ones in parallel
+    // Fetch entries not yet in cache for this language
     const missing = entries.filter(e => {
       const k = `${e.id}-${e.media_type}-${langCode}`;
       return !memCache[k] && !persistedCache[k];
     });
 
-    if (!missing.length) return;
+    if (!missing.length) return () => { cancelled = true; };
 
     // Fetch in batches to avoid hammering API
     const BATCH = 10;
@@ -122,8 +130,8 @@ export function useLocalizedMovies(entries, lang) {
       const batch = missing.slice(i, i + BATCH);
       i += BATCH;
       await Promise.all(batch.map(e => fetchLocalized(e.id, e.media_type, langCode)));
-      if (!mountedRef.current) return;
-      // Update state with newly fetched data
+      if (cancelled || !mountedRef.current) return;
+      // Update state with newly fetched data for current langCode only
       setLocalized(prev => prev.map(item => {
         const k = `${item.id}-${item.media_type}-${langCode}`;
         const fresh = memCache[k];
@@ -132,6 +140,8 @@ export function useLocalizedMovies(entries, lang) {
       if (i < missing.length) next();
     };
     next();
+
+    return () => { cancelled = true; };
   }, [entries, langCode]);
 
   return localized;

@@ -231,7 +231,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
                   <div className="poster-grid__progress">
                     <span>S{p.season}·E{p.episode}</span>
                     <div className="poster-grid__progress-bar">
-                      <div className="poster-grid__progress-fill" style={{width:`${Math.min(100,((p.season-1)/Math.max(p.totalSeasons||1,1))*100+100/Math.max(p.totalSeasons||1,1))}%`}}/>
+                      <div className="poster-grid__progress-fill" style={{width:`${(()=>{const ts=Math.max(p.totalSeasons||1,1);const eps=p.episodesInSeason||null;const slot=100/ts;const base=(p.season-1)*slot;const frac=(eps&&eps>1)?((p.episode-1)/(eps-1)):0;return Math.min(100,Math.max(0,base+slot*frac));})()}%`}}/>
                     </div>
                   </div>
                 );

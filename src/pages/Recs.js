@@ -480,7 +480,7 @@ export default function Recs() {
   const loadingRef = useRef(false);
   const profileRef = useRef(null);
   const pageRef    = useRef(1);
-  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
   const langCode   = TMDB_LANG_MAP[lang] || 'en-US';
   const allSaved   = useMemo(() => [...watched, ...watchlist], [watched, watchlist]);
 
@@ -541,6 +541,8 @@ export default function Recs() {
 
   useEffect(() => {
     profileRef.current = buildProfile(watched, watchlist, ratings, likedActors, dislikedIds, tvProgress);
+    setItems([]);
+    loadingRef.current = false;
     doReset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [langCode]);
