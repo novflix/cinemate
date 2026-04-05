@@ -143,7 +143,11 @@
     "watched": "Vu",
     "spinning": "En cours…",
     "again": "Encore !",
-    "spin": "Tourner !"
+    "spin": "Tourner !",
+    "filterAll": "Tout",
+    "filterMovies": "Films",
+    "filterSeries": "Séries",
+    "filterAnimation": "Animation"
   },
   "rating": {
     "howWasIt": "Comment c'était ?",

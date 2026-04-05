@@ -54,11 +54,26 @@ export default function Roulette({ onMovieClick }) {
   const [winner,    setWinner]    = useState(null);
   const [winnerIdx, setWinnerIdx] = useState(-1);
   const [particles, setParticles] = useState(false);
+  // Filters: 'all' | 'movie' | 'tv' | 'animation'
+  const [filter, setFilter] = useState('all');
   const stripRef = useRef();
+
+  // TMDB genre id 16 = Animation
+  const ANIMATION_GENRE = 16;
 
   // Localized watchlist — titles and posters in current language
   const localizedWatchlist = useLocalizedMovies(watchlist, lang);
-  const items = localizedWatchlist.filter(m => m.poster_path);
+
+  const allItems = localizedWatchlist.filter(m => m.poster_path);
+
+  const items = allItems.filter(m => {
+    if (filter === 'all') return true;
+    const isAnimation = (m.genre_ids || []).includes(ANIMATION_GENRE);
+    if (filter === 'animation') return isAnimation;
+    if (filter === 'movie') return (m.media_type === 'movie' || !!m.title) && !isAnimation;
+    if (filter === 'tv')    return (m.media_type === 'tv'    || (!m.title && !!m.name)) && !isAnimation;
+    return true;
+  });
 
   const COPIES = 6;
   const strip  = Array.from({ length: COPIES }, () => items).flat();
@@ -74,6 +89,13 @@ export default function Roulette({ onMovieClick }) {
 
   const handleOpen  = () => { reset(); setOpen(true); };
   const handleClose = () => { setOpen(false); setTimeout(reset, 300); };
+
+  // Reset winner when filter changes
+  const handleFilter = (f) => {
+    if (f === filter) return;
+    setFilter(f);
+    reset();
+  };
 
   const spin = () => {
     if (spinning || items.length === 0 || !stripRef.current) return;
@@ -113,6 +135,35 @@ export default function Roulette({ onMovieClick }) {
         <div className="roulette-header">
           <h2 className="roulette-title">{t('roulette.spinWheel')}</h2>
           {!spinning && <button className="roulette-close" onClick={handleClose}><CloseCircleLinear size={18}/></button>}
+        </div>
+
+        {/* Filter pills */}
+        <div className="roulette-filters">
+          {[
+            { key: 'all',       label: t('roulette.filterAll') },
+            { key: 'movie',     label: t('roulette.filterMovies') },
+            { key: 'tv',        label: t('roulette.filterSeries') },
+            { key: 'animation', label: t('roulette.filterAnimation') },
+          ].map(({ key, label }) => {
+            const count = key === 'all' ? allItems.length : allItems.filter(m => {
+              const isAnim = (m.genre_ids || []).includes(ANIMATION_GENRE);
+              if (key === 'animation') return isAnim;
+              if (key === 'movie') return (m.media_type === 'movie' || !!m.title) && !isAnim;
+              if (key === 'tv')    return (m.media_type === 'tv' || (!m.title && !!m.name)) && !isAnim;
+              return true;
+            }).length;
+            return (
+              <button
+                key={key}
+                className={'roulette-filter-pill' + (filter === key ? ' active' : '') + (count === 0 ? ' empty' : '')}
+                onClick={() => !spinning && handleFilter(key)}
+                disabled={spinning}
+              >
+                {label}
+                <span className="roulette-filter-count">{count}</span>
+              </button>
+            );
+          })}
         </div>
 
         {items.length < 2 ? (

@@ -143,7 +143,11 @@
     "watched": "已看",
     "spinning": "转动中…",
     "again": "再来！",
-    "spin": "转！"
+    "spin": "转！",
+    "filterAll": "全部",
+    "filterMovies": "电影",
+    "filterSeries": "剧集",
+    "filterAnimation": "动画"
   },
   "rating": {
     "howWasIt": "怎么样？",

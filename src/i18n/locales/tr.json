@@ -143,7 +143,11 @@
     "watched": "İzlendi",
     "spinning": "Dönüyor…",
     "again": "Tekrar!",
-    "spin": "Çevir!"
+    "spin": "Çevir!",
+    "filterAll": "Tümü",
+    "filterMovies": "Filmler",
+    "filterSeries": "Diziler",
+    "filterAnimation": "Animasyon"
   },
   "rating": {
     "howWasIt": "Nasıldı?",

@@ -143,7 +143,11 @@
     "watched": "Смотрел",
     "spinning": "Крутится…",
     "again": "Ещё раз!",
-    "spin": "Крутить!"
+    "spin": "Крутить!",
+    "filterAll": "Все",
+    "filterMovies": "Фильмы",
+    "filterSeries": "Сериалы",
+    "filterAnimation": "Анимация"
   },
   "rating": {
     "howWasIt": "Как вам фильм?",

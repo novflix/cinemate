@@ -143,7 +143,11 @@
     "watched": "Watched",
     "spinning": "Spinning…",
     "again": "Again!",
-    "spin": "Spin!"
+    "spin": "Spin!",
+    "filterAll": "All",
+    "filterMovies": "Movies",
+    "filterSeries": "Series",
+    "filterAnimation": "Animation"
   },
   "rating": {
     "howWasIt": "How was it?",

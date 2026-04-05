@@ -143,7 +143,11 @@
     "watched": "Visto",
     "spinning": "Girando…",
     "again": "Ancora!",
-    "spin": "Gira!"
+    "spin": "Gira!",
+    "filterAll": "Tutto",
+    "filterMovies": "Film",
+    "filterSeries": "Serie",
+    "filterAnimation": "Animazione"
   },
   "rating": {
     "howWasIt": "Com'è stato?",

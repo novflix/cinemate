@@ -147,3 +147,35 @@
 .roulette-spin-btn:active:not(:disabled) { transform: scale(0.98); }
 
 .roulette-empty { padding: 36px 24px; text-align: center; color: var(--text3); font-size: 13px; }
+
+/* ── Filter pills ── */
+.roulette-filters {
+  display: flex; gap: 6px; padding: 0 16px 14px;
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.roulette-filter-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 12px; font-weight: 600;
+  transition: all 0.18s; cursor: pointer; white-space: nowrap;
+}
+.roulette-filter-pill:hover:not(:disabled):not(.active) {
+  border-color: rgba(232,197,71,0.4); color: var(--text);
+}
+.roulette-filter-pill.active {
+  background: rgba(232,197,71,0.15);
+  border-color: rgba(232,197,71,0.5);
+  color: var(--accent);
+}
+.roulette-filter-pill.empty { opacity: 0.45; }
+.roulette-filter-pill:disabled { cursor: not-allowed; }
+.roulette-filter-count {
+  font-size: 10px; font-weight: 700;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 1px 6px;
+  color: inherit; opacity: 0.8;
+}
+.roulette-filter-pill.active .roulette-filter-count {
+  background: rgba(232,197,71,0.2);
+}
