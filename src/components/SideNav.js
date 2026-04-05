@@ -4,8 +4,8 @@ import { Home2Linear, MagicStickLinear, MagniferLinear, UserLinear, InfoCircleLi
 import { useTranslation } from 'react-i18next';
 import './SideNav.css';
 
-const TAB_TO_PATH = { home:'/', recs:'/recs', search:'/search', profile:'/profile', about:'/about' };
-const PATH_TO_TAB = { '/':'home', '/recs':'recs', '/search':'search', '/profile':'profile', '/about':'about' };
+const TAB_TO_PATH = { home:'/home', recs:'/recs', search:'/search', profile:'/profile', about:'/about' };
+const PATH_TO_TAB = { '/home':'home', '/recs':'recs', '/search':'search', '/profile':'profile', '/about':'about' };
 
 const SideNav = memo(function SideNav({ active, onChange }) {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ const SideNav = memo(function SideNav({ active, onChange }) {
 
   const handleClick = (id) => {
     if (onChange) onChange(id);
-    else navigate(TAB_TO_PATH[id] || '/');
+    else navigate(TAB_TO_PATH[id] || '/home');
   };
 
   return (

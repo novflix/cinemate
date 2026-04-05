@@ -51,7 +51,7 @@ export default function PublicListPage() {
       <ListLinear size={48} strokeWidth={1}/>
       <h2>{t('publiclist.notFound')}</h2>
       <p>{t('publiclist.notFoundDesc')}</p>
-      <button className="plp-home-btn" onClick={() => navigate('/')}>
+      <button className="plp-home-btn" onClick={() => navigate('/home')}>
         {t('publiclist.goHome')}
       </button>
     </div>

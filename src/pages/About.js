@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, memo, useCallback } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   MagicStickLinear, TVLinear, StarLinear, ShuffleLinear,
@@ -6,6 +6,8 @@ import {
   SmileCircleLinear, VideoLibraryLinear, CheckCircleLinear, PlayLinear,
   BookmarkLinear, PhoneLinear,
 } from 'solar-icon-set';
+import { useTheme } from '../theme';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 import './About.css';
 
 /* ─── Reveal hook ─── */
@@ -377,16 +379,51 @@ function CtaSection() {
   );
 }
 
+/* ─── Landing language switcher ─── */
+export function LandingLangSwitcher() {
+  const { lang, setLang } = useTheme();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = SUPPORTED_LANGUAGES.find(l => l.code === lang) || SUPPORTED_LANGUAGES[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="landing-lang" style={{ position: 'relative' }}>
+      <button className="landing-lang__btn" onClick={() => setOpen(o => !o)}>
+        <span className={`fi fi-${current.countryCode}`} style={{ width: 18, height: 14, borderRadius: 2, overflow: 'hidden', display: 'inline-block', flexShrink: 0 }}/>
+        <span className="landing-lang__label">{current.label}</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s', opacity: 0.5 }}>
+          <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="landing-lang__dropdown">
+          {SUPPORTED_LANGUAGES.map(({ code, label, countryCode }) => (
+            <button
+              key={code}
+              className={'landing-lang__option' + (lang === code ? ' active' : '')}
+              onClick={() => { setLang(code); setOpen(false); }}
+            >
+              <span className={`fi fi-${countryCode}`} style={{ width: 18, height: 14, borderRadius: 2, overflow: 'hidden', display: 'inline-block', flexShrink: 0 }}/>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main export ─── */
-export default function About() {
+export default function About({ asLanding, onLogin, onRegister }) {
   const { t } = useTranslation();
   const [heroRef, heroVisible] = useReveal(0.01);
-  const [mouse, setMouse] = useState({ x: 50, y: 50 });
-
-  const handleMouse = useCallback((e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    setMouse({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
-  }, []);
 
   const features = [
     { icon: MagicStickLinear, accent: '#e8c547', tag: t('about.smartRecsTag'),     title: t('about.smartRecs'),     desc: t('about.smartRecsDesc') },
@@ -420,10 +457,9 @@ export default function About() {
     <div className="about-page">
 
       {/* ── HERO ── */}
-      <section className="about-hero" ref={heroRef} onMouseMove={handleMouse}>
+      <section className="about-hero" ref={heroRef}>
         <ParticleField/>
         <FloatingPosters/>
-        <div className="about-hero__cursor-glow" style={{ left: `${mouse.x}%`, top: `${mouse.y}%` }}/>
         <div className="about-hero__orbs" aria-hidden="true">
           <div className="about-orb about-orb--1"/>
           <div className="about-orb about-orb--2"/>
@@ -435,6 +471,16 @@ export default function About() {
             {t('about.heroEyebrow')}
           </div>
           <h1 className="about-hero__wordmark">CINI<em>MATE</em></h1>
+          {asLanding && (
+            <div className="about-hero__auth-btns">
+              <button className="about-hero__auth-btn about-hero__auth-btn--primary" onClick={onRegister}>
+                {t('auth.signUpBtn')}
+              </button>
+              <button className="about-hero__auth-btn about-hero__auth-btn--outline" onClick={onLogin}>
+                {t('auth.signInBtn')}
+              </button>
+            </div>
+          )}
           <p className="about-hero__tagline">{t('about.heroTagline')}</p>
           <div className="about-hero__badges">
             {[

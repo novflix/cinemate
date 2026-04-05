@@ -4,8 +4,8 @@ import { Home2Linear, MagicStickLinear, MagniferLinear, UserLinear } from 'solar
 import { useTranslation } from 'react-i18next';
 import './BottomNav.css';
 
-const TAB_TO_PATH = { home:'/', recs:'/recs', search:'/search', profile:'/profile' };
-const PATH_TO_TAB = { '/':'home', '/recs':'recs', '/search':'search', '/profile':'profile' };
+const TAB_TO_PATH = { home:'/home', recs:'/recs', search:'/search', profile:'/profile' };
+const PATH_TO_TAB = { '/home':'home', '/recs':'recs', '/search':'search', '/profile':'profile' };
 
 const BottomNav = memo(function BottomNav({ active, onChange }) {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ const BottomNav = memo(function BottomNav({ active, onChange }) {
 
   const handleClick = (id) => {
     if (onChange) onChange(id);
-    else navigate(TAB_TO_PATH[id] || '/');
+    else navigate(TAB_TO_PATH[id] || '/home');
   };
 
   return (

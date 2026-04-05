@@ -32,12 +32,12 @@ export default function ActorPageRoute() {
       return;
     }
 
-    if (!actorId) { navigate('/', { replace: true }); return; }
+    if (!actorId) { navigate('/home', { replace: true }); return; }
 
     fetch(`https://api.themoviedb.org/3/person/${actorId}?language=${langCode}`, { headers: HEADERS })
       .then(r => r.json())
       .then(data => { setActor(data); setLoading(false); })
-      .catch(() => navigate('/', { replace: true }));
+      .catch(() => navigate('/home', { replace: true }));
   // eslint-disable-next-line
   }, [actorId, langCode]);
 

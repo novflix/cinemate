@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { StoreProvider, useStore } from './store';
 import { ThemeProvider } from './theme';
 import { AuthProvider, useAuth } from './auth';
@@ -13,7 +14,7 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Recs from './pages/Recs';
-import About from './pages/About';
+import About, { LandingLangSwitcher } from './pages/About';
 import ActorPageRoute from './pages/ActorPageRoute';
 import PublicListPage from './pages/PublicListPage';
 import Confetti from './components/Confetti';
@@ -28,14 +29,14 @@ function VersionBadge() {
 }
 
 const PATH_TO_TAB = {
-  '/':        'home',
+  '/home':    'home',
   '/recs':    'recs',
   '/search':  'search',
   '/profile': 'profile',
   '/about':   'about',
 };
 const TAB_TO_PATH = {
-  home:    '/',
+  home:    '/home',
   recs:    '/recs',
   search:  '/search',
   profile: '/profile',
@@ -68,14 +69,15 @@ function AppInner() {
         style={{position:'relative',zIndex:1}}
       >
         <Routes>
-          <Route path="/"              element={<Home/>}/>
-          <Route path="/recs"          element={<Recs/>}/>
-          <Route path="/search"        element={<Search/>}/>
-          <Route path="/profile"       element={<Profile/>}/>
-          <Route path="/about"         element={<About/>}/>
+          <Route path="/"               element={<Navigate to="/home" replace/>}/>
+          <Route path="/home"           element={<Home/>}/>
+          <Route path="/recs"           element={<Recs/>}/>
+          <Route path="/search"         element={<Search/>}/>
+          <Route path="/profile"        element={<Profile/>}/>
+          <Route path="/about"          element={<About/>}/>
           <Route path="/actor/:actorId" element={<ActorPageRoute/>}/>
           <Route path="/list/:listId"   element={<PublicListPage/>}/>
-          <Route path="*"              element={<Navigate to="/" replace/>}/>
+          <Route path="*"              element={<Navigate to="/home" replace/>}/>
         </Routes>
       </div>
       <BottomNav active={activeTab} onChange={handleTabChange}/>
@@ -88,10 +90,66 @@ function AppInner() {
   );
 }
 
+// Detect desktop (width >= 1024px)
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isDesktop;
+}
+
+// Auth buttons overlay shown on About page for unauthenticated desktop users
+function AboutAuthOverlay({ onLogin, onRegister }) {
+  const { t } = useTranslation();
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+      padding: '20px 32px', gap: 10, pointerEvents: 'none',
+    }}>
+      {/* lang switcher rendered inside About hero, not here */}
+      <div style={{ display: 'flex', gap: 10, pointerEvents: 'all', alignItems: 'center' }}>
+        <LandingLangSwitcher/>
+        <button
+          onClick={onLogin}
+          style={{
+            padding: '10px 22px', borderRadius: 12, fontSize: 14, fontWeight: 600,
+            background: 'transparent', color: 'var(--text)',
+            border: '1.5px solid var(--border)', cursor: 'pointer',
+            transition: 'all 0.18s', backdropFilter: 'blur(10px)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text)'; }}
+        >
+          {t('auth.signInBtn')}
+        </button>
+        <button
+          onClick={onRegister}
+          style={{
+            padding: '10px 22px', borderRadius: 12, fontSize: 14, fontWeight: 700,
+            background: 'var(--accent)', color: '#000', border: 'none', cursor: 'pointer',
+            transition: 'all 0.18s', boxShadow: '0 4px 20px rgba(232,197,71,0.35)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 28px rgba(232,197,71,0.5)'; }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(232,197,71,0.35)'; }}
+        >
+          {t('auth.signUpBtn')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Root() {
   const { user } = useAuth();
   const [skipped, setSkipped] = useState(() => localStorage.getItem('auth_skipped') === '1');
+  const [authMode, setAuthMode] = useState(null); // 'login' | 'register' | null
   const location = useLocation();
+  const isDesktop = useIsDesktop();
 
   const handleSkip = () => { localStorage.setItem('auth_skipped','1'); setSkipped(true); };
 
@@ -103,6 +161,23 @@ function Root() {
       <div style={{width:32,height:32,border:'2px solid var(--surface2)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin 0.7s linear infinite'}}/>
     </div>
   );
+
+  // Desktop: show About page with auth buttons overlay instead of AuthScreen
+  if (!user && !skipped && !isPublicRoute && isDesktop) {
+    // If user clicked login/register — show AuthScreen in chosen mode
+    if (authMode) {
+      return <AuthScreen onSkip={handleSkip} initialMode={authMode} onBack={() => setAuthMode(null)}/>;
+    }
+    return (
+      <>
+        <AboutAuthOverlay
+          onLogin={() => setAuthMode('login')}
+          onRegister={() => setAuthMode('register')}
+        />
+        <About asLanding onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}/>
+      </>
+    );
+  }
 
   if (!user && !skipped && !isPublicRoute) return <AuthScreen onSkip={handleSkip}/>;
 

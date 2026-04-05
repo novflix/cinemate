@@ -5,10 +5,10 @@ import { useAuth } from '../auth';
 import './AuthScreen.css';
 
 
-export default function AuthScreen({ onSkip }) {
+export default function AuthScreen({ onSkip, initialMode, onBack }) {
   const { signIn, signUp, loading } = useAuth();
   const { t } = useTranslation();
-  const [mode,     setMode]     = useState('welcome');
+  const [mode,     setMode]     = useState(initialMode || 'welcome');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -35,6 +35,11 @@ export default function AuthScreen({ onSkip }) {
     <div className="auth-screen">
       <div className="auth-bg"/>
       <div className="auth-content">
+        {onBack && (
+          <button className="auth-back" onClick={onBack}>
+            ← {t('auth.back')}
+          </button>
+        )}
         <div className="auth-logo">
           <VideoLibraryLinear size={40} strokeWidth={1.5}/>
           <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
@@ -83,7 +88,11 @@ export default function AuthScreen({ onSkip }) {
     <div className="auth-screen">
       <div className="auth-bg"/>
       <div className="auth-content">
-        <button className="auth-back" onClick={() => { setMode('welcome'); setError(''); setSuccess(''); }}>
+        <button className="auth-back" onClick={() => {
+          setError(''); setSuccess('');
+          if (initialMode && onBack) onBack();
+          else setMode('welcome');
+        }}>
           ← {t('auth.back')}
         </button>
         <div className="auth-logo auth-logo--small">
