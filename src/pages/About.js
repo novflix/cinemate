@@ -4,7 +4,7 @@ import {
   MagicStickLinear, TVLinear, StarLinear, ShuffleLinear,
   GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear,
   SmileCircleLinear, VideoLibraryLinear, CheckCircleLinear, PlayLinear,
-  BookmarkLinear, ListLinear, UserLinear, PhoneLinear,
+  BookmarkLinear, PhoneLinear,
 } from 'solar-icon-set';
 import './About.css';
 
