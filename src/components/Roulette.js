@@ -120,17 +120,14 @@ export default function Roulette({ onMovieClick }) {
     }, 3550);
   };
 
-  if (!open) {
-    return (
-      <button className="roulette-trigger" onClick={handleOpen}>
+  return (
+    <>
+      <button className={"roulette-trigger" + (open ? " is-open" : "")} onClick={!open ? handleOpen : undefined}>
         <ShuffleLinear size={18}/>
         <span>{t('roulette.whatToWatch')}</span>
       </button>
-    );
-  }
 
-  return (
-    <div className="roulette-overlay" onClick={!spinning ? handleClose : undefined}>
+      {open && <div className="roulette-overlay" onClick={!spinning ? handleClose : undefined}>
       <div className="roulette-modal" onClick={e => e.stopPropagation()}>
         <div className="roulette-header">
           <h2 className="roulette-title">{t('roulette.spinWheel')}</h2>
@@ -222,6 +219,7 @@ export default function Roulette({ onMovieClick }) {
           </>
         )}
       </div>
-    </div>
+    </div>}
+    </>
   );
 }

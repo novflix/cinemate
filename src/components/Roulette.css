@@ -11,23 +11,27 @@
 .roulette-overlay {
   position: fixed; inset: 0; z-index: 300;
   background: rgba(0,0,0,0.88); backdrop-filter: blur(14px);
-  display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: var(--nav-h);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
   animation: fadeIn 0.2s ease;
   overscroll-behavior: contain; touch-action: none;
 }
-@media (min-width: 900px) { .roulette-overlay { align-items: center; padding-bottom: 0; } }
 
 .roulette-modal {
   width: 100%; max-width: 520px;
-  background: var(--bg2); border-radius: 28px 28px 0 0;
-  max-height: calc(100dvh - var(--nav-h) - 16px);
+  background: var(--bg2); border-radius: 28px;
+  max-height: calc(100dvh - 32px);
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   animation: slideUp 0.35s cubic-bezier(0.32,0.72,0,1);
   display: flex; flex-direction: column;
 }
-@media (min-width: 900px) { .roulette-modal { border-radius: 28px; max-height: 90dvh; } }
+
+/* Trigger button stays visible (dimmed) when modal is open */
+.roulette-trigger.is-open {
+  opacity: 0.35;
+  pointer-events: none;
+}
 
 .roulette-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -151,8 +155,10 @@
 /* ── Filter pills ── */
 .roulette-filters {
   display: flex; gap: 6px; padding: 0 16px 14px;
-  flex-shrink: 0; flex-wrap: wrap;
+  flex-shrink: 0; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
+.roulette-filters::-webkit-scrollbar { display: none; }
 .roulette-filter-pill {
   display: flex; align-items: center; gap: 5px;
   padding: 6px 12px; border-radius: 20px;
