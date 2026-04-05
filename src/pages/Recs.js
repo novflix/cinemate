@@ -466,8 +466,9 @@ export default function Recs() {
   const { watched, watchlist, ratings, likedActors, dislikedIds, addDisliked, tvProgress } = useStore();
   const { lang } = useTheme();
   const { t } = useTranslation();
-  const [items,   setItems]   = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [items,           setItems]           = useState([]);
+  const [loading,         setLoading]         = useState(false);
+  const [userRefreshing,  setUserRefreshing]  = useState(false);
 
   const navigate = useNavigate();
   const { selected, openMovie, closeMovie } = useMovieModal();
@@ -516,16 +517,18 @@ export default function Recs() {
       } else {
         setItems(prev => {
           const existing = new Set(prev.map(m => m.id));
-          // Apply diversity buffer across the combined old+new list boundary
           const fresh = candidates.filter(m => !existing.has(m.id));
           return [...prev, ...fresh];
         });
       }
-    } catch {}
-
-    setLoading(false);
-    loadingRef.current = false;
-    setObserverKey(k => k + 1);
+    } catch (e) {
+      console.warn('Recs load error:', e);
+    } finally {
+      setLoading(false);
+      setUserRefreshing(false);
+      loadingRef.current = false;
+      setObserverKey(k => k + 1);
+    }
   }, [langCode]);
 
   const doReset = useCallback(() => {
@@ -535,8 +538,10 @@ export default function Recs() {
     profileRef.current = prof;
     pageRef.current    = 1 + newOffset;
     setItems([]);
+    setLoading(false);
+    setUserRefreshing(true);
     loadingRef.current = false;
-    doLoad(true);
+    setTimeout(() => doLoad(true), 50);
   }, [watched, watchlist, ratings, likedActors, dislikedIds, tvProgress, doLoad]);
 
   useEffect(() => {
@@ -580,7 +585,7 @@ export default function Recs() {
               : t('home.basedOnRatingsLists')}
           </p>
         </div>
-        <button className={"recs-refresh"+(loading?" spinning":"")} onClick={doReset} disabled={loading}>
+        <button className={"recs-refresh"+(userRefreshing?" spinning":"")} onClick={doReset} disabled={userRefreshing}>
           <RefreshLinear size={18}/>
         </button>
       </div>
