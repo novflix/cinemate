@@ -34,7 +34,7 @@ function setHomeCache(lang, data) {
 const MOODS = [
   { id: 'all',    icon: '✦', genres: [],              tvGenres: [],                ru: 'Всё',       en: 'All'     },
   { id: 'fun',    icon: '😄', genres: [35,10751],     tvGenres: [35,10762,10751],  ru: 'Весёлое',   en: 'Fun'     },
-  { id: 'scary',  icon: '😱', genres: [27,53],        tvGenres: [27,53],           ru: 'Страшное',  en: 'Scary'   },
+  { id: 'scary',  icon: '😱', genres: [27,53],        tvGenres: [27,53,80],           ru: 'Страшное',  en: 'Scary'   },
   { id: 'action', icon: '💥', genres: [28,12],        tvGenres: [10759],           ru: 'Экшн',      en: 'Action'  },
   { id: 'drama',  icon: '😢', genres: [18,10749],     tvGenres: [18,10749],        ru: 'Драма',     en: 'Drama'   },
   { id: 'mind',   icon: '🧠', genres: [878,9648,99],  tvGenres: [10765,9648,99],   ru: 'Для ума',   en: 'Mindful' },
