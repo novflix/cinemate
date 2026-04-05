@@ -4,6 +4,36 @@
 .profile-topbar__title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; }
 .profile-topbar__title span { color: var(--accent); }
 .profile-icon-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--surface); color: var(--text2); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+.profile-icon-btn--donate { color: #e05c7a; border-color: rgba(224,92,122,0.3); background: rgba(224,92,122,0.08); }
+.profile-icon-btn--donate:hover { background: rgba(224,92,122,0.18); }
+
+/* ── DONATE MODAL ── */
+.donate-modal { max-width: 420px; }
+.donate-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 16px; }
+.donate-wallets { display: flex; flex-direction: column; gap: 10px; }
+.donate-wallet {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 15px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  user-select: none;
+}
+.donate-wallet:hover { border-color: var(--accent); background: var(--surface); transform: translateY(-1px); }
+.donate-wallet:active { transform: scale(0.98); }
+.donate-wallet--copied { border-color: #22c55e !important; background: rgba(34,197,94,0.06) !important; }
+.donate-wallet__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.donate-wallet__label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
+.donate-wallet__action { font-size: 11px; color: var(--text3); }
+.donate-wallet--copied .donate-wallet__action { color: #22c55e; font-weight: 600; }
+.donate-wallet__addr {
+  font-size: 11px;
+  color: var(--text2);
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
 
 .profile-card { margin: 0 16px 14px; background: var(--surface); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--border); }
 .profile-avatar-wrap { position: relative; width: 80px; height: 80px; cursor: pointer; }

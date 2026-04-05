@@ -9,6 +9,7 @@ import {
   MoonLinear, Sun2Linear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
+  HeartLinear,
 } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
@@ -21,6 +22,69 @@ import Roulette from '../components/Roulette';
 import MovieModal from '../components/MovieModal';
 import './Profile.css';
 import { supabase } from '../supabase';
+
+/* ─── Donate Modal ─── */
+const WALLETS = [
+  { label: 'USDC (Polygon)', address: '0x9e9C10d3A526cb39B62b88DecC55f04F8f63fdE3', color: '#2775CA' },
+  { label: 'USDT (TRX)', address: 'TVMMVRhbTJutmjkwFC6x5g4cm2S4P5nbqy', color: '#26A17B' },
+  { label: 'USDT (TON)', address: 'UQAdiUvmlLJ088bQkbv6AGs_sp7rO0jHcmdzR6oWglq5Isk2', color: '#26A17B' },
+];
+
+function DonateModal({ onClose }) {
+  const { t } = useTranslation();
+  const [copiedAddr, setCopiedAddr] = useState(null);
+
+  const handleCopy = async (address) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopiedAddr(address);
+      setTimeout(() => setCopiedAddr(null), 2500);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = address;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopiedAddr(address);
+      setTimeout(() => setCopiedAddr(null), 2500);
+    }
+  };
+
+  return (
+    <div className="settings-overlay" onClick={onClose}>
+      <div className="settings-modal donate-modal" onClick={e => e.stopPropagation()}>
+        <div className="settings-header">
+          <h2>{t('profile.donateTitle')}</h2>
+          <button className="settings-close" onClick={onClose}><CloseCircleLinear size={18}/></button>
+        </div>
+        <div className="settings-body">
+          <p className="donate-desc">{t('profile.donateDesc')}</p>
+          <div className="donate-wallets">
+            {WALLETS.map(({ label, address, color }) => {
+              const copied = copiedAddr === address;
+              return (
+                <div
+                  key={label}
+                  className={`donate-wallet${copied ? ' donate-wallet--copied' : ''}`}
+                  onClick={() => handleCopy(address)}
+                >
+                  <div className="donate-wallet__top">
+                    <span className="donate-wallet__label" style={{ color }}>{label}</span>
+                    <span className="donate-wallet__action">
+                      {copied ? t('profile.donateCopied') : t('profile.donateTap')}
+                    </span>
+                  </div>
+                  <span className="donate-wallet__addr">{address}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ─── Settings Modal ─── */
 function SettingsModal({ onClose }) {
@@ -799,6 +863,7 @@ export default function Profile() {
   const { selected, openMovie, closeMovie } = useMovieModal();
   const navigate = useNavigate();
   const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
+  const [showDonate,   setShowDonate]   = useState(false);
   const [listView,     setListView]     = useState(null);
   const fileRef = useRef();
 
@@ -868,6 +933,7 @@ export default function Profile() {
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           {syncing && <span className="profile-sync-dot" title="Syncing..."/>}
           {!editing && <button className="profile-icon-btn" onClick={()=>setEditing(true)}><Pen2Linear size={17}/></button>}
+          <button className="profile-icon-btn profile-icon-btn--donate" onClick={()=>setShowDonate(true)} title={t('profile.donateBtnTitle')}><HeartLinear size={17}/></button>
           <button className="profile-icon-btn" onClick={()=>setShowSettings(true)}><SettingsMinimalisticLinear size={17}/></button>
         </div>
       </div>
@@ -956,6 +1022,7 @@ export default function Profile() {
 
       <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
       {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
+      {showDonate && <DonateModal onClose={()=>setShowDonate(false)}/>}
     </div>
   );
 }

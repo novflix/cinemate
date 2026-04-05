@@ -79,7 +79,12 @@
     "cancel2": "Cancelar",
     "delete": "Eliminar",
     "langChange": "Cambiar",
-    "langClose": "Cerrar"
+    "langClose": "Cerrar",
+    "donateTitle": "❤️ Apoyar el proyecto",
+    "donateDesc": "Cinimate es un proyecto gratuito. Si te gusta, puedes apoyarlo con cripto. Toca una dirección para copiarla.",
+    "donateCopied": "✓ ¡Copiado!",
+    "donateTap": "Toca para copiar",
+    "donateBtnTitle": "Apoyar el proyecto"
   },
   "home": {
     "nowPlaying": "En cinis ahora",

@@ -79,7 +79,12 @@
     "cancel2": "İptal",
     "delete": "Sil",
     "langChange": "Değiştir",
-    "langClose": "Kapat"
+    "langClose": "Kapat",
+    "donateTitle": "❤️ Projeyi destekle",
+    "donateDesc": "Cinimate ücretsiz bir projedir. Beğendiyseniz kripto ile destekleyebilirsiniz. Kopyalamak için bir adrese dokunun.",
+    "donateCopied": "✓ Kopyalandı!",
+    "donateTap": "Kopyalamak için dokunun",
+    "donateBtnTitle": "Projeyi destekle"
   },
   "home": {
     "nowPlaying": "Vizyonda",
