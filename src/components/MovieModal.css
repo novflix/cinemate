@@ -153,13 +153,13 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   font-size: 11px; font-weight: 700; color: var(--text);
   line-height: 1.3;
   overflow: hidden;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  display: -webkit-box; line-clamp: 2; -webkit-box-orient: vertical;
 }
 .modal__people-role {
   font-size: 10px; color: var(--text3);
   line-height: 1.3;
   overflow: hidden;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  display: -webkit-box; line-clamp: 2; -webkit-box-orient: vertical;
 }
 
 /* Legacy cast classes — kept so nothing breaks if referenced elsewhere */
