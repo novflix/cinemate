@@ -7,11 +7,11 @@ import ActorPage from './ActorPage';
 import MovieModal from '../components/MovieModal';
 
 export default function ActorPageRoute() {
-  const { actorId } = useParams();
-  const navigate    = useNavigate();
-  const location    = useLocation();
-  const { lang }    = useTheme();
-  const langCode    = lang === 'ru' ? 'ru-RU' : 'en-US';
+  const { actorId }                   = useParams();
+  const navigate                      = useNavigate();
+  const location                      = useLocation();
+  const { lang }                      = useTheme();
+  const langCode                      = lang === 'ru' ? 'ru-RU' : 'en-US';
 
   const [actor,   setActor]   = useState(location.state?.actor || null);
   const [loading, setLoading] = useState(!location.state?.actor);
@@ -21,7 +21,6 @@ export default function ActorPageRoute() {
 
   // Re-fetch actor when actorId changes (navigating actor→actor)
   useEffect(() => {
-    // Reset actor state on id change so we show loader
     setActor(null);
     setLoading(true);
 
@@ -41,6 +40,11 @@ export default function ActorPageRoute() {
   // eslint-disable-next-line
   }, [actorId, langCode]);
 
+  // Back button: always go one step back in history.
+  // If a movie modal was open, its ?movie=ID entry is a real history push,
+  // so navigate(-1) correctly closes the modal first, then another press goes to the previous page.
+  const handleBack = () => navigate(-1);
+
   if (loading) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'80vh'}}>
       <div style={{width:32,height:32,border:'2px solid var(--surface2)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin 0.7s linear infinite'}}/>
@@ -53,14 +57,15 @@ export default function ActorPageRoute() {
     <>
       <ActorPage
         actor={actor}
-        onBack={() => navigate(-1)}
+        onBack={handleBack}
         onMovieClick={openMovie}
       />
       <MovieModal
         movie={selected}
         onClose={closeMovie}
         onActorClick={(a) => {
-          closeMovie();
+          // Don't call closeMovie() here — that would replace the ?movie history entry.
+          // Instead navigate forward; the new /actor/:id route will unmount the modal naturally.
           navigate(`/actor/${a.id}`, { state: { actor: a } });
         }}
       />

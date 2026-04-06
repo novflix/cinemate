@@ -330,7 +330,7 @@ export default function Home() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
     </div>
   );
 }

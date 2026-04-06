@@ -20,7 +20,6 @@ import { tmdb, HEADERS } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
 import Roulette from '../components/Roulette';
 import MovieModal from '../components/MovieModal';
-import Countdown from '../components/Countdown';
 import './Profile.css';
 import { supabase } from '../supabase';
 
@@ -382,13 +381,6 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
             <div className="poster-grid__poster">
               {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
               {isPinned && <div className="poster-grid__pin-glow"/>}
-              {(() => {
-                const rd = m.release_date || m.first_air_date;
-                const today = new Date().toISOString().slice(0, 10);
-                const isUnreleased = !rd || rd > today;
-                if (!isUnreleased) return null;
-                return rd ? <Countdown releaseDate={rd}/> : <Countdown noDate={true}/>;
-              })()}
               {listTab === 'watched' && rating && (
                 <div className="poster-grid__rating"><span>★</span>{rating}</div>
               )}
@@ -1011,7 +1003,7 @@ export default function Profile() {
           addToCustomList={addToCustomList}
           lang={lang}
         />
-        <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
+        <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
       </>
     );
   }
@@ -1132,7 +1124,7 @@ export default function Profile() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{closeMovie();handleActorClick(a);}}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
       {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
       {showDonate && <DonateModal onClose={()=>setShowDonate(false)}/>}
     </div>

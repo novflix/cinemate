@@ -635,7 +635,7 @@ export default function Recs() {
         <div className="recs-loader"><div className="recs-spinner"/></div>
       )}
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ closeMovie(); navigate(`/actor/${a.id}`, { state: { actor: a } }); }}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ navigate(`/actor/${a.id}`, { state: { actor: a } }); }}/>
     </div>
   );
 }

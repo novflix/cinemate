@@ -5,9 +5,11 @@ import { useTheme } from '../theme';
 
 /**
  * Manages movie modal state synced with ?movie=ID URL param.
- * - Opening a movie adds ?movie=ID to the URL (shareable link)
- * - Closing removes it
- * - If page loads with ?movie=ID, fetches that movie and opens the modal
+ * - Opening a movie pushes a new history entry (?movie=ID) — so browser Back closes it
+ * - Closing via closeMovie() removes ?movie from the URL using replace:true
+ *   (the modal-open entry is already the current one, so this is safe)
+ * - closeSilent() clears the selected state WITHOUT touching history — used when
+ *   navigating away from the page (the new route unmounts the modal naturally)
  */
 export function useMovieModal() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,15 +45,17 @@ export function useMovieModal() {
   // eslint-disable-next-line
   }, [searchParams.get('movie'), langCode]);
 
+  // Push a new history entry so browser Back / navigate(-1) closes the modal
   const openMovie = useCallback((movie) => {
     setSelected(movie);
     const mediaType = movie.media_type || 'movie';
     setSearchParams(
       p => { p.set('movie', movie.id); p.set('type', mediaType); return p; },
-      { replace: false }
+      { replace: false }   // push — Back will close the modal
     );
   }, [setSearchParams]);
 
+  // Normal close: replace the current ?movie entry with a clean URL
   const closeMovie = useCallback(() => {
     setSelected(null);
     setSearchParams(
