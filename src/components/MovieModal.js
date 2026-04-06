@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
@@ -352,6 +352,85 @@ function MoreMenu({ movie, lang }) {
   );
 }
 
+// ─── Scrollable People Block (cast & crew) ───────────────────────────────────
+function ScrollablePeopleBlock({ title, items, onItemClick }) {
+  const listRef = useRef(null);
+  const [canScrollLeft,  setCanScrollLeft]  = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = listRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    const ro = new ResizeObserver(checkScroll);
+    ro.observe(el);
+    return () => { el.removeEventListener('scroll', checkScroll); ro.disconnect(); };
+  }, [checkScroll, items]);
+
+  const scroll = (dir) => {
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 220, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="modal__people-block">
+      <div className="modal__people-header">
+        <h4>{title}</h4>
+        <div className="modal__people-arrows">
+          <button
+            className={"modal__people-arrow" + (canScrollLeft ? '' : ' disabled')}
+            onClick={() => scroll(-1)}
+            aria-label="Scroll left"
+            disabled={!canScrollLeft}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button
+            className={"modal__people-arrow" + (canScrollRight ? '' : ' disabled')}
+            onClick={() => scroll(1)}
+            aria-label="Scroll right"
+            disabled={!canScrollRight}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="modal__cast-list" ref={listRef}>
+        {items.map(item => (
+          <div
+            key={item.id}
+            className={"modal__cast-item" + (onItemClick ? ' modal__cast-item--clickable' : '')}
+            onClick={() => onItemClick?.(item)}
+          >
+            <div className="modal__cast-avatar">
+              {item.profile_path
+                ? <img src={`https://image.tmdb.org/t/p/w185${item.profile_path}`} alt={item.name}/>
+                : <span className="modal__cast-initials">{item.name?.[0] ?? '?'}</span>}
+            </div>
+            <span className="modal__cast-name">{item.name}</span>
+            {item.sub && (
+              <span className="modal__cast-sub" title={item.sub}>{item.sub}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const [details, setDetails]         = useState(null);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
@@ -389,7 +468,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
   const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t('modal.hours')} ${details.runtime%60}${t('modal.minutes')}` : null;
   const seasons  = details?.number_of_seasons;
-  const cast     = details?.credits?.cast?.slice(0,12) || [];
+  const cast     = details?.credits?.cast || [];
+  const crew     = details?.credits?.crew || [];
   const progress = movie ? getTvProgress(movie.id) : null;
   const totalSeasons  = details?.number_of_seasons  || 1;
 
@@ -473,21 +553,120 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
             )}
 
             {cast.length > 0 && (
-              <div className="modal__cast">
-                <h4>{t('modal.cast')}</h4>
-                <div className="modal__cast-list">
-                  {cast.map(c => (
-                    <div key={c.id} className="modal__cast-item" onClick={() => onActorClick?.(c)}>
-                      <div className="modal__cast-avatar">
-                        {c.profile_path
-                          ? <img src={`https://image.tmdb.org/t/p/w185${c.profile_path}`} alt={c.name}/>
-                          : <span className="modal__cast-initials">{c.name[0]}</span>}
-                      </div>
-                      <span className="modal__cast-name">{c.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ScrollablePeopleBlock
+                title={t('modal.cast')}
+                items={cast.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  profile_path: c.profile_path,
+                  sub: c.character,
+                }))}
+                onItemClick={(item) => onActorClick?.({ id: item.id, name: item.name, profile_path: item.profile_path })}
+              />
+            )}
+
+            {crew.length > 0 && (
+              <ScrollablePeopleBlock
+                title={t('modal.crew')}
+                items={(() => {
+                  // Priority jobs — always shown even without a photo
+                  const ALWAYS_SHOW_JOBS = new Set([
+                    'Director', 'Co-Director',
+                  ]);
+
+                  // Key writing jobs — shown without photo only if they are
+                  // the sole/lead writer (i.e. ≤2 total writers)
+                  const KEY_WRITING_JOBS = new Set([
+                    'Screenplay', 'Writer', 'Story', 'Script',
+                    'Original Story', 'Teleplay', 'Creator',
+                  ]);
+
+                  // Key producing jobs — shown without photo only if ≤2 total
+                  const KEY_PRODUCING_JOBS = new Set([
+                    'Producer', 'Executive Producer',
+                  ]);
+
+                  // Step 1: deduplicate — one entry per person, merged jobs
+                  const seen = new Map();
+                  crew.forEach(c => {
+                    if (seen.has(c.id)) {
+                      const existing = seen.get(c.id);
+                      if (!existing.jobs.includes(c.job)) {
+                        existing.jobs.push(c.job);
+                      }
+                      if (!existing.profile_path && c.profile_path) {
+                        existing.profile_path = c.profile_path;
+                      }
+                    } else {
+                      seen.set(c.id, {
+                        id: c.id,
+                        name: c.name,
+                        profile_path: c.profile_path,
+                        jobs: [c.job],
+                        department: c.department,
+                      });
+                    }
+                  });
+
+                  const allPeople = Array.from(seen.values()).map(p => ({
+                    ...p,
+                    sub: p.jobs.join(', '),
+                  }));
+
+                  // Count writers and producers for "lead" check
+                  const writerCount   = allPeople.filter(p => p.jobs.some(j => KEY_WRITING_JOBS.has(j))).length;
+                  const producerCount = allPeople.filter(p => p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))).length;
+
+                  // Step 2: determine department priority weight
+                  const deptOrder = {
+                    Directing:       0,
+                    Writing:         1,
+                    Production:      2,
+                    'Visual Effects': 3,
+                    Sound:           4,
+                    Camera:          5,
+                    Editing:         6,
+                    Art:             7,
+                    'Costume & Make-Up': 8,
+                  };
+
+                  // Step 3: filter
+                  const filtered = allPeople.filter(p => {
+                    // Always keep people with a photo
+                    if (p.profile_path) return true;
+
+                    // No photo — apply rules:
+                    // Directors always shown
+                    if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return true;
+
+                    // Writers shown only if they are one of ≤2 writers
+                    if (p.jobs.some(j => KEY_WRITING_JOBS.has(j)) && writerCount <= 2) return true;
+
+                    // Producers shown only if they are one of ≤2 producers
+                    if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j)) && producerCount <= 2) return true;
+
+                    // Everyone else without a photo — hide
+                    return false;
+                  });
+
+                  // Step 4: sort — priority people first, then by dept, then by name
+                  const jobPriority = (p) => {
+                    if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return 0;
+                    if (p.jobs.some(j => KEY_WRITING_JOBS.has(j))) return 1;
+                    if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))) return 2;
+                    return 3;
+                  };
+
+                  return filtered.sort((a, b) => {
+                    const jp = jobPriority(a) - jobPriority(b);
+                    if (jp !== 0) return jp;
+                    const da = deptOrder[a.department] ?? 99;
+                    const db = deptOrder[b.department] ?? 99;
+                    return da - db;
+                  });
+                })()}
+                onItemClick={null}
+              />
             )}
 
             <div className="modal__actions">
