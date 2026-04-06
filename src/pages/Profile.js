@@ -55,16 +55,61 @@ const WALLETS = [
     ),
   },
   {
-    label: 'USDT',
+    label: 'TON',
     network: 'TON',
     address: 'UQAdiUvmlLJ088bQkbv6AGs_sp7rO0jHcmdzR6oWglq5Isk2',
     color: '#0098EA',
     gradient: 'linear-gradient(135deg, rgba(0,152,234,0.18) 0%, rgba(0,152,234,0.05) 100%)',
     border: 'rgba(0,152,234,0.35)',
     icon: (
+      /* Official TON coin logo */
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="16" cy="16" r="16" fill="#0098EA"/>
-        <path d="M22.894 10.333H9.106a1.278 1.278 0 00-1.09 1.94l6.794 11.206a1.278 1.278 0 002.18 0l6.794-11.207a1.278 1.278 0 00-1.09-1.939zm-8.006 10.218l-1.44-2.36 4.194-7.108H16l-1.112 9.468zm2.112 0l-1.112-9.468h2.334l4.194 7.108-1.44 2.36-3.976-9.468z" fill="white"/>
+        <path d="M16 6C10.477 6 6 10.477 6 16s4.477 10 10 10 10-4.477 10-10S21.523 6 16 6zm4.93 6.5h-2.645l-2.287 7.04-2.285-7.04H11.07l3.864 9.0a1.13 1.13 0 001.065.75 1.13 1.13 0 001.064-.75L20.93 12.5z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'SOL',
+    network: 'Solana',
+    address: 'Wv29H2iUF4vQLfqgGjvbSiobThxJAfSpeFNBanoWvKw',
+    color: '#9945FF',
+    gradient: 'linear-gradient(135deg, rgba(153,69,255,0.18) 0%, rgba(153,69,255,0.05) 100%)',
+    border: 'rgba(153,69,255,0.35)',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="16" fill="#9945FF"/>
+        <path d="M10.03 19.782a.53.53 0 01.373-.154h13.075c.235 0 .353.284.187.45l-2.588 2.588a.53.53 0 01-.373.154H7.629c-.235 0-.353-.284-.187-.45l2.588-2.588zM10.03 9.334A.53.53 0 0110.403 9.18h13.075c.235 0 .353.284.187.45l-2.588 2.588a.53.53 0 01-.373.154H7.629c-.235 0-.353-.284-.187-.45L10.03 9.334zM21.077 14.558a.53.53 0 00-.373-.154H7.629c-.235 0-.353.284-.187.45l2.588 2.588a.53.53 0 00.373.154h13.075c.235 0 .353-.284.187-.45l-2.588-2.588z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'LTC',
+    network: 'Litecoin',
+    address: 'ltc1qff5xug04kp4tm03zrx9n9tah6zhtf3kzk5cp30',
+    color: '#A0A0A0',
+    gradient: 'linear-gradient(135deg, rgba(160,160,160,0.18) 0%, rgba(160,160,160,0.05) 100%)',
+    border: 'rgba(160,160,160,0.35)',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="16" fill="#A0A0A0"/>
+        <path d="M16 5C9.925 5 5 9.925 5 16s4.925 11 11 11 11-4.925 11-11S22.075 5 16 5zm-1.14 14.696l.465-1.741-1.07.393.318-1.187 1.074-.393 1.626-6.067H19l-1.625 6.067 1.07-.393-.317 1.187-1.073.393-.465 1.741H13.86z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'ARB',
+    network: 'Arbitrum',
+    address: '0x9e9C10d3A526cb39B62b88DecC55f04F8f63fdE3',
+    color: '#2D374B',
+    gradient: 'linear-gradient(135deg, rgba(100,140,255,0.18) 0%, rgba(100,140,255,0.05) 100%)',
+    border: 'rgba(100,140,255,0.35)',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="16" fill="#2D374B"/>
+        <path d="M16 5.5L7 10.75v10.5L16 26.5l9-5.25V10.75L16 5.5z" fill="#2D374B" stroke="#648CFF" strokeWidth="0.5"/>
+        <path d="M13.06 20.5l-1.56-.9 4.3-7.44.78 2.33-3.52 6.01zM15.6 14.56l-.78-2.34h2.35l3.83 8.28-1.56.9-3.84-6.84z" fill="#648CFF"/>
+        <path d="M11 19.82v1.68l5 2.92 5-2.92v-1.68l-4.22 7.3-.78-.45V25.3l3.44-5.95 1.56-.9-5-2.9-5 2.9 1.56.9 3.44 5.95v1.37l-.78.45L11 19.82z" fill="white" opacity="0.7"/>
       </svg>
     ),
   },
