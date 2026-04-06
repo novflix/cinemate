@@ -293,8 +293,8 @@ function WatchlistSection() {
   const items = [
     { poster: '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', title: 'Interstellar',   year: 2014, rating: 9 },
     { poster: '/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', title: 'Oppenheimer',    year: 2023, rating: 8 },
-    { poster: '/hA2ple9q4qnwxp3hKVNhroipsir.jpg', title: 'La La Land',     year: 2016, rating: 7 },
-    { poster: '/fiVW06jE7z9YnO4trhaMEdclSiC.jpg', title: 'Dune',           year: 2021, rating: null },
+    { poster: '/hA2ple9q4qnwxp3hKVNhroipsir.jpg', title: 'Mad Max',     year: 2015, rating: 7 },
+    { poster: '/fiVW06jE7z9YnO4trhaMEdclSiC.jpg', title: 'Fast X',           year: 2021, rating: null },
     { poster: '/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', title: 'Blade Runner',   year: 2017, rating: null },
   ];
 
@@ -440,7 +440,7 @@ export default function About({ asLanding, onLogin, onRegister }) {
   const stats = [
     { n: 900000, suffix: '+',    label: t('about.filmsShows') },
     { n: 50,     suffix: '+',    label: t('about.perSection') },
-    { n: 5,      suffix: ' мин', label: t('about.toFirstRecs') },
+    { n: 5,      suffix: t('about.min'), label: t('about.toFirstRecs') },
     { n: 10,     suffix: '/10',  label: t('about.ratingScale') },
   ];
 
