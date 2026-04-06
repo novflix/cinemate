@@ -667,7 +667,25 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
       const { error } = await supabase.from('public_lists').upsert(payload, { onConflict: 'id' });
       if (error) throw error;
       const url = `${window.location.origin}/list/${listId}`;
-      await navigator.clipboard.writeText(url);
+      // On mobile, prefer native share sheet; fall back to clipboard
+      if (navigator.share) {
+        await navigator.share({ title: list.name, url });
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+        } catch {
+          // Last-resort fallback for browsers that block clipboard
+          const el = document.createElement('textarea');
+          el.value = url;
+          el.style.position = 'fixed';
+          el.style.opacity = '0';
+          document.body.appendChild(el);
+          el.focus();
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        }
+      }
       setShareLabel('copied');
       setTimeout(() => setShareLabel(null), 2500);
     } catch (e) {
