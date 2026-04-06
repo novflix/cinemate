@@ -301,7 +301,8 @@
   "countdown": {
     "days": "{{count}}g sonra",
     "hours": "{{count}}s sonra",
-    "minutes": "{{count}}dk sonra"
+    "minutes": "{{count}}dk sonra",
+    "tba": "Tarih TBA"
   },
   "tvtracker": {
     "trackProgress": "İlerlemeyi takip et",

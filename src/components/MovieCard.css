@@ -168,6 +168,11 @@
   background: var(--accent); color: #000;
   animation: countdownPulse 2s ease-in-out infinite;
 }
+.countdown-badge--tba {
+  background: rgba(0,0,0,0.72);
+  color: rgba(255,255,255,0.6);
+  font-style: italic;
+}
 @keyframes countdownPulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(232,197,71,0.4); }
   50%     { box-shadow: 0 0 0 4px rgba(232,197,71,0); }

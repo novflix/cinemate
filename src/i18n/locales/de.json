@@ -301,7 +301,8 @@
   "countdown": {
     "days": "in {{count}} T",
     "hours": "in {{count}} Std",
-    "minutes": "in {{count}} Min"
+    "minutes": "in {{count}} Min",
+    "tba": "TBA"
   },
   "tvtracker": {
     "trackProgress": "Fortschritt verfolgen",

@@ -17,7 +17,16 @@ function getCountdownValues(dateStr) {
   return           { unit: 'minutes', value: minutes, urgent: true };
 }
 
-export default function Countdown({ releaseDate }) {
+/**
+ * Countdown badge for unreleased movies/series.
+ *
+ * Props:
+ *   releaseDate  – ISO date string (e.g. "2025-11-14"). When provided the badge
+ *                  shows the number of days/hours/minutes remaining.
+ *   noDate       – boolean. When true (and releaseDate is absent/future-unknown)
+ *                  the badge shows a "release date TBA" indicator.
+ */
+export default function Countdown({ releaseDate, noDate = false }) {
   const { t } = useTranslation();
   const [cd, setCd] = useState(() => getCountdownValues(releaseDate));
 
@@ -27,8 +36,23 @@ export default function Countdown({ releaseDate }) {
     return () => clearInterval(interval);
   }, [releaseDate]);
 
-  if (!cd) return null;
+  // Known date but already released → hide
+  if (releaseDate && !cd) return null;
 
+  // No date and noDate flag not set → hide
+  if (!releaseDate && !noDate) return null;
+
+  // No date known → show TBA badge
+  if (!releaseDate && noDate) {
+    return (
+      <div className="countdown-badge countdown-badge--tba">
+        <ClockCircleLinear size={9}/>
+        <span>{t('countdown.tba')}</span>
+      </div>
+    );
+  }
+
+  // Known future date
   const labels = {
     days:    t('countdown.days',    { count: cd.value }),
     hours:   t('countdown.hours',   { count: cd.value }),

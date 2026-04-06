@@ -301,7 +301,8 @@
   "countdown": {
     "days": "{{count}}天后",
     "hours": "{{count}}小时后",
-    "minutes": "{{count}}分钟后"
+    "minutes": "{{count}}分钟后",
+    "tba": "待定"
   },
   "tvtracker": {
     "trackProgress": "追踪进度",

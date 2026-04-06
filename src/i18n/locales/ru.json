@@ -301,7 +301,8 @@
   "countdown": {
     "days": "через {{count}} д",
     "hours": "через {{count}} ч",
-    "minutes": "через {{count}} мин"
+    "minutes": "через {{count}} мин",
+    "tba": "Дата TBA"
   },
   "tvtracker": {
     "trackProgress": "Отметить прогресс",

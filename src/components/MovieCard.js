@@ -72,9 +72,15 @@ const MovieCard = memo(function MovieCard({ movie, onClick, showCountdown = fals
           <div className="movie-card__rating"><StarLinear size={8} fill="currentColor"/> {tmdbRating}</div>
         ) : null}
 
-        {showCountdown && movie.release_date && (
-          <Countdown releaseDate={movie.release_date}/>
-        )}
+        {(() => {
+          const rd = movie.release_date || movie.first_air_date;
+          const today = new Date().toISOString().slice(0, 10);
+          const isUnreleased = !rd || rd > today;
+          if (!isUnreleased) return null;
+          return rd
+            ? <Countdown releaseDate={rd}/>
+            : <Countdown noDate={true}/>;
+        })()}
 
         {progress && (
           <div className="movie-card__progress">
