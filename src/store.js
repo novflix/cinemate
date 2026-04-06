@@ -97,7 +97,7 @@ export function StoreProvider({ children, userId }) {
         if (data.watched)      { setWatched(data.watched);           save('watched',      data.watched); }
         if (data.watchlist)    { setWatchlist(data.watchlist);       save('watchlist',    data.watchlist); }
         if (data.ratings)      { setRatings(data.ratings);           save('ratings',      data.ratings); }
-        if (data.profile)      { setProfile(data.profile);           save('profile',      data.profile); }
+        if (data.profile)      { const merged = { ...load('profile', { name: 'Ciniphile', avatar: null, bio: '' }), ...data.profile }; setProfile(merged); save('profile', merged); }
         if (data.liked_actors) { setLikedActors(data.liked_actors);  save('likedActors',  data.liked_actors); }
         if (data.disliked_ids) { setDislikedIds(data.disliked_ids);  save('dislikedIds',  data.disliked_ids); }
         if (data.tv_progress)  { setTvProgress(data.tv_progress);    save('tvProgress',   data.tv_progress); }
