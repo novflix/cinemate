@@ -76,9 +76,16 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .modal__where-item img { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
 .modal__where-name { display: flex; align-items: center; gap: 4px; }
 .modal__where-tag { font-size: 9px; color: var(--text3); background: var(--surface); border-radius: 3px; padding: 1px 3px; }
-.modal__people-block { margin-bottom: 16px; }
-.modal__people-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.modal__people-header h4 { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+/* ─── People blocks (Cast & Crew) ─── */
+.modal__people-block { margin-bottom: 20px; }
+.modal__people-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.modal__people-header h4 {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1px; margin: 0;
+}
 .modal__people-arrows { display: flex; gap: 4px; }
 .modal__people-arrow {
   width: 26px; height: 26px; border-radius: 8px;
@@ -86,27 +93,84 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
   color: var(--text2); display: flex; align-items: center; justify-content: center;
   transition: all 0.15s; flex-shrink: 0;
 }
-.modal__people-arrow:hover:not(.disabled) { background: var(--surface); border-color: var(--accent); color: var(--accent); }
-.modal__people-arrow.disabled { opacity: 0.3; cursor: default; }
+.modal__people-arrow:hover:not(.disabled) {
+  background: var(--surface); border-color: var(--accent); color: var(--accent);
+}
+.modal__people-arrow.disabled { opacity: 0.25; cursor: default; }
 @media (max-width: 899px) { .modal__people-arrows { display: none; } }
+
+/* Horizontal scroll row */
+.modal__people-list {
+  display: flex; gap: 7px;
+  overflow-x: auto; overflow-y: visible;
+  padding-bottom: 4px;
+  margin: 0 -18px; padding-left: 18px; padding-right: 18px;
+  scroll-behavior: smooth;
+}
+.modal__people-list::-webkit-scrollbar { display: none; }
+
+/* Individual card — horizontal layout: photo on left, text on right */
+.modal__people-card {
+  display: flex; align-items: center; gap: 9px;
+  flex-shrink: 0;
+  width: 168px;
+  padding: 7px 9px 7px 7px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s, background 0.15s;
+  min-width: 0;
+}
+.modal__people-card--clickable { cursor: pointer; }
+.modal__people-card--clickable:hover {
+  border-color: rgba(var(--modal-accent, 232 197 71), 0.4);
+  background: var(--surface);
+}
+
+/* Photo */
+.modal__people-photo {
+  width: 42px; height: 52px;
+  border-radius: 8px; overflow: hidden; flex-shrink: 0;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal__people-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+}
+.modal__people-initials {
+  font-size: 17px; font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+/* Text block */
+.modal__people-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.modal__people-name {
+  font-size: 11px; font-weight: 700; color: var(--text);
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.modal__people-role {
+  font-size: 10px; color: var(--text3);
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+
+/* Legacy cast classes — kept so nothing breaks if referenced elsewhere */
 .modal__cast { margin-bottom: 4px; }
 .modal__cast h4 { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-.modal__cast-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin: 0 -18px; padding-left: 18px; padding-right: 18px; scroll-behavior: smooth; }
-.modal__cast-list::-webkit-scrollbar { display: none; }
-.modal__cast-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 66px; max-width: 66px; padding: 6px 4px; border-radius: 10px; transition: background 0.15s; flex-shrink: 0; }
-.modal__cast-item--clickable { cursor: pointer; }
-.modal__cast-item--clickable:hover { background: var(--surface2); }
-.modal__cast-avatar { width: 56px; height: 70px; border-radius: 10px; overflow: hidden; background: var(--surface2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.modal__cast-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.modal__cast-initials { font-size: 20px; font-weight: 700; color: var(--text2); }
-.modal__cast-name { font-size: 10px; font-weight: 600; color: var(--text2); text-align: center; line-height: 1.3; width: 100%; overflow: hidden; display: -webkit-box; line-clamp: 2; -webkit-box-orient: vertical; }
-.modal__cast-sub {
-  font-size: 9px; color: var(--text3); text-align: center; line-height: 1.25;
-  width: 100%; overflow: hidden;
-  display: -webkit-box; line-clamp: 2; -webkit-box-orient: vertical;
-  font-style: italic;
-  padding: 0 2px;
-}
+.modal__cast-list { display: none; }
+.modal__cast-item { display: none; }
+.modal__cast-avatar { display: none; }
+.modal__cast-initials { display: none; }
+.modal__cast-name { display: none; }
+.modal__cast-sub { display: none; }
 .modal__actions { display: flex; gap: 10px; margin-top: 20px; padding-bottom: 4px; }
 .modal__action-btn { flex: 1; padding: 14px 10px; border-radius: 14px; background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 600; transition: all 0.15s; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 7px; }
 .modal__action-btn.active-green { background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3); }

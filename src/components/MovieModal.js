@@ -378,7 +378,7 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
   const scroll = (dir) => {
     const el = listRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir * 220, behavior: 'smooth' });
+    el.scrollBy({ left: dir * 200, behavior: 'smooth' });
   };
 
   return (
@@ -408,22 +408,24 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
           </button>
         </div>
       </div>
-      <div className="modal__cast-list" ref={listRef}>
+      <div className="modal__people-list" ref={listRef}>
         {items.map(item => (
           <div
             key={item.id}
-            className={"modal__cast-item" + (onItemClick ? ' modal__cast-item--clickable' : '')}
+            className={"modal__people-card" + (onItemClick ? ' modal__people-card--clickable' : '')}
             onClick={() => onItemClick?.(item)}
           >
-            <div className="modal__cast-avatar">
+            <div className="modal__people-photo">
               {item.profile_path
                 ? <img src={`https://image.tmdb.org/t/p/w185${item.profile_path}`} alt={item.name}/>
-                : <span className="modal__cast-initials">{item.name?.[0] ?? '?'}</span>}
+                : <span className="modal__people-initials">{item.name?.[0] ?? '?'}</span>}
             </div>
-            <span className="modal__cast-name">{item.name}</span>
-            {item.sub && (
-              <span className="modal__cast-sub" title={item.sub}>{item.sub}</span>
-            )}
+            <div className="modal__people-info">
+              <span className="modal__people-name">{item.name}</span>
+              {item.sub && (
+                <span className="modal__people-role" title={item.sub}>{item.sub}</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
