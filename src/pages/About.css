@@ -121,6 +121,19 @@
 .about-poster--12 { width: 52px;  top: 68%; left: 18%;  animation: pf 17s 2.2s ease-in-out infinite; opacity: 0.20; }
 .about-poster--13 { width: 58px;  top:  5%; right:18%;  animation: pf  9s 4.0s ease-in-out infinite; opacity: 0.25; }
 .about-poster--14 { width: 50px;  top: 90%; left:  5%;  animation: pf 13s 0.8s ease-in-out infinite; opacity: 0.18; }
+.about-poster--15 { width: 82px;  top: 33%; left:  0%;  animation: pf  8s 3.3s ease-in-out infinite; opacity: 0.42; }
+.about-poster--16 { width: 68px;  top: 48%; right: 0%;  animation: pf 12s 1.6s ease-in-out infinite; opacity: 0.36; }
+.about-poster--17 { width: 74px;  top: 10%; left: 22%;  animation: pf  9s 5.8s ease-in-out infinite; opacity: 0.28; }
+.about-poster--18 { width: 56px;  top: 82%; right:22%;  animation: pf 11s 2.9s ease-in-out infinite; opacity: 0.22; }
+.about-poster--19 { width: 64px;  top: 42%; right:16%;  animation: pf 14s 4.2s ease-in-out infinite; opacity: 0.24; }
+.about-poster--20 { width: 60px;  top: 72%; left: 25%;  animation: pf 10s 0.3s ease-in-out infinite; opacity: 0.20; }
+.about-poster--21 { width: 54px;  top: 20%; right:25%;  animation: pf 15s 6.5s ease-in-out infinite; opacity: 0.18; }
+.about-poster--22 { width: 50px;  top: 58%; left: 28%;  animation: pf 18s 1.4s ease-in-out infinite; opacity: 0.16; }
+.about-poster--23 { width: 58px;  top:  3%; left: 30%;  animation: pf  8s 3.7s ease-in-out infinite; opacity: 0.20; }
+.about-poster--24 { width: 52px;  top: 92%; right:30%;  animation: pf 13s 5.0s ease-in-out infinite; opacity: 0.15; }
+.about-poster--25 { width: 46px;  top: 35%; left: 32%;  animation: pf 16s 2.7s ease-in-out infinite; opacity: 0.14; }
+.about-poster--26 { width: 48px;  top: 65%; right:32%;  animation: pf 12s 4.8s ease-in-out infinite; opacity: 0.14; }
+.about-poster--27 { width: 44px;  top: 50%; left: 35%;  animation: pf 19s 1.1s ease-in-out infinite; opacity: 0.12; }
 
 @keyframes pf {
   0%,100% { transform: translateY(0px) rotate(-1deg); }
@@ -129,7 +142,10 @@
 @media (max-width: 600px) {
   .about-poster--4,.about-poster--5,.about-poster--6,.about-poster--7,
   .about-poster--8,.about-poster--9,.about-poster--10,.about-poster--11,
-  .about-poster--12,.about-poster--13,.about-poster--14 { display: none; }
+  .about-poster--12,.about-poster--13,.about-poster--14,.about-poster--15,
+  .about-poster--16,.about-poster--17,.about-poster--18,.about-poster--19,
+  .about-poster--20,.about-poster--21,.about-poster--22,.about-poster--23,
+  .about-poster--24,.about-poster--25,.about-poster--26,.about-poster--27 { display: none; }
   .about-poster--0,.about-poster--2 { width: 60px; }
 }
 
@@ -207,9 +223,12 @@
 .about-marquees { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; }
 .about-marquee { overflow: hidden; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .about-marquee:last-child { border-bottom: none; }
+.about-marquee:first-child { --marquee-speed: 55s; }
+.about-marquee:last-child  { --marquee-speed: 75s; }
+.about-marquees:hover .about-marquee__track { animation-play-state: paused; }
 .about-marquee__track {
   display: flex; width: max-content;
-  animation: marqueeScroll 35s linear infinite;
+  animation: marqueeScroll var(--marquee-speed, 60s) linear infinite;
 }
 .about-marquee--rev .about-marquee__track { animation-direction: reverse; }
 .about-marquee__item {
@@ -389,13 +408,20 @@
 .about-moods__films { display: flex; flex-direction: column; gap: 10px; }
 .about-moods__film {
   display: flex; align-items: center; gap: 14px;
-  padding: 10px 0; border-bottom: 1px solid var(--border);
+  padding: 8px 0; border-bottom: 1px solid var(--border);
   animation: filmIn 0.25s ease both;
 }
 .about-moods__film:last-child { border-bottom: none; }
 @keyframes filmIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 .about-moods__film-num { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--text3); width: 24px; flex-shrink: 0; }
-.about-moods__film-name { font-size: 15px; font-weight: 600; }
+.about-moods__film-poster {
+  width: 32px; height: 46px; border-radius: 5px;
+  object-fit: cover; object-position: center top;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 1px solid rgba(var(--mc, 255 255 255), 0.15);
+}
+.about-moods__film-name { font-size: 15px; font-weight: 600; flex: 1; min-width: 0; }
 
 @media (max-width: 600px) { .about-moods { padding: 64px 20px; } }
 

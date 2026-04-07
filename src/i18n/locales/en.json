@@ -137,8 +137,7 @@
     "watched": "Watched",
     "markWatched": "Mark watched",
     "inList": "In list",
-    "watchlist": "Watchlist",
-    "crew": "Crew"
+    "watchlist": "Watchlist"
   },
   "roulette": {
     "whatToWatch": "What to watch?",
@@ -284,7 +283,17 @@
       "Mood",
       "Queue",
       "Profile",
-      "Sync"
+      "Sync",
+      "Discovery",
+      "Watchlist",
+      "Genres",
+      "Top Rated",
+      "Trending",
+      "New Releases",
+      "Collections",
+      "Favorites",
+      "Reviews",
+      "Timeline"
     ],
     "marqueeRow2": [
       "Interstellar",
@@ -292,11 +301,29 @@
       "Dune",
       "Parasite",
       "La La Land",
-      "Blade Runner",
+      "Blade Runner 2049",
       "Pulp Fiction",
       "The Dark Knight",
       "Inception",
-      "The Godfather"
+      "The Godfather",
+      "Fight Club",
+      "Whiplash",
+      "Joker",
+      "1917",
+      "Schindler's List",
+      "No Country for Old Men",
+      "The Silence of the Lambs",
+      "Gladiator",
+      "The Matrix",
+      "Goodfellas",
+      "Everything Everywhere All at Once",
+      "Past Lives",
+      "Moonlight",
+      "Hereditary",
+      "Mad Max: Fury Road",
+      "John Wick",
+      "Before Sunrise",
+      "Marriage Story"
     ]
   },
   "countdown": {

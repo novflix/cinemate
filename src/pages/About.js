@@ -123,6 +123,19 @@ const POSTERS = [
   '/8Gxv8giaFIelhEDznqervkhO4oa.jpg',  // Whiplash
   '/velWPhVMQeQKcxggNEU8YmIo52R.jpg',  // Joker
   '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',  // The Shawshank Redemption
+  '/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg',  // The Silence of the Lambs
+  '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',  // Schindler's List
+  '/5KCVkau1HEl7ZzfPsKAPM0sMiKc.jpg',  // No Country for Old Men
+  '/3bhkrj58Vtu7enYsLegHnDmni69.jpg',  // The Lord of the Rings
+  '/ngl2FKBlU4fhbdsrtdom9LVLBXw.jpg',  // Gladiator
+  '/or06FN3Dka5tukK1e9sl16pB3iy.jpg',  // The Matrix
+  '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',  // Goodfellas
+  '/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg',  // Joker 2
+  '/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg',   // Avengers: Endgame
+  '/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',  // Spider-Man: No Way Home
+  '/q2ygSMQ4ZsRHSYnIHSVLjH5hGg.jpg',   // Everything Everywhere All at Once
+  '/wE4BYv7PcALNBsqNMKPDZy5Y0OV.jpg',  // Past Lives
+  '/9cqNxx0GxF0bAY74W56MAxa0eBd.jpg',  // Moonlight
 ];
 
 function FloatingPosters() {
@@ -242,17 +255,47 @@ function MoodSection() {
   const { t } = useTranslation();
   const [ref, visible] = useReveal(0.1);
   const moods = [
-    { emoji: '😨', label: t('about.moodScary'),   color: '#ef4444', films: ['Hereditary', 'The Shining', 'Midsommar'] },
-    { emoji: '💥', label: t('about.moodAction'),  color: '#f97316', films: ['Mad Max', 'John Wick', 'Mission Impossible'] },
-    { emoji: '😂', label: t('about.moodComedy'),  color: '#e8c547', films: ['The Grand Budapest Hotel', 'Superbad', 'Game Night'] },
-    { emoji: '😢', label: t('about.moodDrama'),   color: '#3b82f6', films: ['Schindler\'s List', 'Marriage Story', 'Atonement'] },
-    { emoji: '💘', label: t('about.moodRomance'), color: '#ec4899', films: ['La La Land', 'About Time', 'Before Sunrise'] },
-    { emoji: '🤯', label: t('about.moodMindBlown'), color: '#8b5cf6', films: ['Inception', 'Tenet', 'Coherence'] },
+    { emoji: '😨', label: t('about.moodScary'),   color: '#ef4444', films: [
+      { name: 'Hereditary',      poster: '/p5xfAbCCGFOa2ZqPWCECb7idKqT.jpg' },
+      { name: 'The Shining',     poster: '/nRj5511mZdTl4saWEPoj9QroTIu.jpg' },
+      { name: 'Midsommar',       poster: '/7LEI8ulZzO5gy9Ww2NVCrKmHeDZ.jpg' },
+    ]},
+    { emoji: '💥', label: t('about.moodAction'),  color: '#f97316', films: [
+      { name: 'Mad Max: Fury Road', poster: '/hA2ple9q4qnwxp3hKVNhroipsir.jpg' },
+      { name: 'John Wick',          poster: '/fZPSd91yGE9fCcCe6OoQr6E3Bev.jpg' },
+      { name: 'Mission: Impossible', poster: '/oNmOLwbkEqHJvDIAJAoE5GBFts6.jpg' },
+    ]},
+    { emoji: '😂', label: t('about.moodComedy'),  color: '#e8c547', films: [
+      { name: 'The Grand Budapest Hotel', poster: '/eWdyYQreja6JvmQW7uNpBDi1yXo.jpg' },
+      { name: 'Superbad',                 poster: '/ek8e8txUyUwd2BNqj6lFEerJfbq.jpg' },
+      { name: 'Game Night',               poster: '/7GvNBzSNJfHOFVmxNoMBJCMYLEz.jpg' },
+    ]},
+    { emoji: '😢', label: t('about.moodDrama'),   color: '#3b82f6', films: [
+      { name: "Schindler's List", poster: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
+      { name: 'Marriage Story',   poster: '/pZekG6xabPdDTxnFQAGqSHkEJkG.jpg' },
+      { name: 'Atonement',        poster: '/riuIyVDJQOkiiyBDCJRpFYpxHlB.jpg' },
+    ]},
+    { emoji: '💘', label: t('about.moodRomance'), color: '#ec4899', films: [
+      { name: 'La La Land',     poster: '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg' },
+      { name: 'About Time',     poster: '/f7SQifDxGMK8O1lMFpNHQVHFHDh.jpg' },
+      { name: 'Before Sunrise', poster: '/qP3uJWfzLFif0OEMwmEKHFlqbMT.jpg' },
+    ]},
+    { emoji: '🤯', label: t('about.moodMindBlown'), color: '#8b5cf6', films: [
+      { name: 'Inception',   poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg' },
+      { name: 'Tenet',       poster: '/k68nPLbIST6NP96JmTxmZijZcbB.jpg' },
+      { name: 'Coherence',   poster: '/lEV4Px39M8NqR8ePnZ9KYrDwVnh.jpg' },
+    ]},
   ];
   const [active, setActive] = useState(0);
 
   return (
     <section className="about-moods" ref={ref}>
+      {/* Preload all poster images so they're cached when user switches moods */}
+      <div style={{ display: 'none' }} aria-hidden="true">
+        {moods.flatMap(m => m.films).filter(f => f.poster).map((f, i) => (
+          <img key={i} src={`https://image.tmdb.org/t/p/w92${f.poster}`} alt=""/>
+        ))}
+      </div>
       <div className="about-moods__inner">
         <div className="about-section__label">✦ {t('about.moodLabel')}</div>
         <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.moodTitle') }}/>
@@ -274,9 +317,17 @@ function MoodSection() {
           <div className="about-moods__result-label">{t('about.moodResultLabel')}</div>
           <div className="about-moods__films">
             {moods[active].films.map((f, i) => (
-              <div key={i} className="about-moods__film" style={{ animationDelay: `${i * 0.08}s` }}>
+              <div key={`${active}-${i}`} className="about-moods__film" style={{ animationDelay: `${i * 0.08}s` }}>
                 <span className="about-moods__film-num">0{i+1}</span>
-                <span className="about-moods__film-name">{f}</span>
+                {f.poster && (
+                  <img
+                    className="about-moods__film-poster"
+                    src={`https://image.tmdb.org/t/p/w92${f.poster}`}
+                    alt=""
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )}
+                <span className="about-moods__film-name">{f.name}</span>
               </div>
             ))}
           </div>
