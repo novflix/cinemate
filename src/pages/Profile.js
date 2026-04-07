@@ -556,6 +556,8 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 
   const handleImage = (e) => {
     const f = e.target.files[0]; if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    if (f.size > 2 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 2MB')); return; }
     const r = new FileReader();
     r.onload = ev => setImage(ev.target.result);
     r.readAsDataURL(f);
@@ -702,6 +704,7 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
   const [shareLabel,  setShareLabel]  = useState(null); // null | 'copying' | 'copied' | 'error'
   const { addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, isWatched, isInWatchlist } = useStore();
   const { profile } = useStore();
+  const { user } = useAuth();
 
   const handleShare = async () => {
     setSharing(true);
@@ -710,11 +713,12 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
       // Upsert the list snapshot to public_lists table
       const payload = {
         id:          listId,
-        name:        list.name,
-        description: list.description || '',
+        user_id:     user?.id || null,
+        name:        list.name.slice(0, 100),
+        description: (list.description || '').slice(0, 500),
         image:       list.image || null,
         items:       list.items,
-        author_name: profile?.name || (t('profile.anonymous')),
+        author_name: (profile?.name || t('profile.anonymous')).slice(0, 50),
         updated_at:  new Date().toISOString(),
       };
       const { error } = await supabase.from('public_lists').upsert(payload, { onConflict: 'id' });
@@ -983,9 +987,11 @@ export default function Profile() {
   const localizedWatched   = useLocalizedMovies(watched,        lang);
   const localizedWatchlist = useLocalizedMovies(sortedWatchlist, lang);
 
-  const handleSave   = () => { setProfile({...profile, name: name.trim()||'Кинолюб', bio}); setEditing(false); };
+  const handleSave   = () => { setProfile({...profile, name: name.trim().slice(0,30)||'Кинолюб', bio: bio.trim().slice(0,120)}); setEditing(false); };
   const handleAvatar = (e) => {
     const f = e.target.files[0]; if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    if (f.size > 2 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 2MB')); return; }
     const r = new FileReader();
     r.onload = ev => setProfile({...profile, avatar: ev.target.result});
     r.readAsDataURL(f);

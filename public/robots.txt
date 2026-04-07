@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /static/
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
 
 User-agent: Googlebot
 Allow: /
