@@ -25,8 +25,8 @@ import './Profile.css';
 import { supabase } from '../supabase';
 
 // ─── Cloudinary avatar upload ─────────────────────────────────────────────────
-const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dcuckoldu';
-const CLOUDINARY_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || 'Cinimate';
+const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME 
+const CLOUDINARY_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET
 
 async function uploadToCloudinary(file) {
   // Resize to max 256x256 webp before upload — reduces size ~10x
