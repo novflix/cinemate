@@ -605,15 +605,15 @@ export default function About({ asLanding, onLogin, onRegister }) {
         <p className="about-footer__tmdb">{t('about.footerTmdb')}</p>
 
         <div className="about-footer__links">
-          <Link to="/terms" className="about-footer__link">Terms of Service</Link>
+          <Link to="/terms" className="about-footer__link">{t('about.footerTerms')}</Link>
           <span className="about-footer__sep">·</span>
-          <Link to="/privacy" className="about-footer__link">Privacy Policy</Link>
+          <Link to="/privacy" className="about-footer__link">{t('about.footerPrivacy')}</Link>
           <span className="about-footer__sep">·</span>
-          <Link to="/community" className="about-footer__link">Community Guidelines</Link>
+          <Link to="/community" className="about-footer__link">{t('about.footerCommunity')}</Link>
         </div>
 
         <p className="about-footer__disclaimer">
-          <strong>Disclaimer:</strong> CINIMATE is an independent application and is not affiliated with, endorsed by, or certified by The Movie Database (TMDB), Netflix, or any other film or streaming company. All film and TV data, posters, and related media are the property of their respective rights holders and are displayed under licence from TMDB. CINIMATE makes no warranties regarding the accuracy, completeness, or timeliness of any content displayed. Use of this application is at your own risk.
+          {t('about.footerDisclaimer')}
         </p>
       </footer>
 

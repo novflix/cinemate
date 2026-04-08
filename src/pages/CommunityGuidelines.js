@@ -1,76 +1,82 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './LegalPage.css';
 
 export default function CommunityGuidelines() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const s = (key) => t(`legal.community.${key}`);
+
   return (
     <div className="legal-page">
       <div className="legal-page__inner">
-        <button className="legal-page__back" onClick={() => navigate(-1)}>← Back</button>
-        <h1 className="legal-page__title">Community Guidelines</h1>
-        <p className="legal-page__date">Last updated: April 2025</p>
+        <button className="legal-page__back" onClick={() => navigate(-1)}>{t('legal.back')}</button>
+        <h1 className="legal-page__title">{s('title')}</h1>
+        <p className="legal-page__date">{t('legal.lastUpdated')}</p>
 
         <section className="legal-page__section">
-          <h2>Our Philosophy</h2>
-          <p>CINIMATE is built for film and TV lovers. Our goal is to help you discover great content, track what you watch, and get recommendations that actually reflect your taste. These guidelines exist to keep the experience enjoyable for everyone.</p>
+          <h2>{s('s1h')}</h2>
+          <p>{s('s1p')}</p>
         </section>
 
         <section className="legal-page__section">
-          <h2>Ratings and Reviews</h2>
-          <p>When you rate a film or series, you're shaping your own recommendations. Rate honestly based on your genuine reaction — not to game the algorithm or to brigade a title. Your ratings are personal and are used solely to improve your own experience.</p>
+          <h2>{s('s2h')}</h2>
+          <p>{s('s2p')}</p>
           <ul>
-            <li>Rate based on your actual opinion, not external pressure or trends</li>
-            <li>A 9–10 signals "find me more like this" — use it when you mean it</li>
-            <li>A 1–3 penalises only that specific title, not the whole genre</li>
+            <li>{s('s2l1')}</li>
+            <li>{s('s2l2')}</li>
+            <li>{s('s2l3')}</li>
           </ul>
         </section>
 
         <section className="legal-page__section">
-          <h2>Watchlists and Collections</h2>
-          <p>Your watchlist is yours. Add whatever you genuinely intend to watch. The algorithm uses your watchlist to boost similar genres — keeping it accurate helps you get better recommendations.</p>
+          <h2>{s('s3h')}</h2>
+          <p>{s('s3p')}</p>
         </section>
 
         <section className="legal-page__section">
-          <h2>"Not Interested" Feature</h2>
-          <p>Tapping ✕ on a card permanently removes that title from your feed. Use this feature for content you genuinely have no interest in — it trains the algorithm to understand your preferences better over time.</p>
+          <h2>{s('s4h')}</h2>
+          <p>{s('s4p')}</p>
         </section>
 
         <section className="legal-page__section">
-          <h2>Respect for Other Users</h2>
-          <p>While CINIMATE is primarily a personal tool, any future community features should be used respectfully. We have zero tolerance for:</p>
+          <h2>{s('s5h')}</h2>
+          <p>{s('s5p')}</p>
           <ul>
-            <li>Harassment, threats, or abusive behaviour toward other users</li>
-            <li>Hate speech based on race, ethnicity, religion, gender, sexuality, disability, or any other characteristic</li>
-            <li>Sharing or soliciting private information about other individuals</li>
-            <li>Impersonating other users, public figures, or the CINIMATE team</li>
+            <li>{s('s5l1')}</li>
+            <li>{s('s5l2')}</li>
+            <li>{s('s5l3')}</li>
+            <li>{s('s5l4')}</li>
           </ul>
         </section>
 
         <section className="legal-page__section">
-          <h2>Content Standards</h2>
-          <p>Do not attempt to submit or display content that:</p>
+          <h2>{s('s6h')}</h2>
+          <p>{s('s6p')}</p>
           <ul>
-            <li>Violates any applicable law or regulation</li>
-            <li>Infringes on the intellectual property rights of others</li>
-            <li>Contains malware, spam, or attempts to compromise the Service</li>
-            <li>Is sexually explicit, violent, or otherwise harmful</li>
+            <li>{s('s6l1')}</li>
+            <li>{s('s6l2')}</li>
+            <li>{s('s6l3')}</li>
+            <li>{s('s6l4')}</li>
           </ul>
         </section>
 
         <section className="legal-page__section">
-          <h2>Data Integrity</h2>
-          <p>Do not attempt to manipulate, scrape, or interfere with the Service's data or infrastructure. The recommendation algorithm depends on authentic user behaviour — artificial manipulation degrades the experience for everyone.</p>
+          <h2>{s('s7h')}</h2>
+          <p>{s('s7p')}</p>
         </section>
 
         <section className="legal-page__section">
-          <h2>Enforcement</h2>
-          <p>Violations of these guidelines may result in account suspension or permanent termination. We reserve the right to take action at our discretion to protect the integrity of the Service and its users.</p>
+          <h2>{s('s8h')}</h2>
+          <p>{s('s8p')}</p>
         </section>
 
         <section className="legal-page__section">
-          <h2>Questions</h2>
-          <p>If you have questions about these guidelines or wish to report a concern, please reach out via the About page of the application.</p>
+          <h2>{s('s9h')}</h2>
+          <p>{s('s9p')}</p>
         </section>
+
+        <p className="legal-page__english-priority">{t('legal.englishPriority')}</p>
       </div>
     </div>
   );

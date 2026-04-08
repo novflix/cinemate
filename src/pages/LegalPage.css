@@ -79,6 +79,18 @@
   color: var(--accent);
 }
 
+.legal-page__english-priority {
+  margin-top: 40px;
+  padding: 14px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: var(--text3);
+  line-height: 1.65;
+  font-style: italic;
+}
+
 @media (max-width: 600px) {
   .legal-page__title { font-size: 36px; }
   .legal-page { padding: 28px 16px 80px; }
