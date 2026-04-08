@@ -1,0 +1,85 @@
+.legal-page {
+  min-height: 100vh;
+  padding: 40px 20px 80px;
+  background: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+}
+
+.legal-page__inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.legal-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 32px;
+  transition: color 0.15s;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.legal-page__back:hover { color: var(--accent); }
+
+.legal-page__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1;
+}
+
+.legal-page__date {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 40px;
+  opacity: 0.6;
+}
+
+.legal-page__section {
+  margin-bottom: 32px;
+}
+
+.legal-page__section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legal-page__section p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 10px;
+}
+
+.legal-page__section ul {
+  margin: 8px 0 8px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legal-page__section ul li {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+
+.legal-page__section ul li::marker {
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .legal-page__title { font-size: 36px; }
+  .legal-page { padding: 28px 16px 80px; }
+}

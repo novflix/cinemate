@@ -572,4 +572,10 @@
 .about-footer__mark { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 5px; margin-bottom: 10px; }
 .about-footer__mark em { color: var(--accent); font-style: normal; }
 .about-footer__sub  { font-size: 14px; color: var(--text2); margin-bottom: 6px; }
-.about-footer__tmdb { font-size: 11px; color: var(--text3); opacity: 0.45; }
+.about-footer__tmdb { font-size: 11px; color: var(--text3); opacity: 0.45; margin-bottom: 20px; }
+.about-footer__links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin-bottom: 20px; }
+.about-footer__link { font-size: 12px; color: var(--text3); text-decoration: none; transition: color 0.15s; }
+.about-footer__link:hover { color: var(--accent); }
+.about-footer__sep { font-size: 12px; color: var(--text3); opacity: 0.4; }
+.about-footer__disclaimer { font-size: 11px; color: var(--text3); opacity: 0.5; max-width: 600px; margin: 0 auto; line-height: 1.7; }
+.about-footer__disclaimer strong { font-weight: 600; color: var(--text2); opacity: 1; }

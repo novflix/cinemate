@@ -17,6 +17,9 @@ import Recs from './pages/Recs';
 import About, { LandingLangSwitcher } from './pages/About';
 import ActorPageRoute from './pages/ActorPageRoute';
 import PublicListPage from './pages/PublicListPage';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CommunityGuidelines from './pages/CommunityGuidelines';
 import Confetti from './components/Confetti';
 import { SnowEffect } from './components/Effects';
 import './index.css';
@@ -75,6 +78,9 @@ function AppInner() {
           <Route path="/search"         element={<Search/>}/>
           <Route path="/profile"        element={<Profile/>}/>
           <Route path="/about"          element={<About/>}/>
+          <Route path="/terms"          element={<TermsOfService/>}/>
+          <Route path="/privacy"        element={<PrivacyPolicy/>}/>
+          <Route path="/community"      element={<CommunityGuidelines/>}/>
           <Route path="/actor/:actorId" element={<ActorPageRoute/>}/>
           <Route path="/list/:listId"   element={<PublicListPage/>}/>
           <Route path="*"              element={<Navigate to="/home" replace/>}/>

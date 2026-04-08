@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LetterLinear, LockLinear, EyeLinear, EyeClosedLinear, VideoLibraryLinear, DangerCircleLinear, CheckCircleLinear } from 'solar-icon-set';
 import { useAuth } from '../auth';
@@ -8,19 +9,26 @@ import './AuthScreen.css';
 export default function AuthScreen({ onSkip, initialMode, onBack }) {
   const { signIn, signUp, loading } = useAuth();
   const { t } = useTranslation();
-  const [mode,     setMode]     = useState(initialMode || 'welcome');
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [error,    setError]    = useState('');
-  const [shake,    setShake]    = useState(false);
-  const [success,  setSuccess]  = useState('');
+  const [mode,          setMode]         = useState(initialMode || 'welcome');
+  const [email,         setEmail]         = useState('');
+  const [password,      setPassword]      = useState('');
+  const [showPass,      setShowPass]      = useState(false);
+  const [error,         setError]         = useState('');
+  const [shake,         setShake]         = useState(false);
+  const [success,       setSuccess]       = useState('');
+  const [termsOk,       setTermsOk]       = useState(false);
+  const [privacyOk,     setPrivacyOk]     = useState(false);
+  const [skipTermsOk,   setSkipTermsOk]   = useState(false);
+  const [skipPrivacyOk, setSkipPrivacyOk] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setError(''); setSuccess('');
     if (!email || !password) { setError(t('auth.fillAllFields')); return; }
     if (password.length < 6) { setError(t('auth.passwordMin6')); return; }
+    if (mode === 'register' && (!termsOk || !privacyOk)) {
+      setError(t('auth.acceptTermsError')); setShake(true); setTimeout(()=>setShake(false),600); return;
+    }
     if (mode === 'login') {
       const { error } = await signIn(email, password);
       if (error) { setError(t('auth.wrongCredentials')); setShake(true); setTimeout(()=>setShake(false),600); }
@@ -71,11 +79,48 @@ export default function AuthScreen({ onSkip, initialMode, onBack }) {
           <p className="auth-warn-text">
             {t('auth.dataWontBeSavedDesc')}
           </p>
+
+          <div className="auth-consent-block">
+            <label className="auth-consent-row">
+              <input
+                type="checkbox"
+                className="auth-consent-check"
+                checked={skipTermsOk}
+                onChange={e => setSkipTermsOk(e.target.checked)}
+              />
+              <span className="auth-consent-label">
+                I agree to the{' '}
+                <Link to="/terms" className="auth-consent-link" target="_blank" rel="noopener noreferrer">
+                  Terms of Service
+                </Link>
+              </span>
+            </label>
+            <label className="auth-consent-row">
+              <input
+                type="checkbox"
+                className="auth-consent-check"
+                checked={skipPrivacyOk}
+                onChange={e => setSkipPrivacyOk(e.target.checked)}
+              />
+              <span className="auth-consent-label">
+                I agree to the{' '}
+                <Link to="/privacy" className="auth-consent-link" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+          </div>
+
           <div className="auth-warn-btns">
             <button className="auth-btn auth-btn--primary" onClick={() => setMode('register')}>
               {t('auth.createAccount')}
             </button>
-            <button className="auth-btn auth-btn--ghost" onClick={onSkip}>
+            <button
+              className="auth-btn auth-btn--ghost"
+              onClick={onSkip}
+              disabled={!skipTermsOk || !skipPrivacyOk}
+              style={(!skipTermsOk || !skipPrivacyOk) ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
+            >
               {t('auth.continueAnyway')}
             </button>
           </div>
@@ -123,6 +168,39 @@ export default function AuthScreen({ onSkip, initialMode, onBack }) {
 
           {error   && <div className="auth-error"><DangerCircleLinear size={14}/> {error}</div>}
           {success && <div className="auth-success"><CheckCircleLinear size={14}/> {success}</div>}
+
+          {mode === 'register' && (
+            <div className="auth-consent-block">
+              <label className="auth-consent-row">
+                <input
+                  type="checkbox"
+                  className="auth-consent-check"
+                  checked={termsOk}
+                  onChange={e => setTermsOk(e.target.checked)}
+                />
+                <span className="auth-consent-label">
+                  I agree to the{' '}
+                  <Link to="/terms" className="auth-consent-link" target="_blank" rel="noopener noreferrer">
+                    Terms of Service
+                  </Link>
+                </span>
+              </label>
+              <label className="auth-consent-row">
+                <input
+                  type="checkbox"
+                  className="auth-consent-check"
+                  checked={privacyOk}
+                  onChange={e => setPrivacyOk(e.target.checked)}
+                />
+                <span className="auth-consent-label">
+                  I agree to the{' '}
+                  <Link to="/privacy" className="auth-consent-link" target="_blank" rel="noopener noreferrer">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
+          )}
 
           <button type="submit" className="auth-btn auth-btn--primary auth-btn--full" disabled={loading}>
             {loading ? '...' : mode==='login' ? t('auth.signInBtn') : t('auth.createAccount')}

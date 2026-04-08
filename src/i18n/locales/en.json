@@ -28,7 +28,8 @@
     "haveAccount": "Already have account? Sign in",
     "skip": "Skip",
     "dataWontBeSaved": "Data won't be saved",
-    "dataWontBeSavedDesc": "Without an account your lists, ratings and settings are stored only on this device. Clearing cache or reinstalling will permanently delete them."
+    "dataWontBeSavedDesc": "Without an account your lists, ratings and settings are stored only on this device. Clearing cache or reinstalling will permanently delete them.",
+    "acceptTermsError": "Please accept the Terms of Service and Privacy Policy to continue"
   },
   "profile": {
     "settings": "Settings",
