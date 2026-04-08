@@ -11,22 +11,22 @@ export function clearLocalStore() {
   STORE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
 }
 
-// Fix #10: normalize now preserves title and name
+// Slim storage: only id + media_type stored in cloud/localStorage.
+// All display data (title, poster, etc) is fetched from TMDB via useLocalizedMovies.
+// This reduces ~350 bytes per item to ~30 bytes — ~92% savings.
 const normalize = (movie) => ({
-  id:            movie.id,
-  media_type:    movie.media_type || (movie.title ? 'movie' : 'tv'),
-  poster_path:   movie.poster_path   || null,
-  backdrop_path: movie.backdrop_path || null,
-  vote_average:  movie.vote_average  || 0,
-  vote_count:    movie.vote_count    || 0,
-  popularity:    movie.popularity    || 0,
-  genre_ids:     movie.genre_ids     || [],
-  release_date:      movie.release_date      || null,
-  first_air_date:    movie.first_air_date     || null,
-  title:             movie.title             || null,
-  name:              movie.name              || null,
-  _fallback_title:   movie.title || movie.name || '',
+  id:         movie.id,
+  media_type: movie.media_type || (movie.title ? 'movie' : 'tv'),
 });
+
+// For migration: detect and strip legacy fat objects already in storage
+const slimify = (arr) => {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(item => ({
+    id:         item.id,
+    media_type: item.media_type || (item.title ? 'movie' : 'tv'),
+  }));
+};
 
 // Fix #2: debounced sync — batches all rapid changes into one request
 function useDebouncedEffect(fn, deps, delay = 1500) {
@@ -41,8 +41,12 @@ function useDebouncedEffect(fn, deps, delay = 1500) {
 
 async function syncToCloud(userId, data) {
   if (!userId) return;
-  // Guard: never overwrite cloud with empty state — this prevents race-condition data wipes.
-  // We only skip if ALL collections are empty AND ratings/likedActors are also empty.
+  // Guard: never overwrite cloud with empty/default state — prevents race-condition data wipes.
+  const hasRealProfile =
+    (data.profile?.name && data.profile.name !== 'Ciniphile') ||
+    data.profile?.avatar !== null ||
+    (data.profile?.bio && data.profile.bio.length > 0);
+
   const hasAnyData =
     data.watched.length > 0 ||
     data.watchlist.length > 0 ||
@@ -51,9 +55,10 @@ async function syncToCloud(userId, data) {
     Object.keys(data.ratings).length > 0 ||
     Object.keys(data.likedActors).length > 0 ||
     Object.keys(data.tvProgress).length > 0 ||
-    Object.keys(data.customLists).length > 0;
+    Object.keys(data.customLists).length > 0 ||
+    hasRealProfile;
 
-  // If no local data at all, check cloud first — do NOT overwrite
+  // If no meaningful local data at all, check cloud first — do NOT overwrite
   if (!hasAnyData) {
     const { data: cloudRow } = await supabase
       .from('user_data').select('user_id').eq('user_id', userId).single();
@@ -61,7 +66,7 @@ async function syncToCloud(userId, data) {
     if (cloudRow) return;
   }
 
-  await supabase.from('user_data').upsert({
+  const { error: syncError } = await supabase.from('user_data').upsert({
     user_id:     userId,
     watched:     data.watched,
     watchlist:   data.watchlist,
@@ -74,18 +79,32 @@ async function syncToCloud(userId, data) {
     pinned_ids:  data.pinnedIds,
     updated_at:  new Date().toISOString(),
   }, { onConflict: 'user_id' });
+
+  if (syncError) {
+    if (syncError.message?.includes('CINIMATE_DATA_LOSS_PREVENTED')) {
+      console.error('[store] Sync blocked by server: suspicious data loss detected. Your data is safe.');
+    } else {
+      console.warn('[store] syncToCloud error:', syncError.message);
+    }
+  }
 }
 
 async function loadFromCloud(userId) {
   if (!userId) return null;
   const { data, error } = await supabase.from('user_data').select('*').eq('user_id', userId).single();
-  if (error || !data) return null;
-  return data;
+  // Distinguish: undefined = network/auth error (do NOT allow sync), null = no row yet (safe to create)
+  if (error) {
+    // PGRST116 = "no rows returned" — that's fine, user just has no data yet
+    if (error.code === 'PGRST116') return null;
+    console.warn('[store] loadFromCloud error:', error.code, error.message);
+    return undefined; // signals a real error — block all sync until resolved
+  }
+  return data || null;
 }
 
 export function StoreProvider({ children, userId }) {
-  const [watched,      setWatched]      = useState(() => load('watched',       []));
-  const [watchlist,    setWatchlist]    = useState(() => load('watchlist',     []));
+  const [watched,      setWatched]      = useState(() => slimify(load('watched',   [])));
+  const [watchlist,    setWatchlist]    = useState(() => slimify(load('watchlist', [])));
   const [ratings,      setRatings]      = useState(() => load('ratings',       {}));
   const [profile,      setProfile]      = useState(() => load('profile',       { name: 'Ciniphile', avatar: null, bio: '' }));
   const [likedActors,  setLikedActors]  = useState(() => load('likedActors',   {}));
@@ -116,11 +135,24 @@ export function StoreProvider({ children, userId }) {
     if (!userId) return;
     setSyncing(true);
     loadFromCloud(userId).then(data => {
+      // undefined = real error (auth/network) — DO NOT set cloudLoaded, block sync entirely
+      if (data === undefined) {
+        console.warn('[store] Cloud load failed. Sync blocked to protect your data. Will retry on next reload.');
+        setSyncing(false);
+        // cloudLoaded stays false → debounced sync will never fire → data is safe
+        return;
+      }
+      // data is null = no row yet (new user), data is object = existing user
       if (data) {
-        if (data.watched)      { setWatched(data.watched);           save('watched',      data.watched); }
-        if (data.watchlist)    { setWatchlist(data.watchlist);       save('watchlist',    data.watchlist); }
+        if (data.watched)      { const slim = slimify(data.watched);      setWatched(slim);     save('watched',  slim); }
+        if (data.watchlist)    { const slim = slimify(data.watchlist);    setWatchlist(slim);   save('watchlist',slim); }
         if (data.ratings)      { setRatings(data.ratings);           save('ratings',      data.ratings); }
-        if (data.profile)      { const merged = { ...load('profile', { name: 'Ciniphile', avatar: null, bio: '' }), ...data.profile }; setProfile(merged); save('profile', merged); }
+        // Fix profile merge: cloud is authoritative, only fill missing fields from local
+        if (data.profile) {
+          // Cloud profile always wins — don't let stale localStorage override it
+          setProfile(data.profile);
+          save('profile', data.profile);
+        }
         if (data.liked_actors) { setLikedActors(data.liked_actors);  save('likedActors',  data.liked_actors); }
         if (data.disliked_ids) { setDislikedIds(data.disliked_ids);  save('dislikedIds',  data.disliked_ids); }
         if (data.tv_progress)  { setTvProgress(data.tv_progress);    save('tvProgress',   data.tv_progress); }
@@ -128,7 +160,7 @@ export function StoreProvider({ children, userId }) {
         if (data.pinned_ids)   { setPinnedIds(data.pinned_ids);      save('pinnedIds',    data.pinned_ids); }
       }
       setSyncing(false);
-      // Only allow debounced sync AFTER cloud data has been loaded
+      // Only allow debounced sync AFTER successful cloud load
       setCloudLoaded(true);
     });
   }, [userId]);
@@ -225,7 +257,7 @@ export function StoreProvider({ children, userId }) {
     const list = prev[listId];
     if (!list) return prev;
     if (list.items.find(m => m.id === movie.id)) return prev;
-    return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items] } };
+    return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items.map(m=>normalize(m))] } };
   }), []);
 
   const removeFromCustomList = useCallback((listId, movieId) => setCustomLists(prev => {

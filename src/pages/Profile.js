@@ -24,6 +24,44 @@ import Countdown from '../components/Countdown';
 import './Profile.css';
 import { supabase } from '../supabase';
 
+// ─── Cloudinary avatar upload ─────────────────────────────────────────────────
+const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dcuckoldu';
+const CLOUDINARY_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || 'Cinimate';
+
+async function uploadToCloudinary(file) {
+  // Resize to max 256x256 webp before upload — reduces size ~10x
+  const resized = await resizeImage(file, 256);
+  const fd = new FormData();
+  fd.append('file', resized);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  fd.append('folder', 'cinimate_avatars');
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST', body: fd,
+  });
+  if (!res.ok) throw new Error('Cloudinary upload failed');
+  const data = await res.json();
+  // Return CDN URL with on-the-fly optimisation: 256x256 crop, webp, auto quality
+  return data.secure_url.replace('/upload/', '/upload/w_256,h_256,c_fill,q_auto,f_webp/');
+}
+
+function resizeImage(file, maxPx) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(maxPx / img.width, maxPx / img.height, 1);
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve(blob), 'image/webp', 0.85);
+    };
+    img.src = url;
+  });
+}
+
+
 /* ─── Donate Modal ─── */
 const WALLETS = [
   {
@@ -554,13 +592,20 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 
   const listItems = (currentId && customLists[currentId]?.items) || [];
 
-  const handleImage = (e) => {
+  const [imageUploading, setImageUploading] = useState(false);
+  const handleImage = async (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!f.type.startsWith('image/')) return;
-    if (f.size > 2 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 2MB')); return; }
-    const r = new FileReader();
-    r.onload = ev => setImage(ev.target.result);
-    r.readAsDataURL(f);
+    if (f.size > 5 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 5MB')); return; }
+    setImageUploading(true);
+    try {
+      const url = await uploadToCloudinary(f);
+      setImage(url);
+    } catch (err) {
+      console.error('List image upload failed:', err);
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const handleSave = () => {
@@ -596,13 +641,15 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 
       {/* Cover + fields side by side */}
       <div className="list-edit__form-row">
-        <div className="list-edit__cover-wrap" onClick={() => fileRef.current?.click()}>
-          {image
-            ? <img className="list-edit__cover-img" src={image} alt="cover"/>
-            : <div className="list-edit__cover-placeholder">
-                <ListLinear size={26} strokeWidth={1}/>
-                <span>{t('listeditor.cover')}</span>
-              </div>
+        <div className="list-edit__cover-wrap" onClick={() => !imageUploading && fileRef.current?.click()}>
+          {imageUploading
+            ? <div className="list-edit__cover-placeholder"><span style={{fontSize:12,opacity:0.6}}>...</span></div>
+            : image
+              ? <img className="list-edit__cover-img" src={image} alt="cover" crossOrigin="anonymous" referrerPolicy="no-referrer"/>
+              : <div className="list-edit__cover-placeholder">
+                  <ListLinear size={26} strokeWidth={1}/>
+                  <span>{t('listeditor.cover')}</span>
+                </div>
           }
         </div>
         <div className="list-edit__fields">
@@ -988,13 +1035,44 @@ export default function Profile() {
   const localizedWatchlist = useLocalizedMovies(sortedWatchlist, lang);
 
   const handleSave   = () => { setProfile({...profile, name: name.trim().slice(0,30)||'Кинолюб', bio: bio.trim().slice(0,120)}); setEditing(false); };
-  const handleAvatar = (e) => {
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  // Auto-migrate base64 avatar to Cloudinary on first render
+  // Runs once per session if avatar is still base64
+  useEffect(() => {
+    const avatar = profile?.avatar;
+    if (!avatar || !avatar.startsWith('data:image')) return;
+    // Already migrating or already a URL — skip
+    let cancelled = false;
+    (async () => {
+      try {
+        const blob = await (await fetch(avatar)).blob();
+        const file = new File([blob], 'avatar.jpg', { type: blob.type });
+        const url = await uploadToCloudinary(file);
+        if (!cancelled) {
+          setProfile(p => ({ ...p, avatar: url }));
+        }
+      } catch (err) {
+        console.warn('[avatar] auto-migration failed:', err.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.avatar?.startsWith?.('data:image')]);
+  const handleAvatar = async (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!f.type.startsWith('image/')) return;
-    if (f.size > 2 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 2MB')); return; }
-    const r = new FileReader();
-    r.onload = ev => setProfile({...profile, avatar: ev.target.result});
-    r.readAsDataURL(f);
+    if (f.size > 5 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 5MB')); return; }
+    setAvatarUploading(true);
+    try {
+      const url = await uploadToCloudinary(f);
+      setProfile({...profile, avatar: url});
+    } catch (err) {
+      console.error('Avatar upload failed:', err);
+      alert(t('profile.uploadFailed', 'Upload failed, please try again'));
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const displayItems = listTab === 'watchlist' ? localizedWatchlist : localizedWatched;
@@ -1059,10 +1137,10 @@ export default function Profile() {
       <div className="profile-card">
         <div className="profile-avatar-wrap" onClick={()=>editing&&fileRef.current?.click()}>
           {profile.avatar
-            ? <img className="profile-avatar" src={profile.avatar} alt="avatar"/>
+            ? <img className="profile-avatar" src={profile.avatar} alt="avatar" crossOrigin="anonymous" referrerPolicy="no-referrer"/>
             : <div className="profile-avatar profile-avatar--placeholder">{(profile.name||'К')[0].toUpperCase()}</div>
           }
-          {editing && <div className="profile-avatar__overlay"><Pen2Linear size={16}/></div>}
+          {editing && <div className="profile-avatar__overlay">{avatarUploading ? <span style={{fontSize:11}}>...</span> : <Pen2Linear size={16}/>}</div>}
         </div>
         <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleAvatar}/>
 
