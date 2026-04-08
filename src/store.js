@@ -41,6 +41,26 @@ function useDebouncedEffect(fn, deps, delay = 1500) {
 
 async function syncToCloud(userId, data) {
   if (!userId) return;
+  // Guard: never overwrite cloud with empty state — this prevents race-condition data wipes.
+  // We only skip if ALL collections are empty AND ratings/likedActors are also empty.
+  const hasAnyData =
+    data.watched.length > 0 ||
+    data.watchlist.length > 0 ||
+    data.dislikedIds.length > 0 ||
+    data.pinnedIds.length > 0 ||
+    Object.keys(data.ratings).length > 0 ||
+    Object.keys(data.likedActors).length > 0 ||
+    Object.keys(data.tvProgress).length > 0 ||
+    Object.keys(data.customLists).length > 0;
+
+  // If no local data at all, check cloud first — do NOT overwrite
+  if (!hasAnyData) {
+    const { data: cloudRow } = await supabase
+      .from('user_data').select('user_id').eq('user_id', userId).single();
+    // Cloud row exists → user has data there, don't overwrite with empty state
+    if (cloudRow) return;
+  }
+
   await supabase.from('user_data').upsert({
     user_id:     userId,
     watched:     data.watched,
@@ -84,6 +104,9 @@ export function StoreProvider({ children, userId }) {
   const [pendingRating,setPendingRating]= useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [syncing,      setSyncing]      = useState(false);
+  // cloudLoaded: blocks debounced sync until initial cloud fetch resolves,
+  // preventing the race condition where empty state overwrites existing cloud data.
+  const [cloudLoaded,  setCloudLoaded]  = useState(!userId);
 
   // Fix #6: keep a Set for O(1) lookups, derived from array state
   const dislikedSet = useMemo(() => new Set(dislikedIds), [dislikedIds]);
@@ -105,6 +128,8 @@ export function StoreProvider({ children, userId }) {
         if (data.pinned_ids)   { setPinnedIds(data.pinned_ids);      save('pinnedIds',    data.pinned_ids); }
       }
       setSyncing(false);
+      // Only allow debounced sync AFTER cloud data has been loaded
+      setCloudLoaded(true);
     });
   }, [userId]);
 
@@ -119,10 +144,12 @@ export function StoreProvider({ children, userId }) {
   useEffect(() => save('pinnedIds',    pinnedIds),    [pinnedIds]);
 
   // Fix #2: single debounced sync, no per-field useEffect timers
+  // CRITICAL: cloudLoaded must be true before syncing — prevents race condition
+  // where empty initial state overwrites existing cloud data on mount.
   useDebouncedEffect(() => {
-    if (!userId) return;
+    if (!userId || !cloudLoaded) return;
     syncToCloud(userId, { watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists, pinnedIds });
-  }, [userId, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists, pinnedIds]);
+  }, [userId, cloudLoaded, watched, watchlist, ratings, profile, likedActors, dislikedIds, tvProgress, customLists, pinnedIds]);
 
   // Fix #3: mutations wrapped in useCallback
   const addToWatched = useCallback((movie) => {
