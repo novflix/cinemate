@@ -22,28 +22,27 @@ function WhereToWatch({ movieId, type, lang, title }) {
   const flatrate = providers.flatrate || [];
   const rent = (providers.rent || []).filter(r => !flatrate.find(f => f.provider_id === r.provider_id));
   const all = [...flatrate, ...rent].slice(0, 6);
-  if (!all.length) return null;
   const enc = encodeURIComponent(title || '');
+  const linked = all.map(p => {
+    const svc = STREAMING_LINKS[p.provider_id];
+    const href = svc ? svc.url + enc : null;
+    return href ? { ...p, svc, href, streaming: !!flatrate.find(f => f.provider_id === p.provider_id) } : null;
+  }).filter(Boolean);
+  if (!linked.length) return null;
   return (
     <div className="modal__where">
       <h4>{t('modal.whereToWatch')}</h4>
       <div className="modal__where-list">
-        {all.map(p => {
-          const svc = STREAMING_LINKS[p.provider_id];
-          const logo = p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : null;
-          const href = svc ? svc.url + enc : null;
-          const streaming = !!flatrate.find(f => f.provider_id === p.provider_id);
-          return href ? (
-            <a key={p.provider_id} className="modal__where-item" href={href} target="_blank" rel="noopener noreferrer">
-              {logo ? <img src={logo} alt={p.provider_name}/> : <span>▶</span>}
-              <span className="modal__where-name">
-                {svc?.name || p.provider_name}
-                {!streaming && <span className="modal__where-tag">{t('modal.rent')}</span>}
-              </span>
-              <LinkMinimalisticLinear size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
-            </a>
-          ) : null;
-        })}
+        {linked.map(p => (
+          <a key={p.provider_id} className="modal__where-item" href={p.href} target="_blank" rel="noopener noreferrer">
+            {p.logo_path ? <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name}/> : <span>▶</span>}
+            <span className="modal__where-name">
+              {p.svc?.name || p.provider_name}
+              {!p.streaming && <span className="modal__where-tag">{t('modal.rent')}</span>}
+            </span>
+            <LinkMinimalisticLinear size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -381,6 +380,7 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
     el.scrollBy({ left: dir * 200, behavior: 'smooth' });
   };
 
+  if (!items || items.length === 0) return null;
   return (
     <div className="modal__people-block">
       <div className="modal__people-header">
@@ -542,7 +542,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
               <InlineRating movieId={movie.id} lang={lang} getRating={getRating} rateMovie={rateMovie}/>
             )}
 
-            <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
             {type === 'tv' && inList && (
               <TvProgressTracker
                 id={movie.id}
@@ -553,6 +552,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 onClear={() => clearTvProgress(movie.id)}
               />
             )}
+
+            <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
 
             {cast.length > 0 && (
               <ScrollablePeopleBlock
@@ -571,87 +572,35 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
               <ScrollablePeopleBlock
                 title={t('modal.crew')}
                 items={(() => {
-                  // Priority jobs — always shown even without a photo
-                  const ALWAYS_SHOW_JOBS = new Set([
-                    'Director', 'Co-Director',
-                  ]);
+                  const ALWAYS_SHOW_JOBS = new Set(['Director', 'Co-Director']);
+                  const KEY_WRITING_JOBS = new Set(['Screenplay', 'Writer', 'Story', 'Script', 'Original Story', 'Teleplay', 'Creator']);
+                  const KEY_PRODUCING_JOBS = new Set(['Producer', 'Executive Producer']);
 
-                  // Key writing jobs — shown without photo only if they are
-                  // the sole/lead writer (i.e. ≤2 total writers)
-                  const KEY_WRITING_JOBS = new Set([
-                    'Screenplay', 'Writer', 'Story', 'Script',
-                    'Original Story', 'Teleplay', 'Creator',
-                  ]);
-
-                  // Key producing jobs — shown without photo only if ≤2 total
-                  const KEY_PRODUCING_JOBS = new Set([
-                    'Producer', 'Executive Producer',
-                  ]);
-
-                  // Step 1: deduplicate — one entry per person, merged jobs
                   const seen = new Map();
                   crew.forEach(c => {
                     if (seen.has(c.id)) {
                       const existing = seen.get(c.id);
-                      if (!existing.jobs.includes(c.job)) {
-                        existing.jobs.push(c.job);
-                      }
-                      if (!existing.profile_path && c.profile_path) {
-                        existing.profile_path = c.profile_path;
-                      }
+                      if (!existing.jobs.includes(c.job)) existing.jobs.push(c.job);
+                      if (!existing.profile_path && c.profile_path) existing.profile_path = c.profile_path;
                     } else {
-                      seen.set(c.id, {
-                        id: c.id,
-                        name: c.name,
-                        profile_path: c.profile_path,
-                        jobs: [c.job],
-                        department: c.department,
-                      });
+                      seen.set(c.id, { id: c.id, name: c.name, profile_path: c.profile_path, jobs: [c.job], department: c.department });
                     }
                   });
 
-                  const allPeople = Array.from(seen.values()).map(p => ({
-                    ...p,
-                    sub: p.jobs.join(', '),
-                  }));
-
-                  // Count writers and producers for "lead" check
+                  const allPeople = Array.from(seen.values()).map(p => ({ ...p, sub: p.jobs.join(', ') }));
                   const writerCount   = allPeople.filter(p => p.jobs.some(j => KEY_WRITING_JOBS.has(j))).length;
                   const producerCount = allPeople.filter(p => p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))).length;
 
-                  // Step 2: determine department priority weight
-                  const deptOrder = {
-                    Directing:       0,
-                    Writing:         1,
-                    Production:      2,
-                    'Visual Effects': 3,
-                    Sound:           4,
-                    Camera:          5,
-                    Editing:         6,
-                    Art:             7,
-                    'Costume & Make-Up': 8,
-                  };
+                  const deptOrder = { Directing:0, Writing:1, Production:2, 'Visual Effects':3, Sound:4, Camera:5, Editing:6, Art:7, 'Costume & Make-Up':8 };
 
-                  // Step 3: filter
                   const filtered = allPeople.filter(p => {
-                    // Always keep people with a photo
                     if (p.profile_path) return true;
-
-                    // No photo — apply rules:
-                    // Directors always shown
                     if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return true;
-
-                    // Writers shown only if they are one of ≤2 writers
                     if (p.jobs.some(j => KEY_WRITING_JOBS.has(j)) && writerCount <= 2) return true;
-
-                    // Producers shown only if they are one of ≤2 producers
                     if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j)) && producerCount <= 2) return true;
-
-                    // Everyone else without a photo — hide
                     return false;
                   });
 
-                  // Step 4: sort — priority people first, then by dept, then by name
                   const jobPriority = (p) => {
                     if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return 0;
                     if (p.jobs.some(j => KEY_WRITING_JOBS.has(j))) return 1;
@@ -662,9 +611,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                   return filtered.sort((a, b) => {
                     const jp = jobPriority(a) - jobPriority(b);
                     if (jp !== 0) return jp;
-                    const da = deptOrder[a.department] ?? 99;
-                    const db = deptOrder[b.department] ?? 99;
-                    return da - db;
+                    return (deptOrder[a.department] ?? 99) - (deptOrder[b.department] ?? 99);
                   });
                 })()}
                 onItemClick={null}

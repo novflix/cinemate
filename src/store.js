@@ -15,7 +15,7 @@ export function clearLocalStore() {
 // All display data (title, poster, etc) is fetched from TMDB via useLocalizedMovies.
 // This reduces ~350 bytes per item to ~30 bytes — ~92% savings.
 const normalize = (movie) => ({
-  id:         movie.id,
+  id:         Number(movie.id),
   media_type: movie.media_type || (movie.title ? 'movie' : 'tv'),
 });
 
@@ -23,7 +23,7 @@ const normalize = (movie) => ({
 const slimify = (arr) => {
   if (!Array.isArray(arr)) return [];
   return arr.map(item => ({
-    id:         item.id,
+    id:         Number(item.id),
     media_type: item.media_type || (item.title ? 'movie' : 'tv'),
   }));
 };
@@ -186,10 +186,10 @@ export function StoreProvider({ children, userId }) {
   // Fix #3: mutations wrapped in useCallback
   const addToWatched = useCallback((movie) => {
     const norm = normalize(movie);
-    setWatchlist(prev => prev.filter(m => m.id !== movie.id));
-    setPinnedIds(prev => prev.filter(id => id !== movie.id));
+    setWatchlist(prev => prev.filter(m => m.id !== Number(movie.id)));
+    setPinnedIds(prev => prev.filter(id => id !== Number(movie.id)));
     setWatched(prev => {
-      if (prev.find(m => m.id === movie.id)) return prev;
+      if (prev.find(m => m.id === Number(movie.id))) return prev;
       // Only show confetti for deliberate user actions (movie object comes from UI)
       setTimeout(() => setPendingRating(norm), 350);
       setShowConfetti(true);
@@ -200,20 +200,20 @@ export function StoreProvider({ children, userId }) {
 
   const addToWatchlist = useCallback((movie) => {
     setWatched(prev => {
-      if (prev.find(m => m.id === movie.id)) return prev;
-      setWatchlist(wl => wl.find(m => m.id === movie.id) ? wl : [normalize(movie), ...wl]);
+      if (prev.find(m => m.id === Number(movie.id))) return prev;
+      setWatchlist(wl => wl.find(m => m.id === Number(movie.id)) ? wl : [normalize(movie), ...wl]);
       return prev;
     });
   }, []);
 
-  const removeFromWatched   = useCallback((id) => setWatched(prev   => prev.filter(m => m.id !== id)), []);
+  const removeFromWatched   = useCallback((id) => setWatched(prev   => prev.filter(m => m.id !== Number(id))), []);
   const removeFromWatchlist = useCallback((id) => {
-    setWatchlist(prev => prev.filter(m => m.id !== id));
-    setPinnedIds(prev => prev.filter(pid => pid !== id));
+    setWatchlist(prev => prev.filter(m => m.id !== Number(id)));
+    setPinnedIds(prev => prev.filter(pid => pid !== Number(id)));
   }, []);
 
-  const isWatched     = useCallback((id) => watched.some(m => m.id === id), [watched]);
-  const isInWatchlist = useCallback((id) => watchlist.some(m => m.id === id), [watchlist]);
+  const isWatched     = useCallback((id) => watched.some(m => m.id === Number(id)), [watched]);
+  const isInWatchlist = useCallback((id) => watchlist.some(m => m.id === Number(id)), [watchlist]);
   const rateMovie     = useCallback((id, score) => setRatings(prev => ({ ...prev, [id]: score })), []);
   const getRating     = useCallback((id) => ratings[id] || null, [ratings]);
 
@@ -256,17 +256,17 @@ export function StoreProvider({ children, userId }) {
   const addToCustomList = useCallback((listId, movie) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
-    if (list.items.find(m => m.id === movie.id)) return prev;
+    if (list.items.find(m => m.id === Number(movie.id))) return prev;
     return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items.map(m=>normalize(m))] } };
   }), []);
 
   const removeFromCustomList = useCallback((listId, movieId) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
-    return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== movieId) } };
+    return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== Number(movieId)) } };
   }), []);
 
-  const isInCustomList = useCallback((listId, movieId) => !!customLists[listId]?.items.find(m => m.id === movieId), [customLists]);
+  const isInCustomList = useCallback((listId, movieId) => !!customLists[listId]?.items.find(m => m.id === Number(movieId)), [customLists]);
   const updateListMeta = useCallback((listId, meta) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
