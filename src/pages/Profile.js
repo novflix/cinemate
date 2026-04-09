@@ -42,7 +42,9 @@ async function uploadToCloudinary(file, userId) {
   fd.append('folder', 'cinimate_avatars');
   if (userId) {
     fd.append('public_id', `user_${userId}`);
-    fd.append('overwrite', 'true');
+    // overwrite is controlled by the Upload Preset setting in Cloudinary dashboard
+    // (Settings → Upload Presets → your preset → enable "Overwrite")
+    // Do NOT pass overwrite:true here — unsigned uploads reject that parameter.
   }
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
     method: 'POST', body: fd,
