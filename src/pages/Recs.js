@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HEADERS } from '../api';
+import { HEADERS, isShowOrAward } from '../api';
 import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -319,7 +319,8 @@ async function fetchCandidates(profile, page, langCode) {
       const credits = [
         ...(r.cast || []),
         ...(r.crew || []).filter(m => ['Director','Writer','Creator'].includes(m.job)),
-      ].map(m => ({ ...m, media_type: m.media_type || 'movie' }));
+      ].map(m => ({ ...m, media_type: m.media_type || 'movie' }))
+       .filter(m => !isShowOrAward(m));
 
       credits
         .filter(m =>
@@ -421,6 +422,7 @@ async function fetchCandidates(profile, page, langCode) {
       if (!m.poster_path)     return false;
       if (avoidIds.has(m.id)) return false;
       if (seen.has(m.id))     return false;
+      if (isShowOrAward(m))   return false;
       // Minimum quality gate
       if ((m.vote_count || 0) < 15) return false;
       const y = parseInt((m.release_date || m.first_air_date || '0').slice(0, 4));

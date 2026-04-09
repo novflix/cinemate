@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AltArrowLeftLinear, HeartLinear, CalendarLinear, PinLinear, VideoLibraryLinear, TVLinear } from 'solar-icon-set';
-import { HEADERS } from '../api';
+import { HEADERS, isShowOrAward } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -25,9 +25,18 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
       fetch(`https://api.themoviedb.org/3/person/${actor.id}/combined_credits?language=${langCode}`, { headers: HEADERS }).then(r => r.json()),
     ]).then(([d, c]) => {
       setDetails(d);
-      // Show ALL credits that have a poster, sorted by popularity/vote_count - NO slice limit
-      const all = (c.cast || [])
-        .filter(m => m.poster_path)
+      // Filter out talk shows, award ceremonies, reality/news shows
+      // then dedup by id (same film can appear via multiple roles) keeping highest vote_count
+      const deduped = new Map();
+      for (const m of (c.cast || [])) {
+        if (!m.poster_path) continue;
+        if (isShowOrAward(m)) continue;
+        const existing = deduped.get(m.id);
+        if (!existing || (m.vote_count || 0) > (existing.vote_count || 0)) {
+          deduped.set(m.id, m);
+        }
+      }
+      const all = [...deduped.values()]
         .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
       setCredits(all);
     }).catch(() => {});
@@ -94,9 +103,9 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
               <span className="actor-page__count-badge">{credits.length}</span>
             </h3>
             <div className="actor-page__films-grid">
-              {credits.map((m, i) => {
+              {credits.map((m) => {
                 return (
-                  <div key={`${m.id}-${i}`}>
+                  <div key={m.id}>
                     <MovieCard
                       movie={{...m, media_type: m.media_type || 'movie'}}
                       onClick={() => onMovieClick && onMovieClick({...m, media_type: m.media_type || 'movie'})}

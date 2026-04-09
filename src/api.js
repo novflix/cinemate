@@ -3,6 +3,71 @@ const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
 export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
 
+// ─── TV genre IDs that indicate non-movie/non-scripted content ────────────────
+const SHOW_GENRE_IDS = new Set([
+  10763, // News
+  10764, // Reality
+  10767, // Talk Show
+]);
+
+// Keywords in titles that indicate awards shows, talk shows, live events
+const SHOW_TITLE_PATTERNS = [
+  /\bawards?\b/i,
+  /\boscars?\b/i,
+  /\bgolden globe/i,
+  /\bgrammy/i,
+  /\bemmy/i,
+  /\bbafta/i,
+  /\bvma\b/i,
+  /\bmtv movie/i,
+  /\btalk show/i,
+  /\blive!\s*with\b/i,
+  /\bkimmel\b/i,
+  /\bfallonb?\b/i,
+  /\bconan\b/i,
+  /\blate (night|show|late)/i,
+  /\btonight show\b/i,
+  /\bdaily show\b/i,
+  /\bcolbert\b/i,
+  /\bjimmy\b.*\bshow\b/i,
+  /\boprah\b/i,
+  /\bellen\b.*\bshow\b/i,
+  /\bkelly clarkson\b/i,
+  /\bview\b.*\bshow\b/i,
+  /\bgood morning\b/i,
+  /\btoday show\b/i,
+  /\bnightline\b/i,
+  /\b20\/20\b/i,
+  /\bdateline\b/i,
+  /\binside edition\b/i,
+  /\bextra\b.*\bshow\b/i,
+  /\bentertainment tonight\b/i,
+  /\baccess (hollywood|daily)\b/i,
+  /\bpeople's choice\b/i,
+  /\bteen choice\b/i,
+  /\bradio disney\b/i,
+  /\bkids' choice\b/i,
+  /\bimpact x\b/i,
+  /\bspecial edition\b/i,
+  /\bchampionship\b/i,
+  /\bsuper bowl\b/i,
+];
+
+/**
+ * Returns true if the item is a talk show, award ceremony, reality/news show,
+ * or any other non-movie/non-scripted TV content that should be hidden.
+ */
+export function isShowOrAward(item) {
+  const genres = item.genre_ids || [];
+  if (genres.some(id => SHOW_GENRE_IDS.has(id))) return true;
+  const title = item.name || item.title || item.original_name || item.original_title || '';
+  if (SHOW_TITLE_PATTERNS.some(re => re.test(title))) return true;
+  // episode_count exists on TV cast entries — if it's extremely high (>100) and
+  // it's a talk/reality type, bail out.  Most scripted shows top out around 100.
+  if (item.media_type === 'tv' && (item.episode_count || 0) > 200) return true;
+  return false;
+}
+
 // Maps app language codes to TMDB language codes.
 // To add a new language: add its code here and create the corresponding locale file.
 const TMDB_LANG_MAP = {
