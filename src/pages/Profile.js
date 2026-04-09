@@ -24,24 +24,56 @@ import Countdown from '../components/Countdown';
 import './Profile.css';
 import { supabase } from '../supabase';
 
-// ─── Cloudinary avatar upload ─────────────────────────────────────────────────
+// ─── Cloudinary avatar upload / delete ────────────────────────────────────────
 const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME 
 const CLOUDINARY_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET
 
-async function uploadToCloudinary(file) {
+// Each user gets a stable public_id: cinimate_avatars/user_<userId>
+// Cloudinary will overwrite the existing asset on re-upload (no orphaned files).
+async function uploadToCloudinary(file, userId) {
   // Resize to max 256x256 webp before upload — reduces size ~10x
   const resized = await resizeImage(file, 256);
   const fd = new FormData();
   fd.append('file', resized);
   fd.append('upload_preset', CLOUDINARY_PRESET);
-  fd.append('folder', 'cinimate_avatars');
+  // Use a deterministic public_id so re-uploads overwrite the previous avatar
+  if (userId) {
+    fd.append('public_id', `cinimate_avatars/user_${userId}`);
+    fd.append('overwrite', 'true');
+  } else {
+    fd.append('folder', 'cinimate_avatars');
+  }
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
     method: 'POST', body: fd,
   });
   if (!res.ok) throw new Error('Cloudinary upload failed');
   const data = await res.json();
   // Return CDN URL with on-the-fly optimisation: 256x256 crop, webp, auto quality
-  return data.secure_url.replace('/upload/', '/upload/w_256,h_256,c_fill,q_auto,f_webp/');
+  // Append cache-bust version so browser picks up the new image immediately
+  const base = data.secure_url.replace('/upload/', '/upload/w_256,h_256,c_fill,q_auto,f_webp/');
+  return `${base}?v=${data.version}`;
+}
+
+// Delete avatar from Cloudinary via Supabase Edge Function (requires API secret server-side)
+async function deleteFromCloudinary(userId, accessToken) {
+  if (!userId) return;
+  try {
+    const res = await fetch(
+      `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/delete-avatar`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ userId }),
+      }
+    );
+    if (!res.ok) console.warn('[avatar] Cloudinary delete failed:', await res.text());
+  } catch (err) {
+    // Non-fatal — avatar URL is removed from profile regardless
+    console.warn('[avatar] deleteFromCloudinary error:', err.message);
+  }
 }
 
 function resizeImage(file, maxPx) {
@@ -1048,7 +1080,7 @@ export default function Profile() {
       try {
         const blob = await (await fetch(avatar)).blob();
         const file = new File([blob], 'avatar.jpg', { type: blob.type });
-        const url = await uploadToCloudinary(file);
+        const url = await uploadToCloudinary(file, user?.id);
         if (!cancelled) {
           setProfile(p => ({ ...p, avatar: url }));
         }
@@ -1065,11 +1097,25 @@ export default function Profile() {
     if (f.size > 5 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 5MB')); return; }
     setAvatarUploading(true);
     try {
-      const url = await uploadToCloudinary(f);
+      const url = await uploadToCloudinary(f, user?.id);
       setProfile({...profile, avatar: url});
     } catch (err) {
       console.error('Avatar upload failed:', err);
       alert(t('profile.uploadFailed', 'Upload failed, please try again'));
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!profile.avatar) return;
+    setAvatarUploading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await deleteFromCloudinary(user?.id, session?.access_token);
+      setProfile({ ...profile, avatar: null });
+    } catch (err) {
+      console.error('Avatar delete failed:', err);
     } finally {
       setAvatarUploading(false);
     }
@@ -1135,13 +1181,24 @@ export default function Profile() {
       </div>
 
       <div className="profile-card">
-        <div className="profile-avatar-wrap" onClick={()=>editing&&fileRef.current?.click()}>
+        <div className="profile-avatar-wrap" onClick={()=>editing&&!avatarUploading&&fileRef.current?.click()}>
           {profile.avatar
             ? <img className="profile-avatar" src={profile.avatar} alt="avatar" crossOrigin="anonymous" referrerPolicy="no-referrer"/>
             : <div className="profile-avatar profile-avatar--placeholder">{(profile.name||'К')[0].toUpperCase()}</div>
           }
           {editing && <div className="profile-avatar__overlay">{avatarUploading ? <span style={{fontSize:11}}>...</span> : <Pen2Linear size={16}/>}</div>}
         </div>
+        {editing && profile.avatar && (
+          <button
+            className="profile-avatar__delete-btn"
+            onClick={handleAvatarDelete}
+            disabled={avatarUploading}
+            title={t('profile.removeAvatar', 'Remove avatar')}
+          >
+            <TrashBinMinimalistic2Linear size={13}/>
+            {t('profile.removeAvatar', 'Remove avatar')}
+          </button>
+        )}
         <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handleAvatar}/>
 
         {editing ? (
