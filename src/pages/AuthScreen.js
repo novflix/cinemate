@@ -146,10 +146,6 @@ export default function AuthScreen({ onSkip, initialMode, onBack }) {
         <h2 className="auth-form-title">
           {mode === 'login' ? t('auth.signIn') : t('auth.register')}
         </h2>
-        <div className="auth-divider" style={{marginBottom:12}}>
-          <span>{t('auth.orWithEmail')}</span>
-        </div>
-
         <form className={"auth-form"+(shake?" auth-form--shake":"")} onSubmit={handleAuth}>
           <div className="auth-field">
             <LetterLinear size={16} className="auth-field__icon"/>
