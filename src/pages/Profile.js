@@ -36,17 +36,22 @@ async function uploadToCloudinary(file, userId) {
   const fd = new FormData();
   fd.append('file', resized);
   fd.append('upload_preset', CLOUDINARY_PRESET);
-  // Use a deterministic public_id so re-uploads overwrite the previous avatar
+  // Always use folder + short public_id separately.
+  // Passing "folder/public_id" as a single public_id conflicts when the preset
+  // already has a folder defined in the Cloudinary dashboard → 400 error.
+  fd.append('folder', 'cinimate_avatars');
   if (userId) {
-    fd.append('public_id', `cinimate_avatars/user_${userId}`);
+    fd.append('public_id', `user_${userId}`);
     fd.append('overwrite', 'true');
-  } else {
-    fd.append('folder', 'cinimate_avatars');
   }
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
     method: 'POST', body: fd,
   });
-  if (!res.ok) throw new Error('Cloudinary upload failed');
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    console.error('[avatar] Cloudinary 400 body:', errBody);
+    throw new Error('Cloudinary upload failed');
+  }
   const data = await res.json();
   // Return CDN URL with on-the-fly optimisation: 256x256 crop, webp, auto quality
   // Append cache-bust version so browser picks up the new image immediately
