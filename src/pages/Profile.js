@@ -24,39 +24,61 @@ import Countdown from '../components/Countdown';
 import './Profile.css';
 import { supabase } from '../supabase';
 
-// ─── Cloudinary avatar upload / delete ────────────────────────────────────────
-const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME 
+// ─── Cloudinary upload ────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME
 const CLOUDINARY_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET
 
-// Each user gets a stable public_id: cinimate_avatars/user_<userId>
-// Cloudinary will overwrite the existing asset on re-upload (no orphaned files).
-async function uploadToCloudinary(file, userId) {
-  // Resize to max 256x256 webp before upload — reduces size ~10x
+// When userId + accessToken are provided → signed upload via Edge Function,
+// which allows overwrite:true so each user always has exactly one avatar asset.
+// When called without userId (e.g. list cover images) → unsigned upload as before.
+async function uploadToCloudinary(file, userId, accessToken) {
   const resized = await resizeImage(file, 256);
-  const fd = new FormData();
-  fd.append('file', resized);
-  fd.append('upload_preset', CLOUDINARY_PRESET);
-  // Always use folder + short public_id separately.
-  // Passing "folder/public_id" as a single public_id conflicts when the preset
-  // already has a folder defined in the Cloudinary dashboard → 400 error.
-  fd.append('folder', 'cinimate_avatars');
-  if (userId) {
-    fd.append('public_id', `user_${userId}`);
-    // overwrite is controlled by the Upload Preset setting in Cloudinary dashboard
-    // (Settings → Upload Presets → your preset → enable "Overwrite")
-    // Do NOT pass overwrite:true here — unsigned uploads reject that parameter.
+
+  let fd;
+  if (userId && accessToken) {
+    // ── Signed upload path ───────────────────────────────────────────────────
+    const publicId = `cinimate_avatars/user_${userId}`;
+    const sigRes = await fetch(
+      `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/sign-avatar-upload`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ userId }),
+      }
+    );
+    if (!sigRes.ok) {
+      const errBody = await sigRes.text().catch(() => '');
+      console.error('[avatar] sign-avatar-upload failed:', errBody);
+      throw new Error('Cloudinary upload failed');
+    }
+    const { signature, timestamp, apiKey } = await sigRes.json();
+    fd = new FormData();
+    fd.append('file', resized);
+    fd.append('public_id', publicId);
+    fd.append('timestamp', String(timestamp));
+    fd.append('signature', signature);
+    fd.append('api_key', apiKey);
+    fd.append('overwrite', 'true');
+  } else {
+    // ── Unsigned upload path (list covers, etc.) ─────────────────────────────
+    fd = new FormData();
+    fd.append('file', resized);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    fd.append('folder', 'cinimate_avatars');
   }
+
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
     method: 'POST', body: fd,
   });
   if (!res.ok) {
     const errBody = await res.text().catch(() => '');
-    console.error('[avatar] Cloudinary 400 body:', errBody);
+    console.error('[avatar] Cloudinary upload failed:', errBody);
     throw new Error('Cloudinary upload failed');
   }
   const data = await res.json();
-  // Return CDN URL with on-the-fly optimisation: 256x256 crop, webp, auto quality
-  // Append cache-bust version so browser picks up the new image immediately
   const base = data.secure_url.replace('/upload/', '/upload/w_256,h_256,c_fill,q_auto,f_webp/');
   return `${base}?v=${data.version}`;
 }
@@ -1081,13 +1103,13 @@ export default function Profile() {
   useEffect(() => {
     const avatar = profile?.avatar;
     if (!avatar || !avatar.startsWith('data:image')) return;
-    // Already migrating or already a URL — skip
     let cancelled = false;
     (async () => {
       try {
         const blob = await (await fetch(avatar)).blob();
         const file = new File([blob], 'avatar.jpg', { type: blob.type });
-        const url = await uploadToCloudinary(file, user?.id);
+        const { data: { session } } = await supabase.auth.getSession();
+        const url = await uploadToCloudinary(file, user?.id, session?.access_token);
         if (!cancelled) {
           setProfile(p => ({ ...p, avatar: url }));
         }
@@ -1098,13 +1120,15 @@ export default function Profile() {
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.avatar?.startsWith?.('data:image')]);
+
   const handleAvatar = async (e) => {
     const f = e.target.files[0]; if (!f) return;
     if (!f.type.startsWith('image/')) return;
     if (f.size > 5 * 1024 * 1024) { alert(t('profile.imageTooLarge', 'Image must be under 5MB')); return; }
     setAvatarUploading(true);
     try {
-      const url = await uploadToCloudinary(f, user?.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      const url = await uploadToCloudinary(f, user?.id, session?.access_token);
       setProfile({...profile, avatar: url});
     } catch (err) {
       console.error('Avatar upload failed:', err);
