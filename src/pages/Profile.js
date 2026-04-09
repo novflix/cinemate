@@ -9,7 +9,7 @@ import {
   MoonLinear, Sun2Linear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, Logout3Linear, UserPlusLinear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
-  HeartLinear,
+  HeartLinear, CloudLinear, StarLinear
 } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
@@ -327,15 +327,15 @@ function SettingsModal({ onClose }) {
 
           {isAdmin && (
             <div className="settings-section settings-section--admin">
-              <p className="settings-label">⚙️ Admin / Dev Tools</p>
+              <p className="settings-label"><SettingsMinimalisticLinear size={14}/> Admin / Dev Tools</p>
               <div className="settings-admin-row">
-                <span className="settings-admin-label">❄️ Snow</span>
+                <span className="settings-admin-label"><CloudLinear size={13}/> Snow</span>
                 <button className={"settings-admin-toggle"+(overrides.snow?" on":"")} onClick={()=>setOverride('snow',!overrides.snow)}>
                   {overrides.snow?'ON':'OFF'}
                 </button>
               </div>
               <div className="settings-admin-row">
-                <span className="settings-admin-label">🗓 Season</span>
+                <span className="settings-admin-label"><CalendarLinear size={13}/> Season</span>
                 <select className="settings-admin-select" value={overrides.season||''} onChange={e=>setOverride('season',e.target.value||null)}>
                   <option value="">Auto</option>
                   {Object.keys(SEASON_CONFIG).map(s=>(
@@ -383,7 +383,7 @@ function SettingsModal({ onClose }) {
                   </div>
                 </form>
               )}
-              {regOk && <p className="settings-register-ok">✅ {t('profile.checkEmailConfirm')}</p>}
+              {regOk && <p className="settings-register-ok"><CheckCircleLinear size={14}/> {t('profile.checkEmailConfirm')}</p>}
             </div>
           )}
         </div>
@@ -428,7 +428,7 @@ function PosterGrid({ items, onSelect, onRemove, listTab, getRating, getTvProgre
                 return rd ? <Countdown releaseDate={rd}/> : <Countdown noDate={true}/>;
               })()}
               {listTab === 'watched' && rating && (
-                <div className="poster-grid__rating"><span>★</span>{rating}</div>
+                <div className="poster-grid__rating"><StarLinear size={11}/>{rating}</div>
               )}
               {listTab === 'watchlist' && getTvProgress?.(m.id) && (() => {
                 const p = getTvProgress(m.id);
@@ -537,7 +537,7 @@ function TitlePickerModal({ listItems, onAdd, onClose, lang }) {
               <div key={`${m.id}-${m.media_type}`} className={"picker-item"+(inList?' picker-item--in':'')} onClick={()=>{ if(!inList) onAdd(m); }}>
                 <div className="picker-item__poster">
                   {poster ? <img src={poster} alt={title} loading="lazy"/> : <div style={{position:'absolute',inset:0,background:'var(--surface2)'}}/>}
-                  {inList && <div className="picker-item__check">✓</div>}
+                  {inList && <div className="picker-item__check"><CheckCircleLinear size={16}/></div>}
                 </div>
                 <p className="picker-item__title">{title}</p>
               </div>

@@ -395,7 +395,7 @@
   background: color-mix(in srgb, var(--mc) 12%, transparent);
   border-color: var(--mc); color: var(--mc);
 }
-.about-mood-pill__emoji { font-size: 18px; }
+.about-mood-pill__emoji { font-size: 18px; display: flex; align-items: center; }
 .about-moods__result {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 20px; padding: 24px 28px;

@@ -103,7 +103,7 @@
   color: var(--text2); font-size: 13px; font-weight: 600;
   transition: all 0.2s; white-space: nowrap;
 }
-.mood-btn__icon { font-size: 15px; }
+.mood-btn__icon { font-size: 15px; display: flex; align-items: center; }
 .mood-btn.active {
   background: linear-gradient(135deg, rgba(232,197,71,0.2), rgba(255,107,53,0.12));
   border-color: rgba(232,197,71,0.4); color: var(--accent);

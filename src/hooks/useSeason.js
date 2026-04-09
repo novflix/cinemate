@@ -16,32 +16,32 @@ export function getCurrentSeason(override = null) {
 
 export const SEASON_CONFIG = {
   halloween: {
-    ru: '🎃 На Хэллоуин',   en: '🎃 Halloween',
+    ru: 'На Хэллоуин',   en: 'Halloween',
     genres: [27, 53, 9648],
     sort: 'popularity.desc',
   },
   newyear: {
-    ru: '🎄 На Новый год',  en: '🎄 New Year',
+    ru: 'На Новый год',  en: 'New Year',
     genres: [35, 10751, 18],
     sort: 'vote_average.desc',
   },
   summer: {
-    ru: '☀️ Летний вайб',   en: '☀️ Summer vibes',
+    ru: 'Летний вайб',   en: 'Summer vibes',
     genres: [28, 12, 35],
     sort: 'popularity.desc',
   },
   winter: {
-    ru: '❄️ Зимний вечер',  en: '❄️ Winter evening',
+    ru: 'Зимний вечер',  en: 'Winter evening',
     genres: [18, 10749, 14],
     sort: 'vote_average.desc',
   },
   spring: {
-    ru: '🌸 Весеннее кино', en: '🌸 Spring picks',
+    ru: 'Весеннее кино', en: 'Spring picks',
     genres: [35, 10749, 12],
     sort: 'popularity.desc',
   },
   autumn: {
-    ru: '🍂 Осенние вечера',en: '🍂 Autumn evenings',
+    ru: 'Осенние вечера', en: 'Autumn evenings',
     genres: [18, 9648, 53],
     sort: 'vote_average.desc',
   },

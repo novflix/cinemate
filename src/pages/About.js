@@ -5,7 +5,8 @@ import {
   MagicStickLinear, TVLinear, StarLinear, ShuffleLinear,
   GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear,
   SmileCircleLinear, VideoLibraryLinear, CheckCircleLinear, PlayLinear,
-  BookmarkLinear, PhoneLinear,
+  BookmarkLinear, PhoneLinear, GhostLinear, BoltCircleLinear,
+  EmojiFunnyCircleLinear, SadCircleLinear, GlassesLinear
 } from 'solar-icon-set';
 import { useTheme } from '../theme';
 import { SUPPORTED_LANGUAGES } from '../i18n';
@@ -300,12 +301,12 @@ function MoodSection() {
   const [ref, visible] = useReveal(0.1);
 
   const moodDefs = [
-    { emoji: '😨', label: t('about.moodScary'),     color: '#ef4444', ids: [493922, 694,    530385] },
-    { emoji: '💥', label: t('about.moodAction'),    color: '#f97316', ids: [76341,  245891, 954   ] },
-    { emoji: '😂', label: t('about.moodComedy'),    color: '#e8c547', ids: [120467, 8363,   445571] },
-    { emoji: '😢', label: t('about.moodDrama'),     color: '#3b82f6', ids: [424,    492188, 4512  ] },
-    { emoji: '💘', label: t('about.moodRomance'),   color: '#ec4899', ids: [313369, 122906, 76    ] },
-    { emoji: '🤯', label: t('about.moodMindBlown'), color: '#8b5cf6', ids: [27205,  577922, 220289] },
+    { Icon: GhostLinear,             label: t('about.moodScary'),     color: '#ef4444', ids: [493922, 694,    530385] },
+    { Icon: BoltCircleLinear,        label: t('about.moodAction'),    color: '#f97316', ids: [76341,  245891, 954   ] },
+    { Icon: EmojiFunnyCircleLinear,  label: t('about.moodComedy'),    color: '#e8c547', ids: [120467, 8363,   445571] },
+    { Icon: SadCircleLinear,         label: t('about.moodDrama'),     color: '#3b82f6', ids: [424,    492188, 4512  ] },
+    { Icon: HeartLinear,             label: t('about.moodRomance'),   color: '#ec4899', ids: [313369, 122906, 76    ] },
+    { Icon: GlassesLinear,             label: t('about.moodMindBlown'), color: '#8b5cf6', ids: [27205,  577922, 220289] },
   ];
 
   const allIds = moodDefs.flatMap(m => m.ids);
@@ -331,7 +332,7 @@ function MoodSection() {
               style={{ '--mc': m.color }}
               onClick={() => setActive(i)}
             >
-              <span className="about-mood-pill__emoji">{m.emoji}</span>
+              <span className="about-mood-pill__emoji"><m.Icon size={20}/></span>
               <span className="about-mood-pill__label">{m.label}</span>
             </button>
           ))}

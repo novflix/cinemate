@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { tmdb } from '../api';
 import MovieModal from '../components/MovieModal';
+import { EyeLinear, ListLinear, ClapperboardLinear, StarLinear, CloseCircleLinear } from 'solar-icon-set';
 import './Lists.css';
 
 function EmptyState({ tab }) {
   return (
     <div className="lists-empty">
-      <div className="lists-empty__icon">{tab==='watched'?'👁':'📋'}</div>
+      <div className="lists-empty__icon">{tab==='watched'?<EyeLinear size={40}/>:<ListLinear size={40}/>}</div>
       <h3>{tab==='watched'?'Пока пусто':'Список пуст'}</h3>
       <p>{tab==='watched'?'Добавляй фильмы и сериалы которые уже посмотрел':'Добавляй то что хочешь посмотреть'}</p>
     </div>
@@ -24,17 +25,17 @@ function MovieListItem({ movie, onSelect, onRemove }) {
   return (
     <div className="list-item" onClick={() => onSelect(movie)}>
       <div className="list-item__poster">
-        {poster ? <img src={poster} alt={title} loading="lazy" /> : <span>🎬</span>}
+        {poster ? <img src={poster} alt={title} loading="lazy" /> : <span className="list-item__poster-fallback"><ClapperboardLinear size={24}/></span>}
       </div>
       <div className="list-item__info">
         <h4>{title}</h4>
         <div className="list-item__meta">
           {year && <span>{year}</span>}
-          {rating && <span>⭐ {rating}</span>}
+          {rating && <span className="list-item__rating"><StarLinear size={12}/> {rating}</span>}
           <span>{type==='tv'?'Сериал':'Фильм'}</span>
         </div>
       </div>
-      <button className="list-item__remove" onClick={e=>{e.stopPropagation();onRemove(movie.id);}}>✕</button>
+      <button className="list-item__remove" onClick={e=>{e.stopPropagation();onRemove(movie.id);}}><CloseCircleLinear size={18}/></button>
     </div>
   );
 }

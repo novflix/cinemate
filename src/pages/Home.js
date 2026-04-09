@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear } from 'solar-icon-set';
+import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear, SmileCircleLinear, GhostLinear, BoltCircleLinear, GlassesLinear, ConfettiMinimalisticLinear, UsersGroupRoundedLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme } from '../theme';
 import { useAdmin } from '../admin';
@@ -32,21 +32,21 @@ function setHomeCache(lang, data) {
 // 'genres' = movie genre IDs, 'tvGenres' = TV-specific overrides (falls back to genres if not set)
 // Key differences: Action(28→10759), Adventure(12→10759), Sci-Fi(878→10765), Family(10751→10762)
 const MOODS = [
-  { id: 'all',    icon: '✦', genres: [],              tvGenres: [],                ru: 'Всё',       en: 'All'     },
-  { id: 'fun',    icon: '😄', genres: [35,10751],     tvGenres: [35,10762,10751],  ru: 'Весёлое',   en: 'Fun'     },
-  { id: 'scary',  icon: '😱', genres: [27,53],        tvGenres: [27,53,80],           ru: 'Страшное',  en: 'Scary'   },
-  { id: 'action', icon: '💥', genres: [28,12],        tvGenres: [10759],           ru: 'Экшн',      en: 'Action'  },
-  { id: 'drama',  icon: '😢', genres: [18,10749],     tvGenres: [18,10749],        ru: 'Драма',     en: 'Drama'   },
-  { id: 'mind',   icon: '🧠', genres: [878,9648,99],  tvGenres: [10765,9648,99],   ru: 'Для ума',   en: 'Mindful' },
+  { id: 'all',    Icon: ClapperboardLinear, genres: [],              tvGenres: [],                ru: 'Всё',       en: 'All'     },
+  { id: 'fun',    Icon: SmileCircleLinear,  genres: [35,10751],     tvGenres: [35,10762,10751],  ru: 'Весёлое',   en: 'Fun'     },
+  { id: 'scary',  Icon: GhostLinear,        genres: [27,53],        tvGenres: [27,53,80],           ru: 'Страшное',  en: 'Scary'   },
+  { id: 'action', Icon: BoltCircleLinear,   genres: [28,12],        tvGenres: [10759],           ru: 'Экшн',      en: 'Action'  },
+  { id: 'drama',  Icon: HeartLinear,        genres: [18,10749],     tvGenres: [18,10749],        ru: 'Драма',     en: 'Drama'   },
+  { id: 'mind',   Icon: GlassesLinear,        genres: [878,9648,99],  tvGenres: [10765,9648,99],   ru: 'Для ума',   en: 'Mindful' },
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
 const TOGETHER_TAGS = [
-  { id: 'date',    ru: 'Для свидания', en: 'First date',   icon: '💕',
+  { id: 'date',    ru: 'Для свидания', en: 'First date',   Icon: HeartLinear,
     params: { with_genres: '10749,35', sort_by: 'popularity.desc', 'vote_count.gte': 800,  'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
-  { id: 'friends', ru: 'С друзьями',   en: 'With friends', icon: '🎉',
+  { id: 'friends', ru: 'С друзьями',   en: 'With friends', Icon: ConfettiMinimalisticLinear,
     params: { with_genres: '35,28',    sort_by: 'popularity.desc', 'vote_count.gte': 1000, 'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
-  { id: 'family',  ru: 'Для семьи',    en: 'Family',       icon: '👨‍👩‍👧',
+  { id: 'family',  ru: 'Для семьи',    en: 'Family',       Icon: UsersGroupRoundedLinear,
     params: { with_genres: '10751,16', sort_by: 'popularity.desc', 'vote_count.gte': 400,  'vote_average.gte': 6.8, 'primary_release_date.gte': `${CURRENT_YEAR - 15}-01-01` } },
 ];
 
@@ -143,7 +143,7 @@ function TogetherSection({ onSelect, lang }) {
       <div className="together-tags">
         {TOGETHER_TAGS.map(tag=>(
           <button key={tag.id} className={"together-tag"+(activeTag===tag.id?' active':'')} onClick={()=>setActiveTag(tag.id)}>
-            <span>{tag.icon}</span> {lang==='ru'?tag.ru:tag.en}
+            <tag.Icon size={14}/> {lang==='ru'?tag.ru:tag.en}
           </button>
         ))}
       </div>
@@ -296,7 +296,7 @@ export default function Home() {
       <div className="mood-bar">
         {MOODS.map(m=>(
           <button key={m.id} className={"mood-btn"+(mood===m.id?' active':'')} onClick={()=>setMood(m.id)}>
-            <span className="mood-btn__icon">{m.icon}</span>
+            <span className="mood-btn__icon"><m.Icon size={18}/></span>
             <span className="mood-btn__label">{t(`moods.${m.id}`)}</span>
           </button>
         ))}

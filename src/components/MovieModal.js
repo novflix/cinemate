@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear } from 'solar-icon-set';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -35,7 +35,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
       <div className="modal__where-list">
         {linked.map(p => (
           <a key={p.provider_id} className="modal__where-item" href={p.href} target="_blank" rel="noopener noreferrer">
-            {p.logo_path ? <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name}/> : <span>▶</span>}
+            {p.logo_path ? <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name}/> : <span className="provider__fallback-icon"><PlayLinear size={16}/></span>}
             <span className="modal__where-name">
               {p.svc?.name || p.provider_name}
               {!p.streaming && <span className="modal__where-tag">{t('modal.rent')}</span>}
@@ -165,7 +165,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
                     : null}
                 </span>
               </div>
-              {isFinished && <span className="tv-tracker__badge-done">✓</span>}
+              {isFinished && <span className="tv-tracker__badge-done"><CheckCircleLinear size={13}/></span>}
             </div>
             <div className="tv-tracker__badge-right">
               <div className="tv-tracker__badge-pct-row">
@@ -337,7 +337,7 @@ function MoreMenu({ movie, lang }) {
                       <ListLinear size={14}/>
                       <span className="modal__more-item-name">{list.name}</span>
                       <span className="modal__more-item-count">{list.items?.length ?? 0}</span>
-                      {inList && <span className="modal__more-check">✓</span>}
+                      {inList && <span className="modal__more-check"><CheckCircleLinear size={14}/></span>}
                     </button>
                   );
                 })}
