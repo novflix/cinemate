@@ -470,6 +470,25 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
   const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
   const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t('modal.hours')} ${details.runtime%60}${t('modal.minutes')}` : null;
   const seasons  = details?.number_of_seasons;
+  const certification = (() => {
+    if (type === 'movie') {
+      const results = details?.release_dates?.results || [];
+      const us = results.find(r => r.iso_3166_1 === 'US');
+      const cert = us?.release_dates?.find(d => d.certification)?.certification;
+      if (cert) return cert;
+      for (const r of results) {
+        const c = r.release_dates?.find(d => d.certification)?.certification;
+        if (c) return c;
+      }
+    } else {
+      const results = details?.content_ratings?.results || [];
+      const us = results.find(r => r.iso_3166_1 === 'US');
+      if (us?.rating) return us.rating;
+      const first = results.find(r => r.rating);
+      if (first?.rating) return first.rating;
+    }
+    return null;
+  })();
   const cast     = details?.credits?.cast || [];
   const crew     = details?.credits?.crew || [];
   const progress = movie ? getTvProgress(movie.id) : null;
@@ -516,6 +535,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                 {rating  && <span><StarLinear size={11} fill="currentColor"/>{rating}</span>}
                 {runtime && <span><ClockCircleLinear size={11}/>{runtime}</span>}
                 {seasons && <span><TVLinear size={11}/>{seasons} {t('modal.seasons')}</span>}
+                {certification && <span className="modal__cert-badge">{certification}</span>}
                 <span className="modal__type-badge">
                   {type==='tv' ? <><TVLinear size={10}/>{t('modal.series')}</> : <><VideoLibraryLinear size={10}/>{t('modal.movie')}</>}
                 </span>
