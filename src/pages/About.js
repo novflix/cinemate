@@ -252,51 +252,73 @@ function AlgoSection() {
 }
 
 /* ─── Mood showcase section ─── */
+// Mood films stored by TMDB movie ID — posters fetched live so they never go stale
+const MOOD_FILMS_BY_ID = {
+  493922: 'Hereditary',
+  694:    'The Shining',
+  530385: 'Midsommar',
+  76341:  'Mad Max: Fury Road',
+  245891: 'John Wick',
+  954:    'Mission: Impossible',
+  120467: 'The Grand Budapest Hotel',
+  8363:   'Superbad',
+  445571: 'Game Night',
+  424:    "Schindler's List",
+  492188: 'Marriage Story',
+  4512:   'Atonement',
+  313369: 'La La Land',
+  122906: 'About Time',
+  76:     'Before Sunrise',
+  27205:  'Inception',
+  577922: 'Tenet',
+  220289: 'Coherence',
+};
+
+function useMoodPosters(ids) {
+  const [posters, setPosters] = useState({});
+  useEffect(() => {
+    const missing = ids.filter(id => !(id in posters));
+    if (!missing.length) return;
+    missing.forEach(id => {
+      fetch(`https://api.themoviedb.org/3/movie/${id}?language=en-US`, {
+        headers: { Authorization: `Bearer ${process.env.REACT_APP_TMDB_TOKEN}` }
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.poster_path) {
+            setPosters(prev => ({ ...prev, [id]: data.poster_path }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, [ids.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  return posters;
+}
+
 function MoodSection() {
   const { t } = useTranslation();
   const [ref, visible] = useReveal(0.1);
-  const moods = [
-    { emoji: '😨', label: t('about.moodScary'),   color: '#ef4444', films: [
-      { name: 'Hereditary',      poster: '/p5xfAbCCGFOa2ZqPWCECb7idKqT.jpg' },
-      { name: 'The Shining',     poster: '/nRj5511mZdTl4saWEPoj9QroTIu.jpg' },
-      { name: 'Midsommar',       poster: '/7LEI8ulZzO5gy9Ww2NVCrKmHeDZ.jpg' },
-    ]},
-    { emoji: '💥', label: t('about.moodAction'),  color: '#f97316', films: [
-      { name: 'Mad Max: Fury Road', poster: '/hA2ple9q4qnwxp3hKVNhroipsir.jpg' },
-      { name: 'John Wick',          poster: '/fZPSd91yGE9fCcCe6OoQr6E3Bev.jpg' },
-      { name: 'Mission: Impossible', poster: '/oNmOLwbkEqHJvDIAJAoE5GBFts6.jpg' },
-    ]},
-    { emoji: '😂', label: t('about.moodComedy'),  color: '#e8c547', films: [
-      { name: 'The Grand Budapest Hotel', poster: '/eWdyYQreja6JvmQW7uNpBDi1yXo.jpg' },
-      { name: 'Superbad',                 poster: '/ek8e8txUyUwd2BNqj6lFEerJfbq.jpg' },
-      { name: 'Game Night',               poster: '/7GvNBzSNJfHOFVmxNoMBJCMYLEz.jpg' },
-    ]},
-    { emoji: '😢', label: t('about.moodDrama'),   color: '#3b82f6', films: [
-      { name: "Schindler's List", poster: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
-      { name: 'Marriage Story',   poster: '/pZekG6xabPdDTxnFQAGqSHkEJkG.jpg' },
-      { name: 'Atonement',        poster: '/riuIyVDJQOkiiyBDCJRpFYpxHlB.jpg' },
-    ]},
-    { emoji: '💘', label: t('about.moodRomance'), color: '#ec4899', films: [
-      { name: 'La La Land',     poster: '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg' },
-      { name: 'About Time',     poster: '/f7SQifDxGMK8O1lMFpNHQVHFHDh.jpg' },
-      { name: 'Before Sunrise', poster: '/qP3uJWfzLFif0OEMwmEKHFlqbMT.jpg' },
-    ]},
-    { emoji: '🤯', label: t('about.moodMindBlown'), color: '#8b5cf6', films: [
-      { name: 'Inception',   poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg' },
-      { name: 'Tenet',       poster: '/k68nPLbIST6NP96JmTxmZijZcbB.jpg' },
-      { name: 'Coherence',   poster: '/lEV4Px39M8NqR8ePnZ9KYrDwVnh.jpg' },
-    ]},
+
+  const moodDefs = [
+    { emoji: '😨', label: t('about.moodScary'),     color: '#ef4444', ids: [493922, 694,    530385] },
+    { emoji: '💥', label: t('about.moodAction'),    color: '#f97316', ids: [76341,  245891, 954   ] },
+    { emoji: '😂', label: t('about.moodComedy'),    color: '#e8c547', ids: [120467, 8363,   445571] },
+    { emoji: '😢', label: t('about.moodDrama'),     color: '#3b82f6', ids: [424,    492188, 4512  ] },
+    { emoji: '💘', label: t('about.moodRomance'),   color: '#ec4899', ids: [313369, 122906, 76    ] },
+    { emoji: '🤯', label: t('about.moodMindBlown'), color: '#8b5cf6', ids: [27205,  577922, 220289] },
   ];
+
+  const allIds = moodDefs.flatMap(m => m.ids);
+  const posters = useMoodPosters(allIds);
   const [active, setActive] = useState(0);
+
+  const moods = moodDefs.map(m => ({
+    ...m,
+    films: m.ids.map(id => ({ id, name: MOOD_FILMS_BY_ID[id], poster: posters[id] || null })),
+  }));
 
   return (
     <section className="about-moods" ref={ref}>
-      {/* Preload all poster images so they're cached when user switches moods */}
-      <div style={{ display: 'none' }} aria-hidden="true">
-        {moods.flatMap(m => m.films).filter(f => f.poster).map((f, i) => (
-          <img key={i} src={`https://image.tmdb.org/t/p/w92${f.poster}`} alt=""/>
-        ))}
-      </div>
       <div className="about-moods__inner">
         <div className="about-section__label">✦ {t('about.moodLabel')}</div>
         <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.moodTitle') }}/>
@@ -318,7 +340,7 @@ function MoodSection() {
           <div className="about-moods__result-label">{t('about.moodResultLabel')}</div>
           <div className="about-moods__films">
             {moods[active].films.map((f, i) => (
-              <div key={`${active}-${i}`} className="about-moods__film" style={{ animationDelay: `${i * 0.08}s` }}>
+              <div key={`${active}-${f.id}`} className="about-moods__film" style={{ animationDelay: `${i * 0.08}s` }}>
                 <span className="about-moods__film-num">0{i+1}</span>
                 {f.poster && (
                   <img
