@@ -277,8 +277,8 @@ export function StoreProvider({ children, userId }) {
   // Returns estimated total minutes watched (uses runtime from ratings keys if available)
   // Simple estimation: avg 100 min per movie, 45 min per TV episode
   const totalWatchMinutes = useMemo(() => {
-    const movies = watched.filter(m => m.media_type === 'movie' || m.title).length;
-    const tvShows = watched.filter(m => m.media_type === 'tv' || m.name).length;
+    const movies = watched.filter(m => m.media_type === 'movie').length;
+    const tvShows = watched.filter(m => m.media_type === 'tv').length;
     return movies * 100 + tvShows * 45;
   }, [watched]);
 

@@ -119,7 +119,7 @@ function TogetherSection({ onSelect, lang }) {
   const { t } = useTranslation();
   const [activeTag, setActiveTag] = useState('date');
   const [movies, setMovies] = useState({});
-  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
   const langCode = TMDB_LANG_MAP[lang] || 'en-US';
 
   useEffect(() => {
@@ -184,7 +184,8 @@ export default function Home() {
   const { lang } = useTheme();
   const { t } = useTranslation();
   const { overrides } = useAdmin();
-  const langCode = lang==='en'?'en-US':'ru-RU';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
   const currentYear = new Date().getFullYear();
   const season = getCurrentSeason(overrides.season);
   const seasonCfg = SEASON_CONFIG[season];

@@ -1066,7 +1066,7 @@ export default function Profile() {
     setAvatarUploading(true);
     try {
       const url = await uploadToCloudinary(f);
-      setProfile({...profile, avatar: url});
+      setProfile(p => ({ ...p, avatar: url }));
     } catch (err) {
       console.error('Avatar upload failed:', err);
       alert(t('profile.uploadFailed', 'Upload failed, please try again'));

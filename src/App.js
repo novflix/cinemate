@@ -24,11 +24,12 @@ import Confetti from './components/Confetti';
 import { SnowEffect } from './components/Effects';
 import './index.css';
 
-const BUILD_DATE = new Date().toISOString().slice(0,10).replace(/-/g,'');
+// Moved outside component — require() and date computation run once at module load
+const _pkg = require('../package.json');
+const _BUILD_DATE = new Date().toISOString().slice(0,10).replace(/-/g,'');
 
 function VersionBadge() {
-  const pkg = require('../package.json');
-  return <div className="version-badge">v{pkg.version} · {BUILD_DATE}</div>;
+  return <div className="version-badge">v{_pkg.version} · {_BUILD_DATE}</div>;
 }
 
 const PATH_TO_TAB = {
