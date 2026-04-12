@@ -66,12 +66,17 @@ export default function Roulette({ onMovieClick }) {
 
   const allItems = localizedWatchlist.filter(m => m.poster_path);
 
+  // Determine media type: prefer explicit media_type field; fall back to
+  // title (movies) vs name (TV) heuristic only when media_type is absent.
+  const isMovie = (m) => m.media_type === 'movie' || (!m.media_type && !!m.title && !m.name);
+  const isTv    = (m) => m.media_type === 'tv'    || (!m.media_type && !!m.name);
+
   const items = allItems.filter(m => {
     if (filter === 'all') return true;
     const isAnimation = (m.genre_ids || []).includes(ANIMATION_GENRE);
     if (filter === 'animation') return isAnimation;
-    if (filter === 'movie') return (m.media_type === 'movie' || !!m.title) && !isAnimation;
-    if (filter === 'tv')    return (m.media_type === 'tv'    || (!m.title && !!m.name)) && !isAnimation;
+    if (filter === 'movie') return isMovie(m) && !isAnimation;
+    if (filter === 'tv')    return isTv(m)    && !isAnimation;
     return true;
   });
 
@@ -145,8 +150,8 @@ export default function Roulette({ onMovieClick }) {
             const count = key === 'all' ? allItems.length : allItems.filter(m => {
               const isAnim = (m.genre_ids || []).includes(ANIMATION_GENRE);
               if (key === 'animation') return isAnim;
-              if (key === 'movie') return (m.media_type === 'movie' || !!m.title) && !isAnim;
-              if (key === 'tv')    return (m.media_type === 'tv' || (!m.title && !!m.name)) && !isAnim;
+              if (key === 'movie') return isMovie(m) && !isAnim;
+              if (key === 'tv')    return isTv(m)    && !isAnim;
               return true;
             }).length;
             return (
