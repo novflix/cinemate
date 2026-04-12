@@ -1,6 +1,6 @@
 {
   "name": "cinimate",
-  "version": "v0.9.4 Beta",
+  "version": "0.9.4 Beta",
   "private": true,
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.0.0",
