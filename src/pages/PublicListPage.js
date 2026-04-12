@@ -123,7 +123,7 @@ export default function PublicListPage() {
         </div>
       )}
 
-      <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={() => {}}/>
+      <MovieModal movie={selected} onClose={() => setSelected(null)} onActorClick={a=>navigate(`/actor/${a.id}`,{state:{actor:a}})} onCrewClick={p=>navigate(`/person/${p.id}`,{state:{person:p}})} onStudioClick={s=>navigate(`/studio/${s.id}`,{state:{studio:s}})}/>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear } from 'solar-icon-set';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear} from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -433,7 +433,7 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
   );
 }
 
-const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
+const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCrewClick, onStudioClick }) {
   const [details, setDetails]         = useState(null);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
@@ -489,8 +489,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
     }
     return null;
   })();
-  const cast     = details?.credits?.cast || [];
-  const crew     = details?.credits?.crew || [];
+  const cast       = details?.credits?.cast || [];
+  const crew       = details?.credits?.crew || [];
   const progress = movie ? getTvProgress(movie.id) : null;
   const totalSeasons  = details?.number_of_seasons  || 1;
 
@@ -540,7 +540,6 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                   {type==='tv' ? <><TVLinear size={10}/>{t('modal.series')}</> : <><VideoLibraryLinear size={10}/>{t('modal.movie')}</>}
                 </span>
               </div>
-              {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
             </div>
           </div>
 
@@ -634,7 +633,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick }) {
                     return (deptOrder[a.department] ?? 99) - (deptOrder[b.department] ?? 99);
                   });
                 })()}
-                onItemClick={null}
+                onItemClick={onCrewClick ? (item) => onCrewClick({ id: item.id, name: item.name, profile_path: item.profile_path, department: item.department }) : null}
               />
             )}
 

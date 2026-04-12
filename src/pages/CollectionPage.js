@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AltArrowLeftLinear, StarLinear, VideoLibraryLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
@@ -13,6 +14,7 @@ export default function CollectionPage({ item, onBack }) {
   const [info,    setInfo]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [selected,setSelected]= useState(null);
+  const navigate = useNavigate();
   const { lang } = useTheme();
   const { t } = useTranslation();
   const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
@@ -83,7 +85,7 @@ export default function CollectionPage({ item, onBack }) {
         </div>
       )}
 
-      <MovieModal movie={selected} onClose={()=>setSelected(null)}/>
+      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>navigate(`/actor/${a.id}`,{state:{actor:a}})} onCrewClick={p=>navigate(`/person/${p.id}`,{state:{person:p}})} onStudioClick={s=>navigate(`/studio/${s.id}`,{state:{studio:s}})}/>
     </div>
   );
 }

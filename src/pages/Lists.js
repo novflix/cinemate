@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { tmdb } from '../api';
 import MovieModal from '../components/MovieModal';
@@ -42,6 +43,7 @@ function MovieListItem({ movie, onSelect, onRemove }) {
 
 export default function Lists() {
   const { watched, watchlist, removeFromWatched, removeFromWatchlist } = useStore();
+  const navigate = useNavigate();
   const [tab, setTab] = useState('watchlist');
   const [selected, setSelected] = useState(null);
 
@@ -78,7 +80,7 @@ export default function Lists() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={()=>setSelected(null)} />
+      <MovieModal movie={selected} onClose={()=>setSelected(null)} onActorClick={a=>navigate(`/actor/${a.id}`,{state:{actor:a}})} onCrewClick={p=>navigate(`/person/${p.id}`,{state:{person:p}})} onStudioClick={s=>navigate(`/studio/${s.id}`,{state:{studio:s}})}/>
     </div>
   );
 }

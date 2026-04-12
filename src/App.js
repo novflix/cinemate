@@ -16,6 +16,7 @@ import Profile from './pages/Profile';
 import Recs from './pages/Recs';
 import About, { LandingLangSwitcher } from './pages/About';
 import ActorPageRoute from './pages/ActorPageRoute';
+import PersonPageRoute from './pages/PersonPageRoute';
 import PublicListPage from './pages/PublicListPage';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -82,7 +83,8 @@ function AppInner() {
           <Route path="/terms"          element={<TermsOfService/>}/>
           <Route path="/privacy"        element={<PrivacyPolicy/>}/>
           <Route path="/community"      element={<CommunityGuidelines/>}/>
-          <Route path="/actor/:actorId" element={<ActorPageRoute/>}/>
+          <Route path="/actor/:actorId"   element={<ActorPageRoute/>}/>
+          <Route path="/person/:personId" element={<PersonPageRoute/>}/>
           <Route path="/list/:listId"   element={<PublicListPage/>}/>
           <Route path="*"              element={<Navigate to="/home" replace/>}/>
         </Routes>

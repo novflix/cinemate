@@ -331,7 +331,7 @@ export default function Home() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }} onCrewClick={p=>{ navigate(`/person/${p.id}`, { state: { person: p } }); }} onStudioClick={s=>{ navigate(`/studio/${s.id}`, { state: { studio: s } }); }}/>
     </div>
   );
 }

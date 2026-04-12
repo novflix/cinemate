@@ -137,14 +137,14 @@ export const tmdb = {
   movieDetails:  async (id) => {
     const key = `movie_${id}_${getLang()}`;
     if (_detailsCache.has(key)) return _detailsCache.get(key);
-    const data = await get(`/movie/${id}`, { append_to_response: 'credits,videos,release_dates' });
+    const data = await get(`/movie/${id}`, { append_to_response: 'credits,videos,release_dates,production_companies' });
     _detailsCache.set(key, data);
     return data;
   },
   tvDetails:     async (id) => {
     const key = `tv_${id}_${getLang()}`;
     if (_detailsCache.has(key)) return _detailsCache.get(key);
-    const data = await get(`/tv/${id}`, { append_to_response: 'credits,videos,content_ratings' });
+    const data = await get(`/tv/${id}`, { append_to_response: 'credits,videos,content_ratings,production_companies' });
     _detailsCache.set(key, data);
     return data;
   },

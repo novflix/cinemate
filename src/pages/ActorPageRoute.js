@@ -68,6 +68,8 @@ export default function ActorPageRoute() {
           // Instead navigate forward; the new /actor/:id route will unmount the modal naturally.
           navigate(`/actor/${a.id}`, { state: { actor: a } });
         }}
+        onCrewClick={(p) => navigate(`/person/${p.id}`, { state: { person: p } })}
+        onStudioClick={(s) => navigate(`/studio/${s.id}`, { state: { studio: s } })}
       />
     </>
   );

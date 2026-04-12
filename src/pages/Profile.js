@@ -1099,7 +1099,7 @@ export default function Profile() {
           addToCustomList={addToCustomList}
           lang={lang}
         />
-        <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
+        <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }} onCrewClick={p=>{ navigate(`/person/${p.id}`, { state: { person: p } }); }} onStudioClick={s=>{ navigate(`/studio/${s.id}`, { state: { studio: s } }); }}/>
       </>
     );
   }
@@ -1226,7 +1226,7 @@ export default function Profile() {
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }}/>
+      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }} onCrewClick={p=>{ navigate(`/person/${p.id}`, { state: { person: p } }); }} onStudioClick={s=>{ navigate(`/studio/${s.id}`, { state: { studio: s } }); }}/>
       {showSettings && <SettingsModal onClose={()=>setShowSettings(false)}/>}
       {showDonate && <DonateModal onClose={()=>setShowDonate(false)}/>}
     </div>
