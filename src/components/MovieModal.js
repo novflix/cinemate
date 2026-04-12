@@ -540,6 +540,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
                   {type==='tv' ? <><TVLinear size={10}/>{t('modal.series')}</> : <><VideoLibraryLinear size={10}/>{t('modal.movie')}</>}
                 </span>
               </div>
+               {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
             </div>
           </div>
 
