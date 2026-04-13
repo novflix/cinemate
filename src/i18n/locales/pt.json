@@ -138,7 +138,8 @@
     "markWatched": "Marcar como assistido",
     "inList": "Na lista",
     "watchlist": "Lista de filmes",
-    "crew": "Equipe técnica"
+    "crew": "Equipe técnica",
+    "similar": "Similares"
   },
   "roulette": {
     "whatToWatch": "O que assistir?",
@@ -508,5 +509,9 @@
       "s9p": "Para questões, contacta-nos através da página Sobre da aplicação."
     },
     "englishPriority": "Em caso de discrepâncias entre a versão deste documento no seu idioma e a versão em inglês, prevalecerá a versão em inglês."
+  },
+  "similar": {
+    "title": "Similares",
+    "empty": "Nenhum título similar encontrado."
   }
 }

@@ -138,7 +138,8 @@
     "markWatched": "标记为已看",
     "inList": "已在列表",
     "watchlist": "片单",
-    "crew": "制作团队"
+    "crew": "制作团队",
+    "similar": "相似"
   },
   "roulette": {
     "whatToWatch": "看什么？",
@@ -508,5 +509,9 @@
       "s9p": "如对本准则有任何疑问，请通过应用的关于页面与我们联系。"
     },
     "englishPriority": "如本文件您所用语言版本与英文版本之间存在任何差异，以英文版本为准。"
+  },
+  "similar": {
+    "title": "相似内容",
+    "empty": "未找到相似内容。"
   }
 }

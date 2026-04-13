@@ -138,7 +138,8 @@
     "markWatched": "Marquer comme vu",
     "inList": "Dans la liste",
     "watchlist": "À regarder",
-    "crew": "Équipe technique"
+    "crew": "Équipe technique",
+    "similar": "Similaires"
   },
   "roulette": {
     "whatToWatch": "Quoi regarder ?",
@@ -508,5 +509,9 @@
       "s9p": "Pour toute question, contactez-nous via la page À propos de l'application."
     },
     "englishPriority": "En cas de divergences entre la version de ce document dans votre langue et la version anglaise, la version anglaise prévaudra."
+  },
+  "similar": {
+    "title": "Similaires",
+    "empty": "Aucun titre similaire trouvé."
   }
 }

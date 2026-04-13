@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear} from 'solar-icon-set';
+import { useNavigate } from 'react-router-dom';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear, InfinityLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -439,6 +440,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
   const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
   const { lang } = useTheme();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const watched  = movie ? isWatched(movie.id)     : false;
   const inList   = movie ? isInWatchlist(movie.id) : false;
   const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
@@ -648,6 +650,13 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
                 {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t('modal.inList')}</> : <><BookmarkLinear size={15}/>{t('modal.watchlist')}</>}
               </button>
             </div>
+            <button
+              className="modal__similar-btn"
+              onClick={() => { onClose(); navigate(`/similar/${type}/${movie.id}`); }}
+            >
+              <InfinityLinear size={15}/>
+              {t('modal.similar')}
+            </button>
           </div>
         </div>
       </div>

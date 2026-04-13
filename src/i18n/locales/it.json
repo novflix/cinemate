@@ -138,7 +138,8 @@
     "markWatched": "Segna come visto",
     "inList": "In lista",
     "watchlist": "Lista film",
-    "crew": "Troupe"
+    "crew": "Troupe",
+    "similar": "Simili"
   },
   "roulette": {
     "whatToWatch": "Cosa guardare?",
@@ -508,5 +509,9 @@
       "s9p": "Per domande, contattaci tramite la pagina Info dell'applicazione."
     },
     "englishPriority": "In caso di discrepanze tra la versione di questo documento nella tua lingua e la versione inglese, prevarrà la versione inglese."
+  },
+  "similar": {
+    "title": "Simili",
+    "empty": "Nessun titolo simile trovato."
   }
 }

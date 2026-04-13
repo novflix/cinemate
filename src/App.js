@@ -18,6 +18,7 @@ import About, { LandingLangSwitcher } from './pages/About';
 import ActorPageRoute from './pages/ActorPageRoute';
 import PersonPageRoute from './pages/PersonPageRoute';
 import PublicListPage from './pages/PublicListPage';
+import SimilarPage from './pages/SimilarPage';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CommunityGuidelines from './pages/CommunityGuidelines';
@@ -86,6 +87,7 @@ function AppInner() {
           <Route path="/actor/:actorId"   element={<ActorPageRoute/>}/>
           <Route path="/person/:personId" element={<PersonPageRoute/>}/>
           <Route path="/list/:listId"   element={<PublicListPage/>}/>
+          <Route path="/similar/:type/:id" element={<SimilarPage/>}/>
           <Route path="*"              element={<Navigate to="/home" replace/>}/>
         </Routes>
       </div>

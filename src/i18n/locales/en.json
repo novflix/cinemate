@@ -139,7 +139,8 @@
     "markWatched": "Mark watched",
     "inList": "In list",
     "watchlist": "Watchlist",
-    "crew": "Crew"
+    "crew": "Crew",
+    "similar": "Similar"
   },
   "roulette": {
     "whatToWatch": "What to watch?",
@@ -509,5 +510,9 @@
       "s9p": "If you have questions about these guidelines or wish to report a concern, please reach out via the About page of the application."
     },
     "englishPriority": "In case of discrepancies between the version of this document in your language and the English version, the English version shall prevail."
+  },
+  "similar": {
+    "title": "Similar",
+    "empty": "No similar titles found."
   }
 }

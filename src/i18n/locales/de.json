@@ -138,7 +138,8 @@
     "markWatched": "Als gesehen markieren",
     "inList": "In der Liste",
     "watchlist": "Möchte sehen",
-    "crew": "Filmteam"
+    "crew": "Filmteam",
+    "similar": "Ähnliche"
   },
   "roulette": {
     "whatToWatch": "Was ansehen?",
@@ -508,5 +509,9 @@
       "s9p": "Bei Fragen kontaktiere uns über die Über-uns-Seite der App."
     },
     "englishPriority": "Im Falle von Abweichungen zwischen der Version dieses Dokuments in Ihrer Sprache und der englischen Version hat die englische Version Vorrang."
+  },
+  "similar": {
+    "title": "Ähnliche",
+    "empty": "Keine ähnlichen Titel gefunden."
   }
 }

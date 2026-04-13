@@ -138,7 +138,8 @@
     "markWatched": "İzlendi olarak işaretle",
     "inList": "Listede",
     "watchlist": "İzleme listesi",
-    "crew": "Ekip"
+    "crew": "Ekip",
+    "similar": "Benzer"
   },
   "roulette": {
     "whatToWatch": "Ne izlesek?",
@@ -508,5 +509,9 @@
       "s9p": "Bu kurallarla ilgili sorularınız için uygulamadaki Hakkında sayfasından bizimle iletişime geçin."
     },
     "englishPriority": "Bu belgenin kendi dilinizde hazırlanmış versiyonu ile İngilizce versiyonu arasında herhangi bir tutarsızlık olması durumunda İngilizce versiyon geçerli olacaktır."
+  },
+  "similar": {
+    "title": "Benzer",
+    "empty": "Benzer içerik bulunamadı."
   }
 }
