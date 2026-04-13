@@ -1,0 +1,41 @@
+/* ── Title Picker Modal ── */
+.picker-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.82);
+  display: flex; align-items: flex-end;
+  padding-top: max(52px, env(safe-area-inset-top));
+  padding-bottom: var(--nav-h);
+  animation: modalFadeIn 0.3s ease both;
+  overscroll-behavior: contain;
+}
+@media (min-width: 900px) {
+  .picker-overlay { align-items: center; justify-content: center; padding-bottom: 0; padding-top: 0; }
+  .picker-panel   { border-radius: 24px !important; width: 580px !important; height: 88dvh !important; max-height: 88dvh !important; }
+}
+.picker-panel {
+  position: relative; width: 100%; max-width: 580px; margin: 0 auto;
+  background: var(--bg2); border-radius: 28px 28px 0 0;
+  height: calc(100dvh - var(--nav-h) - 16px);
+  max-height: calc(100dvh - var(--nav-h) - 16px);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: modalSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
+  overscroll-behavior: contain;
+}
+.picker-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 18px 0; flex-shrink: 0; }
+.picker-header h3 { font-size: 16px; font-weight: 700; }
+.picker-search { padding: 12px 14px 8px; flex-shrink: 0; }
+.picker-search__input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 14px; box-sizing: border-box; }
+.picker-search__input:focus { border-color: var(--accent); outline: none; }
+.picker-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  padding: 4px 14px 24px; overflow-y: auto; overflow-x: hidden;
+  flex: 1; min-height: 0; box-sizing: border-box; align-content: start;
+}
+@media (min-width: 480px) { .picker-grid { grid-template-columns: repeat(4, 1fr); } }
+.picker-item { cursor: pointer; min-width: 0; width: 100%; }
+.picker-item--in { opacity: 0.55; cursor: default; }
+.picker-item__poster { position: relative; width: 100%; padding-top: 150%; border-radius: 8px; overflow: hidden; background: var(--surface2); margin-bottom: 4px; }
+.picker-item__poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.picker-item__poster > div { position: absolute; inset: 0; }
+.picker-item__check { position: absolute; inset: 0; background: rgba(34,197,94,0.45); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: 700; }
+.picker-item__title { font-size: 10px; color: var(--text2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; display: block; }
