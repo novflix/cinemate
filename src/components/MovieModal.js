@@ -652,7 +652,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
             </div>
             <button
               className="modal__similar-btn"
-              onClick={() => { onClose(); navigate(`/similar/${type}/${movie.id}`); }}
+              onClick={() => { const fromPath = window.location.pathname; onClose(); navigate(`/similar/${type}/${movie.id}`, { state: { sourceMovie: { ...movie, media_type: type }, fromPath } }); }}
             >
               <InfinityLinear size={15}/>
               {t('modal.similar')}

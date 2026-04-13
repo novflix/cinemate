@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeftLinear } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
@@ -12,6 +12,7 @@ import './SimilarPage.css';
 export default function SimilarPage() {
   const { type, id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { lang } = useTheme();
   const { selected, openMovie, closeMovie } = useMovieModal();
@@ -21,6 +22,10 @@ export default function SimilarPage() {
   const [loading, setLoading] = useState(true);
 
   const langCode = lang === 'ru' ? 'ru-RU' : 'en-US';
+
+  // sourceMovie and fromPath passed via navigation state from MovieModal
+  const sourceMovie = location.state?.sourceMovie || null;
+  const fromPath    = location.state?.fromPath    || null;
 
   useEffect(() => {
     if (!id || !type) return;
@@ -46,10 +51,20 @@ export default function SimilarPage() {
       .finally(() => setLoading(false));
   }, [id, type, langCode]);
 
+  const handleBack = () => {
+    if (sourceMovie && fromPath) {
+      // Navigate back to the page the modal was on, re-opening the modal via URL params
+      const mediaType = sourceMovie.media_type || type;
+      navigate(`${fromPath}?movie=${sourceMovie.id}&type=${mediaType}`, { replace: true });
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div className="similar-page">
       <div className="similar-header">
-        <button className="similar-back" onClick={() => navigate(-1)}>
+        <button className="similar-back" onClick={handleBack}>
           <ArrowLeftLinear size={18} />
         </button>
         <div className="similar-header__text">
