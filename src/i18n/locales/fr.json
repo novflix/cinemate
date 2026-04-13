@@ -513,5 +513,15 @@
   "similar": {
     "title": "Similaires",
     "empty": "Aucun titre similaire trouvé."
+  },
+  "shareCard": {
+    "title": "Partager",
+    "story": "Story",
+    "square": "Carré",
+    "download": "Enregistrer",
+    "saved": "Enregistré !",
+    "share": "Partager",
+    "sharing": "Partage…",
+    "shareResult": "Partager la note"
   }
 }

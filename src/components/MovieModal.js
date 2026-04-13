@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { useTranslation } from 'react-i18next';
 import { useDominantColor } from '../hooks/useDominantColor';
+import ShareCard from './ShareCard';
 import './MovieModal.css';
 
 function WhereToWatch({ movieId, type, lang, title }) {
@@ -50,35 +51,54 @@ function WhereToWatch({ movieId, type, lang, title }) {
 }
 
 // Inline rating row shown inside modal for watched movies
-function InlineRating({ movieId, lang, getRating, rateMovie }) {
+function InlineRating({ movieId, lang, getRating, rateMovie, type, title }) {
   const { t } = useTranslation();
   const current = getRating(movieId);
-  const [hovered, setHovered] = useState(0);
+  const [hovered,   setHovered]   = useState(0);
+  const [showShare, setShowShare] = useState(false);
   const COLORS = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
   const display = hovered || current || 0;
   const color = COLORS[display] || 'var(--accent)';
 
   return (
-    <div className="modal__rating-row">
-      <p className="modal__rating-label">{t('modal.yourRating')}</p>
-      <div className="modal__rating-stars">
-        {[1,2,3,4,5,6,7,8,9,10].map(n => (
-          <button
-            key={n}
-            className={"modal__rating-star" + (n <= display ? " active" : "")}
-            style={n <= display ? { background: color, color: n <= 4 ? '#fff' : '#000', borderColor: 'transparent' } : {}}
-            onMouseEnter={() => setHovered(n)}
-            onMouseLeave={() => setHovered(0)}
-            onClick={() => rateMovie(movieId, n)}
-          >
-            {n}
-          </button>
-        ))}
+    <>
+      <div className="modal__rating-row">
+        <div className="modal__rating-header">
+          <p className="modal__rating-label">{t('modal.yourRating')}</p>
+          {display > 0 && (
+            <span className="modal__rating-value" style={{ color }}>{display}/10</span>
+          )}
+        </div>
+        <div className="modal__rating-stars">
+          {[1,2,3,4,5,6,7,8,9,10].map(n => (
+            <button
+              key={n}
+              className={"modal__rating-star" + (n <= display ? " active" : "")}
+              style={n <= display ? { background: color, color: n <= 4 ? '#fff' : '#000', borderColor: 'transparent' } : {}}
+              onMouseEnter={() => setHovered(n)}
+              onMouseLeave={() => setHovered(0)}
+              onClick={() => rateMovie(movieId, n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
       {display > 0 && (
-        <p className="modal__rating-value" style={{ color }}>{display}/10</p>
+        <button className="modal__share-card-btn" onClick={() => setShowShare(true)}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          {t('shareCard.shareResult')}
+        </button>
       )}
-    </div>
+      {showShare && (
+        <ShareCard
+          movieId={movieId}
+          mediaType={type}
+          score={display}
+          onClose={() => setShowShare(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -561,7 +581,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
             )}
 
             {watched && (
-              <InlineRating movieId={movie.id} lang={lang} getRating={getRating} rateMovie={rateMovie}/>
+              <InlineRating movieId={movie.id} lang={lang} getRating={getRating} rateMovie={rateMovie} type={type} title={title}/>
             )}
 
             {type === 'tv' && inList && (

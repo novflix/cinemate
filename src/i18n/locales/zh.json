@@ -513,5 +513,15 @@
   "similar": {
     "title": "相似内容",
     "empty": "未找到相似内容。"
+  },
+  "shareCard": {
+    "title": "分享",
+    "story": "故事",
+    "square": "方形",
+    "download": "保存图片",
+    "saved": "已保存！",
+    "share": "分享",
+    "sharing": "分享中…",
+    "shareResult": "分享评分"
   }
 }

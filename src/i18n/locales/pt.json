@@ -513,5 +513,15 @@
   "similar": {
     "title": "Similares",
     "empty": "Nenhum título similar encontrado."
+  },
+  "shareCard": {
+    "title": "Compartilhar",
+    "story": "Story",
+    "square": "Quadrado",
+    "download": "Salvar imagem",
+    "saved": "Salvo!",
+    "share": "Compartilhar",
+    "sharing": "Compartilhando…",
+    "shareResult": "Compartilhar nota"
   }
 }

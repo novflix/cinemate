@@ -637,3 +637,43 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 }
 .modal__similar-btn:hover { border-color: var(--accent); color: var(--accent); }
 .modal__similar-btn:active { transform: scale(0.97); }
+
+/* Rating row header: label left, score right */
+.modal__rating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.modal__rating-value {
+  font-size: 12px;
+  font-weight: 700;
+  animation: fadeIn 0.2s ease;
+  margin: 0;
+}
+
+/* Share card button — sits below the rating row, full-width */
+.modal__share-card-btn {
+  width: 100%;
+  margin-top: -6px;
+  margin-bottom: 16px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s;
+  animation: fadeIn 0.25s ease;
+}
+.modal__share-card-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(232, 197, 71, 0.06);
+}
+.modal__share-card-btn:active { transform: scale(0.97); }

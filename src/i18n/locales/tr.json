@@ -513,5 +513,15 @@
   "similar": {
     "title": "Benzer",
     "empty": "Benzer içerik bulunamadı."
+  },
+  "shareCard": {
+    "title": "Paylaş",
+    "story": "Hikaye",
+    "square": "Kare",
+    "download": "Kaydet",
+    "saved": "Kaydedildi!",
+    "share": "Paylaş",
+    "sharing": "Paylaşılıyor…",
+    "shareResult": "Puanı paylaş"
   }
 }
