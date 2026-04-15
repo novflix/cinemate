@@ -7,18 +7,16 @@ import { useStore } from '../store';
 import { useTheme } from '../theme';
 import './ShareCard.css';
 
-// ─── Score colour palette (matches RatingPrompt) ─────────────────────────────
+// ─── Score colour palette ─────────────────────────────────────────────────────
 const SCORE_COLORS = [
   '', '#ef4444', '#f97316', '#fb923c', '#fbbf24',
   '#a3a3a3', '#84cc16', '#22c55e', '#10b981', '#3b82f6', '#8b5cf6',
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function scoreLabel(score, labels) {
   return labels?.[score] || '';
 }
 
-// Load an image via CORS proxy-friendly approach (draw from URL, fallback to solid)
 function loadImage(src) {
   return new Promise((resolve) => {
     const img = new window.Image();
@@ -29,7 +27,6 @@ function loadImage(src) {
   });
 }
 
-// Wrap text to fit within maxWidth, returns array of lines
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(' ');
   const lines = [];
@@ -47,13 +44,56 @@ function wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
+// ─── Rounded-rect path helper ─────────────────────────────────────────────────
+function rrPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
+// ─── Draw the CINIMATE logotype on canvas ─────────────────────────────────────
+// cx = horizontal center, baselineY = text baseline, fontSize in px
+function drawLogo(ctx, cx, baselineY, fontSize) {
+  ctx.save();
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.font = `900 ${fontSize}px 'Bebas Neue', 'Arial Black', sans-serif`;
+
+  const ciniW  = ctx.measureText('CINI').width;
+  const mateW  = ctx.measureText('MATE').width;
+  const dotR   = Math.round(fontSize * 0.14);
+  const dotGap = Math.round(fontSize * 0.1);
+  const total  = dotR * 2 + dotGap + ciniW + mateW;
+  const startX = cx - total / 2;
+
+  // Gold accent dot
+  ctx.beginPath();
+  ctx.arc(startX + dotR, baselineY - fontSize * 0.40, dotR, 0, Math.PI * 2);
+  ctx.fillStyle = '#e8c547';
+  ctx.fill();
+
+  // CINI — white
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText('CINI', startX + dotR * 2 + dotGap, baselineY);
+
+  // MATE — gold
+  ctx.fillStyle = '#e8c547';
+  ctx.fillText('MATE', startX + dotR * 2 + dotGap + ciniW, baselineY);
+
+  ctx.restore();
+}
 
 // ─── Core card renderer ───────────────────────────────────────────────────────
 async function drawCard(canvas, { posterImg, backdropImg, title, year, score, format, ratingLabels, type, username }) {
   const isStory = format === 'story';
-
-  // Story: 720×1280 (9:16).  Square: 720×720 (1:1)
   const W = 720;
   const H = isStory ? 1280 : 720;
 
@@ -63,144 +103,143 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
   const ctx = canvas.getContext('2d');
   const scoreColor = SCORE_COLORS[score] || '#e8c547';
 
-  // ── 1. Dark background ────────────────────────────────────────────────────
+  // ── Background ────────────────────────────────────────────────────────────
   ctx.fillStyle = '#07070f';
   ctx.fillRect(0, 0, W, H);
 
-  // Blurred backdrop
   const bgSrc = backdropImg || posterImg;
   if (bgSrc) {
     const scale = Math.max(W / bgSrc.width, H / bgSrc.height);
-    const bw = bgSrc.width * scale, bh = bgSrc.height * scale;
-    const bx = (W - bw) / 2, by = (H - bh) / 2;
+    const bw = bgSrc.width * scale;
+    const bh = bgSrc.height * scale;
+    const bx = (W - bw) / 2;
+    const by = (H - bh) / 2;
     ctx.save();
-    ctx.globalAlpha = 0.22;
-    ctx.filter = 'blur(48px)';
+    ctx.globalAlpha = 0.20;
+    ctx.filter = 'blur(52px)';
     ctx.drawImage(bgSrc, bx, by, bw, bh);
     ctx.filter = 'none';
     ctx.restore();
   }
 
-  // Full-height gradient overlay
   const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0,    'rgba(7,7,15,0.55)');
-  grad.addColorStop(0.45, 'rgba(7,7,15,0.3)');
-  grad.addColorStop(1,    'rgba(7,7,15,0.96)');
+  grad.addColorStop(0,    'rgba(7,7,15,0.60)');
+  grad.addColorStop(0.42, 'rgba(7,7,15,0.22)');
+  grad.addColorStop(1,    'rgba(7,7,15,0.98)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // ── helpers ───────────────────────────────────────────────────────────────
-  const rr = (x, y, w, h, r) => {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-  };
-
+  // ── Poster helper ─────────────────────────────────────────────────────────
   const drawPoster = (x, y, w, h, radius) => {
     if (!posterImg) return;
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.65)';
-    ctx.shadowBlur  = 36;
-    ctx.shadowOffsetY = 14;
-    rr(x, y, w, h, radius); ctx.fillStyle = '#111'; ctx.fill();
+    ctx.shadowColor = 'rgba(0,0,0,0.72)';
+    ctx.shadowBlur  = 44;
+    ctx.shadowOffsetY = 18;
+    rrPath(ctx, x, y, w, h, radius);
+    ctx.fillStyle = '#0e0e1e';
+    ctx.fill();
     ctx.restore();
     ctx.save();
-    rr(x, y, w, h, radius); ctx.clip();
+    rrPath(ctx, x, y, w, h, radius);
+    ctx.clip();
     ctx.drawImage(posterImg, x, y, w, h);
     ctx.restore();
     ctx.save();
-    rr(x, y, w, h, radius);
-    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1.5; ctx.stroke();
+    rrPath(ctx, x, y, w, h, radius);
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
     ctx.restore();
   };
 
+  // ── Score badge ───────────────────────────────────────────────────────────
   const drawBadge = (cx, cy, r) => {
-    // glow
     ctx.save();
-    ctx.shadowColor = scoreColor; ctx.shadowBlur = 32;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = scoreColor; ctx.fill();
+    ctx.shadowColor = scoreColor;
+    ctx.shadowBlur = 38;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = scoreColor;
+    ctx.fill();
     ctx.restore();
-    // dark fill
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = '#0d0d1a'; ctx.fill();
-    // ring
-    ctx.beginPath(); ctx.arc(cx, cy, r - 3, 0, Math.PI * 2);
-    ctx.strokeStyle = scoreColor; ctx.lineWidth = 3; ctx.stroke();
-    // number
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a0a18';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r - 3.5, 0, Math.PI * 2);
+    ctx.strokeStyle = scoreColor;
+    ctx.lineWidth = 3;
+    ctx.stroke();
     ctx.fillStyle = scoreColor;
     ctx.font = `bold ${Math.round(r * 0.72)}px 'DM Sans', sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(String(score), cx, cy - r * 0.1);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(score), cx, cy - r * 0.10);
     ctx.fillStyle = 'rgba(255,255,255,0.38)';
     ctx.font = `600 ${Math.round(r * 0.27)}px 'DM Sans', sans-serif`;
-    ctx.fillText('/10', cx, cy + r * 0.42);
+    ctx.fillText('/10', cx, cy + r * 0.44);
     ctx.textBaseline = 'alphabetic';
   };
 
-  const drawBranding = (cx, y) => {
-    // dot
-    ctx.beginPath(); ctx.arc(cx - 52, y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8c547'; ctx.fill();
-    // username
+  // ── Bottom branding strip ─────────────────────────────────────────────────
+  // All three elements: @username left | CINIMATE logo center | cinimate.fun right
+  // They are positioned independently so they NEVER overlap.
+  const drawBranding = (midY) => {
+    ctx.save();
+    ctx.textBaseline = 'middle';
+
     if (username) {
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      ctx.font = `600 14px 'DM Sans', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText(`@${username}`, cx, y + 4);
+      ctx.fillStyle = 'rgba(255,255,255,0.50)';
+      ctx.font = `500 13px 'DM Sans', sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(`@${username}`, 52, midY);
     }
-    // site — right aligned from center
-    ctx.fillStyle = 'rgba(255,255,255,0.32)';
-    ctx.font = `500 12px 'DM Sans', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('cinimate.fun', cx + 50, y + 4);
+
+    // Logo — always centered regardless of username presence
+    drawLogo(ctx, W / 2, midY + 8, 17);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.26)';
+    ctx.font = `400 12px 'DM Sans', sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText('cinimate.fun', W - 52, midY);
+
+    ctx.restore();
   };
 
   const label = scoreLabel(score, ratingLabels);
 
   if (isStory) {
-    // ── STORY (9:16) layout ───────────────────────────────────────────────
-    // Poster fills top ~62% of card
-    const PAD    = 48;
-    const PW     = W - PAD * 2;          // 624
-    const PH     = Math.round(PW * 1.5); // 936  (2:3 ratio)
-    const PX     = PAD;
-    const PY     = 52;
+    // ── STORY (9:16) ──────────────────────────────────────────────────────
+    const PAD = 48;
+    const PW  = W - PAD * 2;
+    const PH  = Math.round(PW * 1.5);
+    const PX  = PAD;
+    const PY  = 72;
 
-    drawPoster(PX, PY, PW, PH, 20);
+    drawPoster(PX, PY, PW, PH, 22);
 
-    // Score badge — bottom-right corner of poster
-    const BR = 46;
-    drawBadge(PX + PW - BR + 6, PY + PH - BR + 6, BR);
+    const BR = 50;
+    drawBadge(PX + PW - BR + 10, PY + PH - BR + 10, BR);
 
-    // ── Text block right below poster ─────────────────────────────────────
-    const TEXT_TOP = PY + PH + 38;
+    const TEXT_TOP = PY + PH + 48;
     let ty = TEXT_TOP;
 
-    // Rating label
     if (label) {
       ctx.fillStyle = scoreColor;
-      ctx.font = `700 13px 'DM Sans', sans-serif`;
+      ctx.font = `700 12px 'DM Sans', sans-serif`;
       ctx.textAlign = 'center';
-      ctx.letterSpacing = '2.5px';
+      ctx.letterSpacing = '3px';
       ctx.fillText(label.toUpperCase(), W / 2, ty);
       ctx.letterSpacing = '0px';
-      ty += 30;
+      ty += 34;
     }
 
-    // Title — font size adapts to remaining space & title length
     const maxTitleW = W - PAD * 2;
-    let fontSize = 52;
+    let fontSize = 54;
     ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
-    while (fontSize > 28 && ctx.measureText(title).width > maxTitleW * 0.85) {
+    while (fontSize > 26 && ctx.measureText(title).width > maxTitleW * 0.88) {
       fontSize -= 2;
       ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
     }
@@ -213,57 +252,51 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
       ctx.fillText(line, W / 2, ty + i * lineH);
     });
     ctx.globalAlpha = 1;
-    ty += Math.min(titleLines.length, 3) * lineH + 14;
+    ty += Math.min(titleLines.length, 3) * lineH + 18;
 
-    // Meta
     const meta = [year, type === 'tv' ? 'Series' : 'Film'].filter(Boolean).join(' · ');
-    ctx.fillStyle = 'rgba(255,255,255,0.38)';
+    ctx.fillStyle = 'rgba(255,255,255,0.36)';
     ctx.font = `500 15px 'DM Sans', sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(meta, W / 2, ty);
 
-    // Branding
-    drawBranding(W / 2, H - 38);
+    drawBranding(H - 50);
 
   } else {
-    // ── SQUARE (1:1) layout ───────────────────────────────────────────────
-    const PAD  = 44;
-    const PH   = H - PAD * 2;           // 632
-    const PW   = Math.round(PH / 1.5);  // 421  (2:3 ratio)
-    const PX   = PAD;
-    const PY   = PAD;
+    // ── SQUARE (1:1) ──────────────────────────────────────────────────────
+    const PAD = 44;
+    const PH  = H - PAD * 2;
+    const PW  = Math.round(PH / 1.5);
+    const PX  = PAD;
+    const PY  = PAD;
 
-    drawPoster(PX, PY, PW, PH, 16);
+    drawPoster(PX, PY, PW, PH, 18);
 
-    // Score badge — overlapping bottom-right of poster
-    const BR = 44;
-    drawBadge(PX + PW - BR + 8, PY + PH - BR + 8, BR);
+    const BR = 46;
+    drawBadge(PX + PW - BR + 10, PY + PH - BR + 10, BR);
 
-    // ── Right column ──────────────────────────────────────────────────────
-    const RX  = PX + PW + 36;
-    const RW  = W - RX - PAD;
-    let ry = PY + 16;
+    const RX = PX + PW + 38;
+    const RW = W - RX - PAD;
+    let ry   = PY + 20;
 
-    // Rating label
     if (label) {
       ctx.fillStyle = scoreColor;
       ctx.font = `700 11px 'DM Sans', sans-serif`;
       ctx.textAlign = 'left';
-      ctx.letterSpacing = '2px';
+      ctx.letterSpacing = '2.5px';
       ctx.fillText(label.toUpperCase(), RX, ry);
       ctx.letterSpacing = '0px';
-      ry += 26;
+      ry += 28;
     }
 
-    // Title
     let fontSize = 38;
     ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
-    while (fontSize > 22 && ctx.measureText(title).width > RW * 0.9) {
+    while (fontSize > 18 && ctx.measureText(title).width > RW * 0.95) {
       fontSize -= 2;
       ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
     }
     const titleLines = wrapText(ctx, title, RW);
-    const lineH = Math.round(fontSize * 1.2);
+    const lineH = Math.round(fontSize * 1.22);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
     titleLines.slice(0, 4).forEach((line, i) => {
@@ -271,46 +304,43 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
       ctx.fillText(line, RX, ry + i * lineH);
     });
     ctx.globalAlpha = 1;
-    ry += Math.min(titleLines.length, 4) * lineH + 16;
+    ry += Math.min(titleLines.length, 4) * lineH + 18;
 
-    // Meta
     const meta = [year, type === 'tv' ? 'Series' : 'Film'].filter(Boolean).join(' · ');
-    ctx.fillStyle = 'rgba(255,255,255,0.38)';
+    ctx.fillStyle = 'rgba(255,255,255,0.34)';
     ctx.font = `500 13px 'DM Sans', sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText(meta, RX, ry);
-    ry += 32;
+    ry += 34;
 
-    // Score dots
     for (let i = 1; i <= 10; i++) {
       const dx = RX + (i - 1) * 16;
-      ctx.beginPath(); ctx.arc(dx + 5, ry, 4, 0, Math.PI * 2);
+      ctx.beginPath();
+      ctx.arc(dx + 5, ry, 4, 0, Math.PI * 2);
       ctx.fillStyle = i <= score ? scoreColor : 'rgba(255,255,255,0.12)';
       ctx.fill();
     }
+    ry += 26;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(RX, ry);
+    ctx.lineTo(RX + RW, ry);
+    ctx.stroke();
     ry += 22;
 
-    // Divider
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(RX, ry); ctx.lineTo(RX + RW, ry); ctx.stroke();
-    ry += 18;
-
-    // Username + branding
     if (username) {
-      ctx.fillStyle = 'rgba(255,255,255,0.65)';
-      ctx.font = `600 13px 'DM Sans', sans-serif`;
+      ctx.fillStyle = 'rgba(255,255,255,0.52)';
+      ctx.font = `500 13px 'DM Sans', sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText(`@${username}`, RX, ry);
     }
-    // cinimate.fun bottom right
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
-    ctx.font = `500 12px 'DM Sans', sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText('cinimate.fun', W - PAD, H - PAD + 10);
-    // gold dot before it
-    ctx.beginPath(); ctx.arc(W - PAD - ctx.measureText('cinimate.fun').width - 10, H - PAD + 6, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8c547'; ctx.fill();
+
+    // Logo centered in right column near bottom
+    const logoCenterX = RX + RW / 2;
+    const logoBaseY   = PY + PH - 22;
+    drawLogo(ctx, logoCenterX, logoBaseY, 15);
   }
 }
 
@@ -321,10 +351,10 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
   const { lang } = useTheme();
   const { profile } = useStore();
   const canvasRef   = useRef(null);
-  const [format, setFormat]   = useState('story');   // 'story' | 'square'
-  const [details, setDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [sharing, setSharing] = useState(false);
+  const [format, setFormat]     = useState('story');
+  const [details, setDetails]   = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [sharing, setSharing]   = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const imagesRef = useRef({ poster: null, backdrop: null });
 
@@ -335,7 +365,6 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
 
   const ratingLabels = t('ratingLabels', { returnObjects: true });
 
-  // Fetch movie details
   useEffect(() => {
     if (!movieId || !mediaType) return;
     setLoading(true);
@@ -349,7 +378,6 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
       .finally(() => setLoading(false));
   }, [movieId, mediaType, langCode]);
 
-  // Load poster + backdrop images once details arrive
   useEffect(() => {
     if (!details) return;
     const posterSrc   = details.poster_path   ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;
@@ -382,7 +410,6 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [details, score, format]);
 
-  // Re-render when format changes
   useEffect(() => {
     if (imagesRef.current.poster || imagesRef.current.backdrop) {
       renderCard();
@@ -420,7 +447,6 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
         });
       }, 'image/png');
     } catch {
-      // User cancelled or API unavailable — fallback to download
       handleDownload();
     } finally {
       setSharing(false);
@@ -433,36 +459,40 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
   return createPortal(
     <div className="share-overlay" onClick={onClose}>
       <div className="share-modal" onClick={e => e.stopPropagation()}>
+
         <div className="share-modal__header">
-          <span className="share-modal__title">{t('shareCard.title')}</span>
-          <button className="share-modal__close" onClick={onClose}>
-            <CloseCircleLinear size={16} strokeWidth={2.5}/>
+          <div className="share-modal__header-logo">
+            <span className="share-modal__header-logo-dot" />
+            <span className="share-modal__header-logo-text">
+              CINI<span>MATE</span>
+            </span>
+          </div>
+          <button className="share-modal__close" onClick={onClose} aria-label="Close">
+            <CloseCircleLinear size={16} strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Format toggle */}
         <div className="share-modal__formats">
           <button
             className={'share-modal__fmt-btn' + (isStory ? ' active' : '')}
             onClick={() => setFormat('story')}
           >
-            <span className="share-modal__fmt-icon share-modal__fmt-icon--story"/>
+            <span className="share-modal__fmt-icon share-modal__fmt-icon--story" />
             {t('shareCard.story')}
           </button>
           <button
             className={'share-modal__fmt-btn' + (!isStory ? ' active' : '')}
             onClick={() => setFormat('square')}
           >
-            <span className="share-modal__fmt-icon share-modal__fmt-icon--square"/>
+            <span className="share-modal__fmt-icon share-modal__fmt-icon--square" />
             {t('shareCard.square')}
           </button>
         </div>
 
-        {/* Canvas preview */}
         <div className={'share-modal__preview' + (isStory ? ' story' : ' square')}>
           {loading && (
             <div className="share-modal__spinner-wrap">
-              <div className="share-modal__spinner"/>
+              <div className="share-modal__spinner" />
             </div>
           )}
           <canvas
@@ -472,19 +502,23 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
           />
         </div>
 
-        {/* Actions */}
         <div className="share-modal__actions">
           <button className="share-modal__btn share-modal__btn--download" onClick={handleDownload}>
-            <DownloadMinimalisticLinear size={15}/>
+            <DownloadMinimalisticLinear size={15} />
             {downloaded ? t('shareCard.saved') : t('shareCard.download')}
           </button>
           {canShare && (
-            <button className="share-modal__btn share-modal__btn--share" onClick={handleShare} disabled={sharing}>
-              <ShareLinear size={15}/>
+            <button
+              className="share-modal__btn share-modal__btn--share"
+              onClick={handleShare}
+              disabled={sharing}
+            >
+              <ShareLinear size={15} />
               {sharing ? t('shareCard.sharing') : t('shareCard.share')}
             </button>
           )}
         </div>
+
       </div>
     </div>,
     document.body
