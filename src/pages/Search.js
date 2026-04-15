@@ -118,34 +118,38 @@ function scoreRelevance(m, query) {
   let score = TIER_SCORES[matchTier];
 
   // ── Popularity signal (log scale, bounded) ───────────────────────────────
-  // We use a gentler curve than before so that a moderately popular exact
-  // match always beats a hugely popular prefix match.
   const pop = m.popularity || 0;
-  score += Math.min(Math.log10(Math.max(pop, 1)) * 80, 600);
+  score += Math.min(Math.log10(Math.max(pop, 1)) * 60, 400);
 
-  // ── Vote quality gate — only penalise entries with NO community signal ───
+  // ── Vote count signal — more votes = more credible ───────────────────────
   const votes = m.vote_count || 0;
-  if      (votes === 0)   score -= 400; // completely unrated, likely junk
-  else if (votes < 5)     score -= 200;
-  else if (votes < 20)    score -= 80;
-  // Do NOT penalise 20–50 votes — that's enough to be legitimate
+  if      (votes === 0)     score -= 400; // completely unrated, likely junk
+  else if (votes < 5)       score -= 200;
+  else if (votes < 20)      score -= 80;
+  else if (votes >= 1000)   score += 120;
+  else if (votes >= 300)    score += 60;
+  else if (votes >= 100)    score += 20;
 
-  // ── Rating boost (only positive, never penalise) ─────────────────────────
-  // We no longer sink low-rated titles; user might specifically search for
-  // a "bad" film. Instead we add a small bonus for genuinely acclaimed content.
+  // ── Rating boost — higher rating = higher priority ───────────────────────
   const rating = m.vote_average || 0;
-  if (votes >= 100) {
-    if (rating >= 8.0) score += 120;
-    else if (rating >= 7.0) score += 50;
+  if (votes >= 50) {
+    if      (rating >= 9.0) score += 400;
+    else if (rating >= 8.5) score += 300;
+    else if (rating >= 8.0) score += 220;
+    else if (rating >= 7.5) score += 150;
+    else if (rating >= 7.0) score += 90;
+    else if (rating >= 6.5) score += 40;
   }
 
-  // ── Year: small recency bonus, but ONLY for non-exact matches ────────────
-  // Classic films typed exactly (matchTier ≥ 5) should not be displaced by
-  // recent films that merely contain the query as a substring.
+  // ── Recency bonus — newer projects get a boost for non-exact matches ─────
   if (matchTier < 5) {
     const dateStr = m.release_date || m.first_air_date || '';
     const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) : null;
-    if (year && year >= YEAR_NOW - 3) score += 40;
+    if (year) {
+      if      (year >= YEAR_NOW - 1) score += 120;
+      else if (year >= YEAR_NOW - 3) score += 70;
+      else if (year >= YEAR_NOW - 6) score += 30;
+    }
   }
 
   return score;
@@ -322,6 +326,9 @@ async function enhancedSearch(query, langCode, filters, page = 1, signal) {
 // ─── Filter + sort (pure, no fetching) ───────────────────────────────────────
 function applyFiltersAndSort(items, filters, q) {
   let arr = [...items];
+
+  // Remove unrated entries (vote_average === 0) — they add noise with no signal
+  arr = arr.filter(m => (m.vote_average || 0) > 0);
 
   // Type filter (multi may return persons — exclude them)
   if (filters.type !== 'all') {
