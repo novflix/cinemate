@@ -206,7 +206,10 @@ export function StoreProvider({ children, userId }) {
     });
   }, []);
 
-  const removeFromWatched   = useCallback((id) => setWatched(prev   => prev.filter(m => m.id !== Number(id))), []);
+  const removeFromWatched   = useCallback((id) => {
+    setWatched(prev => prev.filter(m => m.id !== Number(id)));
+    setRatings(prev => { const n = { ...prev }; delete n[Number(id)]; return n; });
+  }, []);
   const removeFromWatchlist = useCallback((id) => {
     setWatchlist(prev => prev.filter(m => m.id !== Number(id)));
     setPinnedIds(prev => prev.filter(pid => pid !== Number(id)));
