@@ -4,7 +4,6 @@ import { useStore } from '../store';
 import { useTranslation } from 'react-i18next';
 import { tmdb } from '../api';
 import { SparkBurst } from './Effects';
-import ShareCard from './ShareCard';
 import './RatingPrompt.css';
 
 const COLORS    = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
@@ -16,7 +15,6 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
   const [selected, setSelected] = useState(getRating(movie?.id) || 0);
   const [phase,    setPhase]    = useState('pick');
   const [showSparks, setShowSparks] = useState(false); // 'pick' | 'confirm' | 'done'
-  const [showShare,  setShowShare]  = useState(false);
 
   if (!movie) return null;
 
@@ -102,27 +100,13 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
                 />
               ))}
             </div>
-            <button
-              className="rating-confirm__share-btn"
-              onClick={e => { e.stopPropagation(); setShowShare(true); }}
-            >
-              {t('shareCard.shareResult')}
-            </button>
           </div>
         )}
 
       </div>
-    {showSparks && <SparkBurst active={showSparks} onDone={() => setShowSparks(false)}/>}
-      {showShare && (
-        <ShareCard
-          movieId={movie.id}
-          mediaType={movie.media_type || 'movie'}
-          score={selected}
-          onClose={() => setShowShare(false)}
-        />
-      )}
+      {showSparks && <SparkBurst active={showSparks} onDone={() => setShowSparks(false)}/>}
     </div>
   );
-}
-);
+});
+
 export default RatingPrompt;
