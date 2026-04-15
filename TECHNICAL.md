@@ -868,7 +868,7 @@ Each season configures a special section on the Home page with themed genres.
 | Effect | Trigger | Implementation |
 |--------|---------|---------------|
 | Snow | December–January OR admin override | Canvas, 30 flakes, 25fps |
-| Confetti | Mark movie as watched | Canvas, `★ ✓ ✦ ●` shapes |
+| Confetti | Mark movie as watched | Canvas, `★  ✦ ●` shapes |
 | Sparks | Rate a movie 10/10 | Canvas burst, 60 particles |
 | Particles | Always (background) | Canvas, 28 gold particles, 30fps |
 

@@ -7,67 +7,6 @@
 .profile-icon-btn--donate { color: #e05c7a; border-color: rgba(224,92,122,0.3); background: rgba(224,92,122,0.08); }
 .profile-icon-btn--donate:hover { background: rgba(224,92,122,0.18); }
 
-/* ── DONATE MODAL ── */
-.donate-modal { max-width: 440px; }
-.donate-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 18px; }
-.donate-wallets { display: flex; flex-direction: column; gap: 10px; }
-.donate-wallet {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid;
-  border-radius: 16px;
-  padding: 14px 15px;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
-  user-select: none;
-  position: relative;
-  overflow: hidden;
-}
-.donate-wallet::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
-  pointer-events: none;
-}
-.donate-wallet:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
-.donate-wallet:active { transform: scale(0.98); }
-.donate-wallet__icon {
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.donate-wallet__icon svg { display: block; }
-.donate-wallet__info { flex: 1; min-width: 0; }
-.donate-wallet__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px; }
-.donate-wallet__name { display: flex; align-items: center; gap: 7px; }
-.donate-wallet__label { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
-.donate-wallet__network {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  border: 1px solid;
-  border-radius: 5px;
-  padding: 1px 6px;
-  opacity: 0.9;
-}
-.donate-wallet__action { font-size: 11px; color: var(--text3); white-space: nowrap; display: flex; align-items: center; }
-.donate-wallet__addr {
-  font-size: 10.5px;
-  color: var(--text2);
-  word-break: break-all;
-  font-family: 'Courier New', monospace;
-  line-height: 1.45;
-  opacity: 0.75;
-}
-
 .profile-card { margin: 0 16px 14px; background: var(--surface); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--border); }
 .profile-avatar-wrap { position: relative; width: 80px; height: 80px; cursor: pointer; }
 .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; }
@@ -225,50 +164,6 @@
 /* END PIN SYSTEM */
 
 .poster-grid__title { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* ── SETTINGS MODAL ── */
-.settings-modal {
-  width: calc(100% - 32px); max-width: 420px;
-  background: var(--bg2); border-radius: 20px;
-  max-height: 70dvh;
-  overflow-y: auto; overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  animation: fadeIn 0.2s ease;
-}
-.settings-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); z-index: 5; }
-.settings-header h2 { font-size: 17px; font-weight: 700; }
-.settings-close { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); color: var(--text2); display: flex; align-items: center; justify-content: center; }
-.settings-body { padding: 16px 20px 28px; display: flex; flex-direction: column; gap: 20px; }
-.settings-section { display: flex; flex-direction: column; gap: 8px; }
-.settings-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; }
-.settings-options { display: flex; gap: 8px; }
-.settings-option { flex: 1; padding: 12px 10px; border-radius: 12px; background: var(--surface2); color: var(--text2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1.5px solid var(--border); transition: all 0.15s; }
-.settings-option.active { background: rgba(232,197,71,0.12); color: var(--accent); border-color: rgba(232,197,71,0.4); }
-.settings-check { margin-left: auto; }
-
-/* Settings overlay — centered, not bottom sheet */
-.settings-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(12px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  animation: fadeIn 0.2s ease;
-}
-
-.poster-grid__rating {
-  position: absolute; bottom: 5px; left: 5px; z-index: 2;
-  background: var(--accent); color: #000;
-  border-radius: 6px; padding: 2px 5px;
-  font-size: 10px; font-weight: 800;
-  display: flex; align-items: center; gap: 2px;
-}
-
-.settings-account { display: flex; flex-direction: column; gap: 8px; }
-.settings-account__email { font-size: 13px; color: var(--text2); background: var(--surface2); border-radius: 10px; padding: 10px 12px; }
-.settings-account__signout { padding: 11px; border-radius: 12px; background: rgba(239,68,68,0.1); color: #ef4444; font-size: 13px; font-weight: 700; border: 1px solid rgba(239,68,68,0.2); transition: all 0.15s; }
-.settings-account__signout:hover { background: rgba(239,68,68,0.18); }
-.settings-account__guest { font-size: 12px; color: var(--text3); line-height: 1.5; }
 
 /* Auth additions */
 .profile-topbar__email { font-size: 11px; color: var(--text3); margin-top: 2px; }

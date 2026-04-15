@@ -12,7 +12,7 @@ export default function Confetti({ active, color = '#22c55e' }) {
     const H = canvas.height = canvas.offsetHeight;
     const cx = W / 2, cy = H / 2;
 
-    const SHAPES = ['★', '✓', '✦', '●'];
+    const SHAPES = ['★', '', '✦', '●'];
     const particles = Array.from({ length: 28 }, () => {
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 6 + 3;

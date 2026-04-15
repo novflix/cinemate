@@ -82,7 +82,7 @@
     "langClose": "Kapat",
     "donateTitle": "Projeyi destekle",
     "donateDesc": "Cinimate ücretsiz bir projedir. Beğendiyseniz kripto ile destekleyebilirsiniz. Kopyalamak için bir adrese dokunun.",
-    "donateCopied": "✓ Kopyalandı!",
+    "donateCopied": " Kopyalandı!",
     "donateTap": "Kopyalamak için dokunun",
     "donateBtnTitle": "Projeyi destekle"
   },
@@ -375,7 +375,7 @@
     "goHome": "Ana sayfaya git",
     "by": "{{name}} tarafından",
     "titles": "başlık",
-    "copied": "✓ Kopyalandı!",
+    "copied": " Kopyalandı!",
     "copyLink": "Bağlantıyı kopyala",
     "listEmpty": "Liste boş"
   },

@@ -82,7 +82,7 @@
     "langClose": "关闭",
     "donateTitle": "支持项目",
     "donateDesc": "Cinimate 是一个免费项目。如果您喜欢它，可以用加密货币来支持它。点击地址即可复制。",
-    "donateCopied": "✓ 已复制！",
+    "donateCopied": " 已复制！",
     "donateTap": "点击复制",
     "donateBtnTitle": "支持项目"
   },
@@ -375,7 +375,7 @@
     "goHome": "返回首页",
     "by": "来自 {{name}}",
     "titles": "个作品",
-    "copied": "✓ 已复制！",
+    "copied": " 已复制！",
     "copyLink": "复制链接",
     "listEmpty": "列表为空"
   },

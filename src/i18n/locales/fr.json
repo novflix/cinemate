@@ -82,7 +82,7 @@
     "langClose": "Fermer",
     "donateTitle": "Soutenir le projet",
     "donateDesc": "Cinimate est un projet gratuit. Si vous l'appréciez, vous pouvez le soutenir en crypto. Appuyez sur une adresse pour la copier.",
-    "donateCopied": "✓ Copié !",
+    "donateCopied": " Copié !",
     "donateTap": "Appuyer pour copier",
     "donateBtnTitle": "Soutenir le projet"
   },
@@ -375,7 +375,7 @@
     "goHome": "Accueil",
     "by": "Par {{name}}",
     "titles": "titres",
-    "copied": "✓ Copié !",
+    "copied": " Copié !",
     "copyLink": "Copier le lien",
     "listEmpty": "Liste vide"
   },
