@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HEADERS, isShowOrAward } from '../api';
+import { HEADERS, isShowOrAward, traktRelatedBatch } from '../api';
 import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -282,7 +282,7 @@ async function fetchCandidates(profile, page, langCode) {
 
   // ── Strategy 1: /recommendations from rotating seeds ─────────────────────
   if (seedMovies.length > 0) {
-    const numSeeds    = Math.min(4, seedMovies.length);
+    const numSeeds    = Math.min(4, seedMovies.length);   
     const offset      = (page - 1) * numSeeds;
     const uniquePicks = [...new Map(
       Array.from({ length: numSeeds }, (_, i) =>
@@ -304,6 +304,34 @@ async function fetchCandidates(profile, page, langCode) {
         }));
       } catch {}
     }));
+
+    // ── Strategy 1b: Trakt related for top seeds (only on first pages) ──────
+    // Trakt's "related" uses community watch-history — different signal than TMDB.
+    // We only query on early pages to avoid excessive API calls on deep scrolls.
+    if (page <= 3) {
+      const topSeeds = uniquePicks.slice(0, 2); // limit to 2 seeds to stay within rate limits
+      try {
+        const traktItems = await traktRelatedBatch(topSeeds);
+        await Promise.all(
+          traktItems.slice(0, 15).map(async item => {
+            try {
+              const r = await fetch(
+                `https://api.themoviedb.org/3/${item.type}/${item.tmdb_id}?${lang}`,
+                { headers: HEADERS }
+              ).then(r => r.json());
+              if (r.poster_path && (r.vote_average || 0) > 0) {
+                results.push({
+                  ...r,
+                  media_type: item.type,
+                  _source_weight: 1.8, // Trakt picks are higher quality signals
+                  _strategy: 'trakt',
+                });
+              }
+            } catch {}
+          })
+        );
+      } catch {}
+    }
   }
 
   // ── Strategy 2: liked actors — combined (movie + TV) credits ──────────────
@@ -449,6 +477,7 @@ async function fetchCandidates(profile, page, langCode) {
 
       // Strategy multipliers
       const strategyMult = m._strategy === 'actor'   ? 1.4
+                         : m._strategy === 'trakt'   ? 1.3 // Trakt community signal
                          : m._strategy === 'recs'    ? 1.1
                          : m._strategy === 'explore' ? 0.85 // slight score reduction = lands in exploration pool
                          : 1.0;

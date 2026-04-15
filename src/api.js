@@ -163,6 +163,90 @@ export const tmdb = {
   actorUrl:      (path, size = 'w185') => path ? `${IMG}/${size}${path}` : null,
 };
 
+// ─── Trakt API ────────────────────────────────────────────────────────────────
+// Free API (Client ID only, no OAuth needed for public endpoints).
+// Get your key at https://trakt.tv/oauth/applications/new
+// Then add REACT_APP_TRAKT_CLIENT_ID=your_key to your .env file.
+const TRAKT_CLIENT_ID = process.env.REACT_APP_TRAKT_CLIENT_ID;
+const TRAKT_BASE      = 'https://api.trakt.tv';
+const TRAKT_HEADERS   = {
+  'Content-Type': 'application/json',
+  'trakt-api-version': '2',
+  'trakt-api-key': TRAKT_CLIENT_ID || '',
+};
+
+// Session-level cache for Trakt responses
+const _traktCache = new Map();
+const TRAKT_CACHE_MAX = 100;
+function traktCacheSet(key, val) {
+  if (_traktCache.size >= TRAKT_CACHE_MAX) _traktCache.delete(_traktCache.keys().next().value);
+  _traktCache.set(key, val);
+}
+
+async function traktGet(path, signal) {
+  if (!TRAKT_CLIENT_ID) return null;
+  if (_traktCache.has(path)) return _traktCache.get(path);
+  try {
+    const res = await fetch(`${TRAKT_BASE}${path}`, { headers: TRAKT_HEADERS, signal });
+    if (!res.ok) return null;
+    const data = await res.json();
+    traktCacheSet(path, data);
+    return data;
+  } catch (e) {
+    if (e?.name !== 'AbortError') console.warn('[Trakt]', e);
+    return null;
+  }
+}
+
+// Convert TMDB id → Trakt slug via /search endpoint
+// Returns { movie: {ids}, show: {ids} } or null
+async function traktFindByTmdbId(tmdbId, type, signal) {
+  const traktType = type === 'tv' ? 'show' : 'movie';
+  const path = `/search/tmdb/${tmdbId}?type=${traktType}`;
+  const data = await traktGet(path, signal);
+  if (!data || !Array.isArray(data) || data.length === 0) return null;
+  return data[0][traktType] || null;
+}
+
+// Get related titles from Trakt for a given TMDB id + type
+// Returns array of { tmdb_id, title, year, type } or []
+export async function traktRelated(tmdbId, type, signal) {
+  const traktType = type === 'tv' ? 'shows' : 'movies';
+  const item = await traktFindByTmdbId(tmdbId, type, signal);
+  if (!item) return [];
+
+  const slug = item.ids?.slug;
+  if (!slug) return [];
+
+  const path = `/${traktType}/${slug}/related?limit=20`;
+  const data = await traktGet(path, signal);
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map(entry => ({
+      tmdb_id: entry.ids?.tmdb,
+      title:   entry.title,
+      year:    entry.year,
+      type,
+    }))
+    .filter(r => r.tmdb_id);
+}
+
+// Get Trakt related for multiple seeds at once (used in Recs)
+// Returns flat array of unique TMDB ids with their type
+export async function traktRelatedBatch(seeds, signal) {
+  if (!TRAKT_CLIENT_ID || seeds.length === 0) return [];
+  const results = await Promise.all(
+    seeds.map(s => traktRelated(s.id, s.media_type, signal).catch(() => []))
+  );
+  const seen = new Set();
+  return results.flat().filter(r => {
+    if (seen.has(r.tmdb_id)) return false;
+    seen.add(r.tmdb_id);
+    return true;
+  });
+}
+
 export const STREAMING_LINKS = {
   8:   { name: 'Netflix',      url: 'https://www.netflix.com/search?q=' },
   9:   { name: 'Amazon Prime', url: 'https://www.amazon.com/s?k=' },
@@ -179,4 +263,4 @@ export const STREAMING_LINKS = {
   555: { name: 'Okko',         url: 'https://okko.tv/search?query=' },
   505: { name: 'IVI',          url: 'https://www.ivi.ru/search/?q=' },
   635: { name: 'Kinopoisk',    url: 'https://www.kinopoisk.ru/index.php?kp_query=' },
-};
+};  
