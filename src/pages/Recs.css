@@ -1,4 +1,4 @@
-.recs-page { padding-bottom: calc(var(--nav-h) + 24px); overflow-x: hidden; }
+.recs-page { padding-bottom: calc(var(--nav-h) + 24px); overflow-x: hidden; min-height: 100vh; }
 
 .recs-header {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -47,10 +47,6 @@
   font-size: 11px; font-weight: 800;
 }
 
-/* Empty state */
-.recs-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 32px; text-align: center; color: var(--text3); }
-.recs-empty h3 { font-size: 18px; font-weight: 700; color: var(--text2); }
-.recs-empty p { font-size: 13px; line-height: 1.6; max-width: 280px; }
 
 /* Grid */
 .recs-grid {

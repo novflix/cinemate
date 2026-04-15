@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HEADERS, isShowOrAward, traktRelatedBatch } from '../api';
-import { RefreshLinear, MagicStickLinear } from 'solar-icon-set';
+import { RefreshLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
@@ -514,7 +514,6 @@ export default function Recs() {
   const pageRef    = useRef(1);
   const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
   const langCode   = TMDB_LANG_MAP[lang] || 'en-US';
-  const allSaved   = useMemo(() => [...watched, ...watchlist], [watched, watchlist]);
 
   useEffect(() => {
     profileRef.current = buildProfile(watched, watchlist, ratings, likedActors, dislikedIds, tvProgress);
@@ -527,7 +526,7 @@ export default function Recs() {
     const prof = profileRef.current;
     if (!prof) return;
     loadingRef.current = true;
-    setLoading(true);
+    if (!reset) setLoading(true);
 
     const pageOffset = reset ? (profileRef.current._pageOffset || 0) : 0;
     const pg         = reset ? 1 + pageOffset : pageRef.current;
@@ -568,10 +567,10 @@ export default function Recs() {
     prof._pageOffset = newOffset;
     profileRef.current = prof;
     pageRef.current    = 1 + newOffset;
-    setItems([]);
-    setLoading(false);
-    setUserRefreshing(true);
     loadingRef.current = false;
+    setItems([]);
+    setUserRefreshing(true);
+    setLoading(true);
     setTimeout(() => doLoad(true), 50);
   }, [watched, watchlist, ratings, likedActors, dislikedIds, tvProgress, doLoad]);
 
@@ -600,7 +599,6 @@ export default function Recs() {
     setItems(prev => prev.filter(m => m.id !== id));
   };
 
-  const noData     = !loading && allSaved.length === 0 && Object.keys(likedActors).length === 0;
   const hasSignals = watched.length > 0 || watchlist.length > 0 || Object.keys(likedActors).length > 0;
 
   return (
@@ -632,14 +630,6 @@ export default function Recs() {
               <span>{a.name}</span>
             </div>
           ))}
-        </div>
-      )}
-
-      {noData && (
-        <div className="recs-empty">
-          <MagicStickLinear size={44} strokeWidth={1}/>
-          <h3>{t('home.nothingYet')}</h3>
-          <p>{t('home.startHint')}</p>
         </div>
       )}
 
