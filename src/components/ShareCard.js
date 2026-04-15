@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { CloseCircleLinear, DownloadMinimalisticLinear, ShareLinear } from 'solar-icon-set';
 import { HEADERS } from '../api';
@@ -429,7 +430,7 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
   const isStory  = format === 'story';
 
-  return (
+  return createPortal(
     <div className="share-overlay" onClick={onClose}>
       <div className="share-modal" onClick={e => e.stopPropagation()}>
         <div className="share-modal__header">
@@ -485,6 +486,7 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
