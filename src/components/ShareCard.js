@@ -192,16 +192,16 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
 
     if (username) {
       ctx.fillStyle = 'rgba(255,255,255,0.50)';
-      ctx.font = `500 13px 'DM Sans', sans-serif`;
+      ctx.font = `500 15px 'DM Sans', sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText(`@${username}`, 52, midY);
     }
 
     // Logo — always centered regardless of username presence
-    drawLogo(ctx, W / 2, midY + 8, 17);
+    drawLogo(ctx, W / 2, midY + 8, 19);
 
     ctx.fillStyle = 'rgba(255,255,255,0.26)';
-    ctx.font = `400 12px 'DM Sans', sans-serif`;
+    ctx.font = `400 14px 'DM Sans', sans-serif`;
     ctx.textAlign = 'right';
     ctx.fillText('cinimate.fun', W - 52, midY);
 
@@ -212,39 +212,39 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
 
   if (isStory) {
     // ── STORY (9:16) ──────────────────────────────────────────────────────
-    const PAD = 48;
-    const PW  = W - PAD * 2;
+    const PAD = 52;
+    const PW  = Math.round((W - PAD * 2) * 0.78); // ~20% narrower poster
     const PH  = Math.round(PW * 1.5);
-    const PX  = PAD;
-    const PY  = 72;
+    const PX  = (W - PW) / 2;
+    const PY  = 56;
 
-    drawPoster(PX, PY, PW, PH, 22);
+    drawPoster(PX, PY, PW, PH, 20);
 
-    const BR = 50;
+    const BR = 46;
     drawBadge(PX + PW - BR + 10, PY + PH - BR + 10, BR);
 
-    const TEXT_TOP = PY + PH + 48;
+    const TEXT_TOP = PY + PH + 32;
     let ty = TEXT_TOP;
 
     if (label) {
       ctx.fillStyle = scoreColor;
-      ctx.font = `700 12px 'DM Sans', sans-serif`;
+      ctx.font = `700 15px 'DM Sans', sans-serif`;
       ctx.textAlign = 'center';
       ctx.letterSpacing = '3px';
       ctx.fillText(label.toUpperCase(), W / 2, ty);
       ctx.letterSpacing = '0px';
-      ty += 34;
+      ty += 30;
     }
 
     const maxTitleW = W - PAD * 2;
-    let fontSize = 54;
+    let fontSize = 64;
     ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
-    while (fontSize > 26 && ctx.measureText(title).width > maxTitleW * 0.88) {
+    while (fontSize > 32 && ctx.measureText(title).width > maxTitleW * 0.88) {
       fontSize -= 2;
       ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
     }
     const titleLines = wrapText(ctx, title, maxTitleW);
-    const lineH = Math.round(fontSize * 1.18);
+    const lineH = Math.round(fontSize * 1.16);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     titleLines.slice(0, 3).forEach((line, i) => {
@@ -252,51 +252,51 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
       ctx.fillText(line, W / 2, ty + i * lineH);
     });
     ctx.globalAlpha = 1;
-    ty += Math.min(titleLines.length, 3) * lineH + 18;
+    ty += Math.min(titleLines.length, 3) * lineH + 16;
 
     const meta = [year, type === 'tv' ? 'Series' : 'Film'].filter(Boolean).join(' · ');
     ctx.fillStyle = 'rgba(255,255,255,0.36)';
-    ctx.font = `500 15px 'DM Sans', sans-serif`;
+    ctx.font = `500 20px 'DM Sans', sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(meta, W / 2, ty);
 
-    drawBranding(H - 50);
+    drawBranding(H - 48);
 
   } else {
     // ── SQUARE (1:1) ──────────────────────────────────────────────────────
-    const PAD = 44;
-    const PH  = H - PAD * 2;
+    const PAD = 40;
+    const PH  = Math.round((H - PAD * 2) * 0.82); // ~18% shorter poster
     const PW  = Math.round(PH / 1.5);
     const PX  = PAD;
-    const PY  = PAD;
+    const PY  = PAD + Math.round((H - PAD * 2 - PH) / 2); // vertically centered
 
-    drawPoster(PX, PY, PW, PH, 18);
+    drawPoster(PX, PY, PW, PH, 16);
 
-    const BR = 46;
+    const BR = 44;
     drawBadge(PX + PW - BR + 10, PY + PH - BR + 10, BR);
 
-    const RX = PX + PW + 38;
+    const RX = PX + PW + 32;
     const RW = W - RX - PAD;
-    let ry   = PY + 20;
+    let ry   = PY + 12;
 
     if (label) {
       ctx.fillStyle = scoreColor;
-      ctx.font = `700 11px 'DM Sans', sans-serif`;
+      ctx.font = `700 13px 'DM Sans', sans-serif`;
       ctx.textAlign = 'left';
       ctx.letterSpacing = '2.5px';
       ctx.fillText(label.toUpperCase(), RX, ry);
       ctx.letterSpacing = '0px';
-      ry += 28;
+      ry += 26;
     }
 
-    let fontSize = 38;
+    let fontSize = 44;
     ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
-    while (fontSize > 18 && ctx.measureText(title).width > RW * 0.95) {
+    while (fontSize > 22 && ctx.measureText(title).width > RW * 0.95) {
       fontSize -= 2;
       ctx.font = `700 ${fontSize}px 'DM Sans', sans-serif`;
     }
     const titleLines = wrapText(ctx, title, RW);
-    const lineH = Math.round(fontSize * 1.22);
+    const lineH = Math.round(fontSize * 1.20);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
     titleLines.slice(0, 4).forEach((line, i) => {
@@ -304,14 +304,14 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
       ctx.fillText(line, RX, ry + i * lineH);
     });
     ctx.globalAlpha = 1;
-    ry += Math.min(titleLines.length, 4) * lineH + 18;
+    ry += Math.min(titleLines.length, 4) * lineH + 16;
 
     const meta = [year, type === 'tv' ? 'Series' : 'Film'].filter(Boolean).join(' · ');
     ctx.fillStyle = 'rgba(255,255,255,0.34)';
-    ctx.font = `500 13px 'DM Sans', sans-serif`;
+    ctx.font = `500 16px 'DM Sans', sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText(meta, RX, ry);
-    ry += 34;
+    ry += 30;
 
     for (let i = 1; i <= 10; i++) {
       const dx = RX + (i - 1) * 16;
@@ -320,7 +320,7 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
       ctx.fillStyle = i <= score ? scoreColor : 'rgba(255,255,255,0.12)';
       ctx.fill();
     }
-    ry += 26;
+    ry += 24;
 
     ctx.strokeStyle = 'rgba(255,255,255,0.07)';
     ctx.lineWidth = 1;
@@ -328,18 +328,18 @@ async function drawCard(canvas, { posterImg, backdropImg, title, year, score, fo
     ctx.moveTo(RX, ry);
     ctx.lineTo(RX + RW, ry);
     ctx.stroke();
-    ry += 22;
+    ry += 20;
 
     if (username) {
       ctx.fillStyle = 'rgba(255,255,255,0.52)';
-      ctx.font = `500 13px 'DM Sans', sans-serif`;
+      ctx.font = `500 15px 'DM Sans', sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText(`@${username}`, RX, ry);
     }
 
     // Logo centered in right column near bottom
     const logoCenterX = RX + RW / 2;
-    const logoBaseY   = PY + PH - 22;
+    const logoBaseY   = PY + PH - 18;
     drawLogo(ctx, logoCenterX, logoBaseY, 15);
   }
 }
