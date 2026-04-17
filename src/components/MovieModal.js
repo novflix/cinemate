@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear, InfinityLinear } from 'solar-icon-set';
+import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear, InfinityLinear, InfoCircleLinear, AltArrowDownLinear, CalendarLinear, GlobalLinear, BuildingsLinear, DollarMinimalisticLinear, FlagLinear, LayersMinimalisticLinear } from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -440,6 +440,163 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
   );
 }
 
+// ─── Movie Details Panel (expandable) ────────────────────────────────────────
+function MovieDetailsPanel({ details, type, t }) {
+  const [open, setOpen] = useState(false);
+
+  const budget  = details?.budget;
+  const revenue = details?.revenue;
+  const tagline = details?.tagline;
+  const status  = details?.status;
+  const originalTitle = details?.original_title || details?.original_name;
+  const originalLang  = details?.original_language;
+  const homepage      = details?.homepage;
+  const studios = (details?.production_companies || []).slice(0, 4);
+  const countries = (details?.production_countries || []).map(c => c.name);
+  const languages = (details?.spoken_languages || []).map(l => l.english_name || l.name);
+  const releaseDate = details?.release_date || details?.first_air_date;
+  const networks = (details?.networks || []).slice(0, 3);
+  const episodeRuntime = details?.episode_run_time?.[0];
+  const totalEpisodes  = details?.number_of_episodes;
+  const inProduction   = details?.in_production;
+
+  const formatMoney = (n) => {
+    if (!n || n === 0) return null;
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+    return `$${n}`;
+  };
+
+  const LANG_NAMES = { en:'English', ru:'Russian', fr:'French', de:'German', es:'Spanish', it:'Italian', ja:'Japanese', ko:'Korean', zh:'Chinese', pt:'Portuguese', hi:'Hindi', ar:'Arabic', nl:'Dutch', tr:'Turkish', pl:'Polish', sv:'Swedish' };
+
+  const hasContent = tagline || status || originalTitle || budget || revenue || studios.length || countries.length || homepage || networks.length || episodeRuntime || totalEpisodes;
+  if (!hasContent || !details) return null;
+
+  return (
+    <div className="mdetails">
+      <button className={"mdetails__toggle" + (open ? " open" : "")} onClick={() => setOpen(v => !v)}>
+        <span className="mdetails__toggle-left">
+          <InfoCircleLinear size={13}/>
+          <span>More Details</span>
+        </span>
+        <AltArrowDownLinear size={14} className="mdetails__chevron"/>
+      </button>
+
+      <div className={"mdetails__panel" + (open ? " open" : "")}>
+        <div className="mdetails__inner">
+
+          {tagline && (
+            <div className="mdetails__tagline">
+              &ldquo;{tagline}&rdquo;
+            </div>
+          )}
+
+          <div className="mdetails__grid">
+            {status && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><LayersMinimalisticLinear size={11}/>Status</span>
+                <span className={"mdetails__value mdetails__status" + (inProduction ? " inprod" : "")}>{status}</span>
+              </div>
+            )}
+
+            {releaseDate && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><CalendarLinear size={11}/>Release Date</span>
+                <span className="mdetails__value">{new Date(releaseDate).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</span>
+              </div>
+            )}
+
+            {originalTitle && originalTitle !== details?.title && originalTitle !== details?.name && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><FlagLinear size={11}/>Original Title</span>
+                <span className="mdetails__value">{originalTitle}</span>
+              </div>
+            )}
+
+            {originalLang && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><GlobalLinear size={11}/>Language</span>
+                <span className="mdetails__value">{LANG_NAMES[originalLang] || originalLang?.toUpperCase()}</span>
+              </div>
+            )}
+
+            {type === "tv" && episodeRuntime && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><ClockCircleLinear size={11}/>Episode Runtime</span>
+                <span className="mdetails__value">{episodeRuntime} min</span>
+              </div>
+            )}
+
+            {type === "tv" && totalEpisodes && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><TVLinear size={11}/>Total Episodes</span>
+                <span className="mdetails__value">{totalEpisodes}</span>
+              </div>
+            )}
+
+            {formatMoney(budget) && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>Budget</span>
+                <span className="mdetails__value">{formatMoney(budget)}</span>
+              </div>
+            )}
+
+            {formatMoney(revenue) && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>Revenue</span>
+                <span className={"mdetails__value" + (revenue > budget && budget > 0 ? " profit" : "")}>{formatMoney(revenue)}</span>
+              </div>
+            )}
+
+            {countries.length > 0 && (
+              <div className="mdetails__item mdetails__item--wide">
+                <span className="mdetails__label"><GlobalLinear size={11}/>Countries</span>
+                <span className="mdetails__value">{countries.join(", ")}</span>
+              </div>
+            )}
+
+            {languages.length > 0 && (
+              <div className="mdetails__item mdetails__item--wide">
+                <span className="mdetails__label"><GlobalLinear size={11}/>Languages</span>
+                <span className="mdetails__value">{languages.join(", ")}</span>
+              </div>
+            )}
+          </div>
+
+          {(studios.length > 0 || networks.length > 0) && (
+            <div className="mdetails__studios-section">
+              <span className="mdetails__section-label">
+                <BuildingsLinear size={11}/>
+                {type === "tv" ? "Networks & Studios" : "Production"}
+              </span>
+              <div className="mdetails__studios">
+                {[...networks, ...studios].slice(0, 5).map(s => (
+                  <div key={s.id} className="mdetails__studio">
+                    {s.logo_path
+                      ? <img src={`https://image.tmdb.org/t/p/w92${s.logo_path}`} alt={s.name} className="mdetails__studio-logo"/>
+                      : <span className="mdetails__studio-name">{s.name}</span>
+                    }
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {homepage && (
+            <a href={homepage} target="_blank" rel="noopener noreferrer" className="mdetails__homepage">
+              <GlobalLinear size={12}/>
+              <span>Official Website</span>
+              <LinkMinimalisticLinear size={10} style={{ opacity: 0.5, marginLeft: "auto" }}/>
+            </a>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCrewClick, onStudioClick }) {
   const [details, setDetails]         = useState(null);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
@@ -582,6 +739,8 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
             )}
 
             <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
+
+            <MovieDetailsPanel details={details} type={type} t={t}/>
 
             {cast.length > 0 && (
               <ScrollablePeopleBlock
