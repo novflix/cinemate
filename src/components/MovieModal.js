@@ -1,17 +1,24 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear, StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear, MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear, InfinityLinear, InfoCircleLinear, AltArrowDownLinear, CalendarLinear, GlobalLinear, BuildingsLinear, DollarMinimalisticLinear, FlagLinear, LayersMinimalisticLinear } from 'solar-icon-set';
+import {
+  CloseCircleLinear, EyeLinear, EyeClosedLinear, BookmarkLinear, BookmarkOpenedLinear,
+  StarLinear, ClockCircleLinear, TVLinear, VideoLibraryLinear, LinkMinimalisticLinear,
+  MonitorLinear, PenLinear, RefreshCircleLinear, ListLinear, PlayLinear, CheckCircleLinear,
+  InfinityLinear, InfoCircleLinear, AltArrowDownLinear, CalendarLinear, GlobalLinear,
+  BuildingsLinear, DollarMinimalisticLinear, FlagLinear, LayersMinimalisticLinear,
+} from 'solar-icon-set';
 import { tmdb, HEADERS, STREAMING_LINKS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { useTranslation } from 'react-i18next';
 import { useDominantColor } from '../hooks/useDominantColor';
-//import ShareCard from './ShareCard';
 import './MovieModal.css';
 
+/* ─── Where To Watch ──────────────────────────────────────────────────────── */
 function WhereToWatch({ movieId, type, lang, title }) {
   const { t } = useTranslation();
   const [providers, setProviders] = useState(null);
+
   useEffect(() => {
     if (!movieId) return;
     tmdb.watchProviders(type, movieId).then(data => {
@@ -20,6 +27,7 @@ function WhereToWatch({ movieId, type, lang, title }) {
       setProviders(region || null);
     }).catch(() => {});
   }, [movieId, type]);
+
   if (!providers) return null;
   const flatrate = providers.flatrate || [];
   const rent = (providers.rent || []).filter(r => !flatrate.find(f => f.provider_id === r.provider_id));
@@ -31,18 +39,21 @@ function WhereToWatch({ movieId, type, lang, title }) {
     return href ? { ...p, svc, href, streaming: !!flatrate.find(f => f.provider_id === p.provider_id) } : null;
   }).filter(Boolean);
   if (!linked.length) return null;
+
   return (
-    <div className="modal__where">
-      <h4>{t('modal.whereToWatch')}</h4>
-      <div className="modal__where-list">
+    <div className="mm-section">
+      <div className="mm-section__label">
+        <PlayLinear size={11} />
+        {t('modal.whereToWatch')}
+      </div>
+      <div className="mm-watch-list">
         {linked.map(p => (
-          <a key={p.provider_id} className="modal__where-item" href={p.href} target="_blank" rel="noopener noreferrer">
-            {p.logo_path ? <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name}/> : <span className="provider__fallback-icon"><PlayLinear size={16}/></span>}
-            <span className="modal__where-name">
-              {p.svc?.name || p.provider_name}
-              {!p.streaming && <span className="modal__where-tag">{t('modal.rent')}</span>}
-            </span>
-            <LinkMinimalisticLinear size={11} style={{opacity:0.4,marginLeft:'auto'}}/>
+          <a key={p.provider_id} className="mm-watch-item" href={p.href} target="_blank" rel="noopener noreferrer">
+            {p.logo_path
+              ? <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} />
+              : <span className="mm-watch-fallback"><PlayLinear size={14} /></span>}
+            <span className="mm-watch-name">{p.svc?.name || p.provider_name}</span>
+            {!p.streaming && <span className="mm-watch-tag">{t('modal.rent')}</span>}
           </a>
         ))}
       </div>
@@ -50,75 +61,67 @@ function WhereToWatch({ movieId, type, lang, title }) {
   );
 }
 
-// Inline rating row shown inside modal for watched movies
-function InlineRating({ movieId, lang, getRating, rateMovie, type, title }) {
+/* ─── Inline Rating ───────────────────────────────────────────────────────── */
+function InlineRating({ movieId, getRating, rateMovie }) {
   const { t } = useTranslation();
   const current = getRating(movieId);
-  const [hovered,   setHovered]   = useState(0);
-  //const [showShare, setShowShare] = useState(false);
-  const COLORS = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
+  const [hovered, setHovered] = useState(0);
+  const COLORS = ['', '#ef4444', '#f97316', '#fb923c', '#fbbf24', '#a3a3a3', '#84cc16', '#22c55e', '#10b981', '#3b82f6', '#8b5cf6'];
   const display = hovered || current || 0;
   const color = COLORS[display] || 'var(--accent)';
 
   return (
-    <>
-      <div className="modal__rating-row">
-        <div className="modal__rating-header">
-          <p className="modal__rating-label">{t('modal.yourRating')}</p>
-          {display > 0 && (
-            <span className="modal__rating-value" style={{ color }}>{display}/10</span>
-          )}
+    <div className="mm-section">
+      <div className="mm-rating-header">
+        <div className="mm-section__label">
+          <StarLinear size={11} />
+          {t('modal.yourRating')}
         </div>
-        <div className="modal__rating-stars">
-          {[1,2,3,4,5,6,7,8,9,10].map(n => (
-            <button
-              key={n}
-              className={"modal__rating-star" + (n <= display ? " active" : "")}
-              style={n <= display ? { background: color, color: n <= 4 ? '#fff' : '#000', borderColor: 'transparent' } : {}}
-              onMouseEnter={() => setHovered(n)}
-              onMouseLeave={() => setHovered(0)}
-              onClick={() => rateMovie(movieId, n)}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+        {display > 0 && (
+          <span className="mm-rating-score" style={{ color }}>{display}<span>/10</span></span>
+        )}
       </div>
-    </>
+      <div className="mm-rating-stars">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+          <button
+            key={n}
+            className={'mm-rating-star' + (n <= display ? ' active' : '')}
+            style={n <= display ? { background: color, color: n <= 4 ? '#fff' : '#000', borderColor: 'transparent' } : {}}
+            onMouseEnter={() => setHovered(n)}
+            onMouseLeave={() => setHovered(0)}
+            onClick={() => rateMovie(movieId, n)}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
-
-// ─── TV Progress Tracker ─────────────────────────────────────────────────────
-// Progress formula: seasons carry most of the weight (each completed season = 1/totalSeasons of bar).
-// Within the current season, episode progress adds a fractional amount inside the current season slot.
-// This means jumping a season moves the bar much more than jumping an episode, which is logical.
+/* ─── TV Progress Tracker ─────────────────────────────────────────────────── */
 function calcProgress(season, episode, episodesInSeason, totalSeasons) {
   const ts = Math.max(totalSeasons || 1, 1);
   const eps = episodesInSeason || null;
-  const slotSize = 100 / ts;                            // % per season
+  const slotSize = 100 / ts;
   const seasonsDone = season - 1;
-  const baseFromSeasons = seasonsDone * slotSize;       // fully done seasons
-  // Episode fraction within current season slot
+  const baseFromSeasons = seasonsDone * slotSize;
   const episodeFraction = (eps && eps > 1) ? (episode - 1) / (eps - 1) : 0;
   const withinSlot = slotSize * episodeFraction;
   return Math.min(100, Math.max(0, baseFromSeasons + withinSlot));
 }
 
-function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear }) {
+function TvProgressTracker({ id, progress, totalSeasons, onChange, onClear }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [season,  setSeason]  = useState(progress?.season  || 1);
+  const [season, setSeason] = useState(progress?.season || 1);
   const [episode, setEpisode] = useState(progress?.episode || 1);
   const [episodesInSeason, setEpisodesInSeason] = useState(null);
   const epCache = useRef({});
 
   useEffect(() => {
     if (!open) return;
-    if (epCache.current[season]) {
-      setEpisodesInSeason(epCache.current[season]);
-      return;
-    }
+    if (epCache.current[season]) { setEpisodesInSeason(epCache.current[season]); return; }
     setEpisodesInSeason(null);
     fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?language=en-US`, { headers: HEADERS })
       .then(r => r.json())
@@ -129,14 +132,14 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
         if (count && episode > count) setEpisode(count);
       })
       .catch(() => setEpisodesInSeason(null));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, season, id]);
 
   const maxEpisode = episodesInSeason || 999;
   const ts = totalSeasons || 1;
 
   const handleOpen = () => {
-    setSeason(progress?.season   || 1);
+    setSeason(progress?.season || 1);
     setEpisode(progress?.episode || 1);
     setOpen(true);
   };
@@ -146,7 +149,7 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
     setOpen(false);
   };
 
-  const badgePct  = calcProgress(progress?.season || 1, progress?.episode || 1, progress?.episodesInSeason || null, ts);
+  const badgePct = calcProgress(progress?.season || 1, progress?.episode || 1, progress?.episodesInSeason || null, ts);
   const editorPct = calcProgress(season, episode, episodesInSeason, ts);
 
   const isFinished = progress &&
@@ -155,202 +158,171 @@ function TvProgressTracker({ id, progress, totalSeasons, lang, onChange, onClear
     progress.episode >= progress.episodesInSeason;
 
   return (
-    <>
-      {/* ── Compact badge / start button ───────────────────────────────── */}
-      <div className="tv-tracker__row">
+    <div className="mm-section">
+      <div className="mm-section__label">
+        <MonitorLinear size={11} />
+        {t('tvtracker.trackProgress')}
+      </div>
+
+      <div className="mm-tracker-row">
         {progress ? (
-          <div className="tv-tracker__badge" onClick={handleOpen}>
-            <div className="tv-tracker__badge-left">
-              <MonitorLinear size={15} className="tv-tracker__badge-icon"/>
-              <div className="tv-tracker__badge-pos-wrap">
-                <span className="tv-tracker__badge-pos">
-                  {t('tvtracker.seasonBadge')} {progress.season}
-                  {' · '}
-                  {t('tvtracker.episodeBadge')} {progress.episode}
-                  {progress.episodesInSeason
-                    ? <span className="tv-tracker__badge-total">/{progress.episodesInSeason}</span>
-                    : null}
+          <button className="mm-tracker-badge" onClick={handleOpen}>
+            <div className="mm-tracker-badge__info">
+              <span className="mm-tracker-badge__pos">
+                S{progress.season} · E{progress.episode}
+                {progress.episodesInSeason && <span className="mm-tracker-badge__of">/{progress.episodesInSeason}</span>}
+              </span>
+              {isFinished && (
+                <span className="mm-tracker-badge__done">
+                  <CheckCircleLinear size={11} /> {t('tvtracker.finished') || 'Done'}
                 </span>
-              </div>
-              {isFinished && <span className="tv-tracker__badge-done"><CheckCircleLinear size={13}/></span>}
-            </div>
-            <div className="tv-tracker__badge-right">
-              <div className="tv-tracker__badge-pct-row">
-                <span className="tv-tracker__badge-pct-val">{Math.round(badgePct)}%</span>
-                <PenLinear size={11} className="tv-tracker__badge-edit"/>
-              </div>
-              <div className="tv-tracker__bar">
-                <div className="tv-tracker__bar-fill" style={{ width: `${badgePct}%` }}/>
-              </div>
-              {ts > 1 && (
-                <div className="tv-tracker__pips">
-                  {Array.from({ length: Math.min(ts, 16) }, (_, i) => (
-                    <span
-                      key={i}
-                      className={
-                        'tv-tracker__pip' +
-                        (i < (progress.season - 1) ? ' done' :
-                         i === progress.season - 1  ? ' current' : '')
-                      }
-                    />
-                  ))}
-                  {ts > 16 && <span className="tv-tracker__pips-more">+{ts - 16}</span>}
-                </div>
               )}
             </div>
-          </div>
+            <div className="mm-tracker-badge__right">
+              <div className="mm-tracker-bar">
+                <div className="mm-tracker-bar__fill" style={{ width: `${badgePct}%` }} />
+              </div>
+              <div className="mm-tracker-badge__meta">
+                <span className="mm-tracker-badge__pct">{Math.round(badgePct)}%</span>
+                {ts > 1 && (
+                  <div className="mm-tracker-pips">
+                    {Array.from({ length: Math.min(ts, 20) }, (_, i) => (
+                      <span
+                        key={i}
+                        className={
+                          'mm-tracker-pip' +
+                          (i < (progress.season - 1) ? ' done' :
+                            i === progress.season - 1 ? ' current' : '')
+                        }
+                      />
+                    ))}
+                    {ts > 20 && <span className="mm-tracker-pips-more">+{ts - 20}</span>}
+                  </div>
+                )}
+              </div>
+              <PenLinear size={11} className="mm-tracker-badge__edit" />
+            </div>
+          </button>
         ) : (
-          <button className="tv-tracker__start" onClick={handleOpen}>
-            <span className="tv-tracker__start-inner">
-              <MonitorLinear size={14}/>
-              <span>{t('tvtracker.trackProgress')}</span>
-            </span>
+          <button className="mm-tracker-start" onClick={handleOpen}>
+            <MonitorLinear size={14} />
+            <span>{t('tvtracker.trackProgress')}</span>
           </button>
         )}
         {progress && (
-          <button className="tv-tracker__clear" onClick={onClear} title={t('tvtracker.reset')}>
-            <RefreshCircleLinear size={13}/>
+          <button className="mm-tracker-clear" onClick={onClear} title={t('tvtracker.reset')}>
+            <RefreshCircleLinear size={14} />
           </button>
         )}
       </div>
 
-      {/* ── Expanded editor ─────────────────────────────────────────────── */}
       {open && (
-        <div className="tv-tracker__editor">
-          {/* Live progress bar */}
-          <div className="tv-tracker__editor-preview">
-            <div className="tv-tracker__editor-bar">
-              <div className="tv-tracker__editor-bar-fill" style={{ width: `${editorPct}%` }}/>
+        <div className="mm-tracker-editor">
+          <div className="mm-tracker-editor__bar-row">
+            <div className="mm-tracker-editor__bar">
+              <div className="mm-tracker-editor__bar-fill" style={{ width: `${editorPct}%` }} />
             </div>
-            <span className="tv-tracker__editor-pct">{Math.round(editorPct)}%</span>
+            <span className="mm-tracker-editor__pct">{Math.round(editorPct)}%</span>
           </div>
-
-          {/* Season + Episode controls */}
-          <div className="tv-tracker__controls">
-            <div className="tv-tracker__control-block">
-              <span className="tv-tracker__control-label">{t('tvtracker.season')}</span>
-              <div className="tv-tracker__stepper">
-                <button
-                  className="tv-tracker__step-btn"
-                  onClick={() => setSeason(s => Math.max(1, s - 1))}
-                  disabled={season <= 1}
-                >−</button>
-                <span className="tv-tracker__step-val">
+          <div className="mm-tracker-controls">
+            <div className="mm-tracker-control">
+              <span className="mm-tracker-control__label">{t('tvtracker.season')}</span>
+              <div className="mm-tracker-stepper">
+                <button onClick={() => setSeason(s => Math.max(1, s - 1))} disabled={season <= 1}>−</button>
+                <span className="mm-tracker-stepper__val">
                   {season}
-                  {ts > 1 && <span className="tv-tracker__of">/{ts}</span>}
+                  {ts > 1 && <small>/{ts}</small>}
                 </span>
-                <button
-                  className="tv-tracker__step-btn"
-                  onClick={() => setSeason(s => Math.min(ts, s + 1))}
-                  disabled={season >= ts}
-                >+</button>
+                <button onClick={() => setSeason(s => Math.min(ts, s + 1))} disabled={season >= ts}>+</button>
               </div>
             </div>
-
-            <div className="tv-tracker__control-divider"/>
-
-            <div className="tv-tracker__control-block">
-              <span className="tv-tracker__control-label">{t('tvtracker.episode')}</span>
-              <div className="tv-tracker__stepper">
-                <button
-                  className="tv-tracker__step-btn"
-                  onClick={() => setEpisode(e => Math.max(1, e - 1))}
-                  disabled={episode <= 1}
-                >−</button>
-                <span className="tv-tracker__step-val">
+            <div className="mm-tracker-divider" />
+            <div className="mm-tracker-control">
+              <span className="mm-tracker-control__label">{t('tvtracker.episode')}</span>
+              <div className="mm-tracker-stepper">
+                <button onClick={() => setEpisode(e => Math.max(1, e - 1))} disabled={episode <= 1}>−</button>
+                <span className="mm-tracker-stepper__val">
                   {episode}
                   {episodesInSeason
-                    ? <span className="tv-tracker__of">/{episodesInSeason}</span>
-                    : <span className="tv-tracker__of loading">…</span>}
+                    ? <small>/{episodesInSeason}</small>
+                    : <small className="loading">…</small>}
                 </span>
-                <button
-                  className="tv-tracker__step-btn"
-                  onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}
-                >+</button>
+                <button onClick={() => setEpisode(e => Math.min(maxEpisode, e + 1))}>+</button>
               </div>
             </div>
           </div>
-
-          <div className="tv-tracker__editor-actions">
-            <button className="tv-tracker__cancel" onClick={() => setOpen(false)}>{t('tvtracker.cancel')}</button>
-            <button className="tv-tracker__save" onClick={handleSave}>{t('tvtracker.save')}</button>
+          <div className="mm-tracker-editor__actions">
+            <button className="mm-tracker-editor__cancel" onClick={() => setOpen(false)}>{t('tvtracker.cancel')}</button>
+            <button className="mm-tracker-editor__save" onClick={handleSave}>{t('tvtracker.save')}</button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
-// ─── More Menu (three dots button next to title) ──────────────────────────────────────
-function MoreMenu({ movie, lang }) {
+/* ─── More Menu ───────────────────────────────────────────────────────────── */
+function MoreMenu({ movie }) {
   const { t } = useTranslation();
   const { customLists, addToCustomList, removeFromCustomList, isInCustomList } = useStore();
   const [panel, setPanel] = useState('closed');
 
-  const lists     = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
+  const lists = Object.values(customLists).sort((a, b) => b.createdAt - a.createdAt);
   const inAnyList = lists.some(l => isInCustomList(l.id, movie.id));
-  const close     = () => setPanel('closed');
+  const close = () => setPanel('closed');
 
   return (
-    <div className="modal__more" onClick={e => e.stopPropagation()}>
+    <div className="mm-more" onClick={e => e.stopPropagation()}>
       <button
-        className={"modal__more-btn" + (inAnyList ? ' in-list' : '')}
+        className={'mm-more__btn' + (inAnyList ? ' active' : '')}
         onClick={e => { e.stopPropagation(); setPanel(v => v === 'closed' ? 'main' : 'closed'); }}
         aria-label="More options"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <circle cx="8" cy="3"  r="1.5"/>
-          <circle cx="8" cy="8"  r="1.5"/>
-          <circle cx="8" cy="13" r="1.5"/>
+          <circle cx="8" cy="3" r="1.5" />
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="8" cy="13" r="1.5" />
         </svg>
+        {inAnyList && <span className="mm-more__dot" />}
       </button>
 
       {panel !== 'closed' && (
         <>
-          <div className="modal__more-backdrop" onClick={close}/>
-          <div className="modal__more-panel" onClick={e => e.stopPropagation()}>
-
+          <div className="mm-more__backdrop" onClick={close} />
+          <div className="mm-more__panel" onClick={e => e.stopPropagation()}>
             {panel === 'main' && (
-              <button
-                className={"modal__more-item" + (inAnyList ? ' accent' : '')}
-                onClick={() => setPanel('lists')}
-              >
-                <ListLinear size={15}/>
+              <button className={'mm-more__item' + (inAnyList ? ' accent' : '')} onClick={() => setPanel('lists')}>
+                <ListLinear size={15} />
                 <span>{t('tvtracker.addToList')}</span>
-                {inAnyList && <span className="modal__more-dot"/>}
+                {inAnyList && <CheckCircleLinear size={13} className="mm-more__check" />}
               </button>
             )}
-
             {panel === 'lists' && (
               <>
-                <div className="modal__more-lists-header">
-                  <button className="modal__more-back" onClick={() => setPanel('main')}>
-                    {String.fromCharCode(8249)} {t('tvtracker.back')}
-                  </button>
+                <div className="mm-more__lists-header">
+                  <button className="mm-more__back" onClick={() => setPanel('main')}>‹ {t('tvtracker.back')}</button>
                   <span>{t('tvtracker.addToListFull')}</span>
                 </div>
                 {lists.length === 0 && (
-                  <p className="modal__more-empty">
-                    {t('tvtracker.noLists')}
-                  </p>
+                  <p className="mm-more__empty">{t('tvtracker.noLists')}</p>
                 )}
                 {lists.map(list => {
                   const inList = isInCustomList(list.id, movie.id);
                   return (
-                    <button key={list.id}
-                      className={"modal__more-item" + (inList ? ' accent' : '')}
+                    <button
+                      key={list.id}
+                      className={'mm-more__item' + (inList ? ' accent' : '')}
                       onClick={() => { inList ? removeFromCustomList(list.id, movie.id) : addToCustomList(list.id, movie); close(); }}
                     >
-                      <ListLinear size={14}/>
-                      <span className="modal__more-item-name">{list.name}</span>
-                      <span className="modal__more-item-count">{list.items?.length ?? 0}</span>
-                      {inList && <span className="modal__more-check"><CheckCircleLinear size={14}/></span>}
+                      <ListLinear size={14} />
+                      <span className="mm-more__item-name">{list.name}</span>
+                      <span className="mm-more__item-count">{list.items?.length ?? 0}</span>
+                      {inList && <CheckCircleLinear size={13} className="mm-more__check" />}
                     </button>
                   );
                 })}
               </>
             )}
-
           </div>
         </>
       )}
@@ -358,10 +330,10 @@ function MoreMenu({ movie, lang }) {
   );
 }
 
-// ─── Scrollable People Block (cast & crew) ───────────────────────────────────
+/* ─── Scrollable People Block ─────────────────────────────────────────────── */
 function ScrollablePeopleBlock({ title, items, onItemClick }) {
   const listRef = useRef(null);
-  const [canScrollLeft,  setCanScrollLeft]  = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const checkScroll = useCallback(() => {
@@ -388,51 +360,34 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
   };
 
   if (!items || items.length === 0) return null;
+
   return (
-    <div className="modal__people-block">
-      <div className="modal__people-header">
-        <h4>{title}</h4>
-        <div className="modal__people-arrows">
-          <button
-            className={"modal__people-arrow" + (canScrollLeft ? '' : ' disabled')}
-            onClick={() => scroll(-1)}
-            aria-label="Scroll left"
-            disabled={!canScrollLeft}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+    <div className="mm-people">
+      <div className="mm-people__header">
+        <span className="mm-section__label" style={{ marginBottom: 0 }}>{title}</span>
+        <div className="mm-people__arrows">
+          <button className={'mm-people__arrow' + (canScrollLeft ? '' : ' disabled')} onClick={() => scroll(-1)} disabled={!canScrollLeft}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
-          <button
-            className={"modal__people-arrow" + (canScrollRight ? '' : ' disabled')}
-            onClick={() => scroll(1)}
-            aria-label="Scroll right"
-            disabled={!canScrollRight}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <button className={'mm-people__arrow' + (canScrollRight ? '' : ' disabled')} onClick={() => scroll(1)} disabled={!canScrollRight}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </div>
       </div>
-      <div className="modal__people-list" ref={listRef}>
+      <div className="mm-people__list" ref={listRef}>
         {items.map(item => (
           <div
             key={item.id}
-            className={"modal__people-card" + (onItemClick ? ' modal__people-card--clickable' : '')}
+            className={'mm-people__card' + (onItemClick ? ' clickable' : '')}
             onClick={() => onItemClick?.(item)}
           >
-            <div className="modal__people-photo">
+            <div className="mm-people__photo">
               {item.profile_path
-                ? <img src={`https://image.tmdb.org/t/p/w185${item.profile_path}`} alt={item.name}/>
-                : <span className="modal__people-initials">{item.name?.[0] ?? '?'}</span>}
+                ? <img src={`https://image.tmdb.org/t/p/w185${item.profile_path}`} alt={item.name} />
+                : <span className="mm-people__initial">{item.name?.[0] ?? '?'}</span>}
             </div>
-            <div className="modal__people-info">
-              <span className="modal__people-name">{item.name}</span>
-              {item.sub && (
-                <span className="modal__people-role" title={item.sub}>{item.sub}</span>
-              )}
-            </div>
+            <span className="mm-people__name">{item.name}</span>
+            {item.sub && <span className="mm-people__role" title={item.sub}>{item.sub}</span>}
           </div>
         ))}
       </div>
@@ -440,25 +395,25 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
   );
 }
 
-// ─── Movie Details Panel (expandable) ────────────────────────────────────────
+/* ─── Movie Details Panel ─────────────────────────────────────────────────── */
 function MovieDetailsPanel({ details, type, t, onStudioClick }) {
   const [open, setOpen] = useState(false);
 
-  const budget  = details?.budget;
+  const budget = details?.budget;
   const revenue = details?.revenue;
   const tagline = details?.tagline;
-  const status  = details?.status;
+  const status = details?.status;
   const originalTitle = details?.original_title || details?.original_name;
-  const originalLang  = details?.original_language;
-  const homepage      = details?.homepage;
+  const originalLang = details?.original_language;
+  const homepage = details?.homepage;
   const studios = (details?.production_companies || []).slice(0, 4);
   const countries = (details?.production_countries || []).map(c => c.name);
   const languages = (details?.spoken_languages || []).map(l => l.english_name || l.name);
   const releaseDate = details?.release_date || details?.first_air_date;
   const networks = (details?.networks || []).slice(0, 3);
   const episodeRuntime = details?.episode_run_time?.[0];
-  const totalEpisodes  = details?.number_of_episodes;
-  const inProduction   = details?.in_production;
+  const totalEpisodes = details?.number_of_episodes;
+  const inProduction = details?.in_production;
 
   const formatMoney = (n) => {
     if (!n || n === 0) return null;
@@ -467,160 +422,153 @@ function MovieDetailsPanel({ details, type, t, onStudioClick }) {
     return `$${n}`;
   };
 
-  const LANG_NAMES = { en:'English', ru:'Russian', fr:'French', de:'German', es:'Spanish', it:'Italian', ja:'Japanese', ko:'Korean', zh:'Chinese', pt:'Portuguese', hi:'Hindi', ar:'Arabic', nl:'Dutch', tr:'Turkish', pl:'Polish', sv:'Swedish' };
+  const LANG_NAMES = { en: 'English', ru: 'Russian', fr: 'French', de: 'German', es: 'Spanish', it: 'Italian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', pt: 'Portuguese', hi: 'Hindi', ar: 'Arabic', nl: 'Dutch', tr: 'Turkish', pl: 'Polish', sv: 'Swedish' };
 
   const hasContent = tagline || status || originalTitle || budget || revenue || studios.length || countries.length || homepage || networks.length || episodeRuntime || totalEpisodes;
   if (!hasContent || !details) return null;
 
   return (
-    <div className="mdetails">
-      <button className={"mdetails__toggle" + (open ? " open" : "")} onClick={() => setOpen(v => !v)}>
-        <span className="mdetails__toggle-left">
-          <InfoCircleLinear size={13}/>
-          <span>{t("modal.moreDetails")}</span>
+    <div className="mm-details">
+      <button className={'mm-details__toggle' + (open ? ' open' : '')} onClick={() => setOpen(v => !v)}>
+        <span className="mm-details__toggle-left">
+          <InfoCircleLinear size={13} />
+          <span>{t('modal.moreDetails')}</span>
         </span>
-        <AltArrowDownLinear size={14} className="mdetails__chevron"/>
+        <AltArrowDownLinear size={14} className="mm-details__chevron" />
       </button>
 
-      <div className={"mdetails__panel" + (open ? " open" : "")}>
-        <div className="mdetails__inner">
+      <div className={'mm-details__panel' + (open ? ' open' : '')}>
+        <div className="mm-details__inner">
 
           {tagline && (
-            <div className="mdetails__tagline">
+            <div className="mm-details__tagline">
               &ldquo;{tagline}&rdquo;
             </div>
           )}
 
-          <div className="mdetails__grid">
+          <div className="mm-details__grid">
             {status && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><LayersMinimalisticLinear size={11}/>{t("modal.status")}</span>
-                <span className={"mdetails__value mdetails__status" + (inProduction ? " inprod" : "")}>{status}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><LayersMinimalisticLinear size={11} />{t('modal.status')}</span>
+                <span className={'mm-details__value' + (inProduction ? ' inprod' : '')}>{status}</span>
               </div>
             )}
-
             {releaseDate && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><CalendarLinear size={11}/>{t("modal.releaseDate")}</span>
-                <span className="mdetails__value">{new Date(releaseDate).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><CalendarLinear size={11} />{t('modal.releaseDate')}</span>
+                <span className="mm-details__value">{new Date(releaseDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
             )}
-
             {originalTitle && originalTitle !== details?.title && originalTitle !== details?.name && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><FlagLinear size={11}/>{t("modal.originalTitle")}</span>
-                <span className="mdetails__value">{originalTitle}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><FlagLinear size={11} />{t('modal.originalTitle')}</span>
+                <span className="mm-details__value">{originalTitle}</span>
               </div>
             )}
-
             {originalLang && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.originalLanguage")}</span>
-                <span className="mdetails__value">{LANG_NAMES[originalLang] || originalLang?.toUpperCase()}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><GlobalLinear size={11} />{t('modal.originalLanguage')}</span>
+                <span className="mm-details__value">{LANG_NAMES[originalLang] || originalLang?.toUpperCase()}</span>
               </div>
             )}
-
-            {type === "tv" && episodeRuntime && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><ClockCircleLinear size={11}/>{t("modal.episodeRuntime")}</span>
-                <span className="mdetails__value">{episodeRuntime} {t("modal.minutesShort")}</span>
+            {type === 'tv' && episodeRuntime && (
+              <div className="mm-details__item">
+                <span className="mm-details__label"><ClockCircleLinear size={11} />{t('modal.episodeRuntime')}</span>
+                <span className="mm-details__value">{episodeRuntime} {t('modal.minutesShort')}</span>
               </div>
             )}
-
-            {type === "tv" && totalEpisodes && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><TVLinear size={11}/>{t("modal.totalEpisodes")}</span>
-                <span className="mdetails__value">{totalEpisodes}</span>
+            {type === 'tv' && totalEpisodes && (
+              <div className="mm-details__item">
+                <span className="mm-details__label"><TVLinear size={11} />{t('modal.totalEpisodes')}</span>
+                <span className="mm-details__value">{totalEpisodes}</span>
               </div>
             )}
-
             {formatMoney(budget) && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>{t("modal.budget")}</span>
-                <span className="mdetails__value">{formatMoney(budget)}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><DollarMinimalisticLinear size={11} />{t('modal.budget')}</span>
+                <span className="mm-details__value">{formatMoney(budget)}</span>
               </div>
             )}
-
             {formatMoney(revenue) && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>{t("modal.revenue")}</span>
-                <span className={"mdetails__value" + (revenue > budget && budget > 0 ? " profit" : "")}>{formatMoney(revenue)}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><DollarMinimalisticLinear size={11} />{t('modal.revenue')}</span>
+                <span className={'mm-details__value' + (revenue > budget && budget > 0 ? ' profit' : '')}>{formatMoney(revenue)}</span>
               </div>
             )}
-
             {details?.vote_count > 0 && (
-              <div className="mdetails__item">
-                <span className="mdetails__label"><StarLinear size={11}/>{t("modal.voteCount")}</span>
-                <span className="mdetails__value">{details.vote_count.toLocaleString()} {t("modal.votes")}</span>
+              <div className="mm-details__item">
+                <span className="mm-details__label"><StarLinear size={11} />{t('modal.voteCount')}</span>
+                <span className="mm-details__value">{details.vote_count.toLocaleString()} {t('modal.votes')}</span>
               </div>
             )}
-
             {countries.length > 0 && (
-              <div className="mdetails__item mdetails__item--wide">
-                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.countries")}</span>
-                <span className="mdetails__value">{countries.join(", ")}</span>
+              <div className="mm-details__item mm-details__item--wide">
+                <span className="mm-details__label"><GlobalLinear size={11} />{t('modal.countries')}</span>
+                <span className="mm-details__value">{countries.join(', ')}</span>
               </div>
             )}
-
             {languages.length > 0 && (
-              <div className="mdetails__item mdetails__item--wide">
-                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.languages")}</span>
-                <span className="mdetails__value">{languages.join(", ")}</span>
+              <div className="mm-details__item mm-details__item--wide">
+                <span className="mm-details__label"><GlobalLinear size={11} />{t('modal.languages')}</span>
+                <span className="mm-details__value">{languages.join(', ')}</span>
               </div>
             )}
           </div>
 
           {(studios.length > 0 || networks.length > 0) && (
-            <div className="mdetails__studios-section">
-              <span className="mdetails__section-label">
-                <BuildingsLinear size={11}/>
-                {type === "tv" ? t("modal.networksStudios") : t("modal.production")}
+            <div className="mm-details__studios-section">
+              <span className="mm-details__section-label">
+                <BuildingsLinear size={11} />
+                {type === 'tv' ? t('modal.networksStudios') : t('modal.production')}
               </span>
-              <div className="mdetails__studios">
+              <div className="mm-details__studios">
                 {[...networks.map(n => ({ ...n, _entityType: 'network' })),
-                   ...studios.map(s => ({ ...s, _entityType: 'company' }))].slice(0, 5).map(s => (
-                  <div
-                    key={s.id}
-                    className={"mdetails__studio" + (onStudioClick ? " mdetails__studio--clickable" : "")}
-                    onClick={() => onStudioClick && onStudioClick({ id: s.id, name: s.name, entityType: s._entityType, logo: s.logo_path ? `https://image.tmdb.org/t/p/w300${s.logo_path}` : null })}
-                    title={s.name}
-                  >
-                    {s.logo_path
-                      ? <img src={`https://image.tmdb.org/t/p/w300${s.logo_path}`} alt={s.name} className="mdetails__studio-logo"/>
-                      : <span className="mdetails__studio-name">{s.name}</span>
-                    }
-                  </div>
-                ))}
+                  ...studios.map(s => ({ ...s, _entityType: 'company' }))].slice(0, 5).map(s => (
+                    <div
+                      key={s.id}
+                      className={'mm-details__studio' + (onStudioClick ? ' clickable' : '')}
+                      onClick={() => onStudioClick && onStudioClick({ id: s.id, name: s.name, entityType: s._entityType, logo: s.logo_path ? `https://image.tmdb.org/t/p/w300${s.logo_path}` : null })}
+                      title={s.name}
+                    >
+                      {s.logo_path
+                        ? <img src={`https://image.tmdb.org/t/p/w300${s.logo_path}`} alt={s.name} className="mm-details__studio-logo" />
+                        : <span className="mm-details__studio-name">{s.name}</span>}
+                    </div>
+                  ))}
               </div>
             </div>
           )}
 
           {homepage && (
-            <a href={homepage} target="_blank" rel="noopener noreferrer" className="mdetails__homepage">
-              <GlobalLinear size={12}/>
-              <span>{t("modal.officialSite")}</span>
-              <LinkMinimalisticLinear size={10} style={{ opacity: 0.5, marginLeft: "auto" }}/>
+            <a href={homepage} target="_blank" rel="noopener noreferrer" className="mm-details__homepage">
+              <GlobalLinear size={12} />
+              <span>{t('modal.officialSite')}</span>
+              <LinkMinimalisticLinear size={10} style={{ opacity: 0.5, marginLeft: 'auto' }} />
             </a>
           )}
-
         </div>
       </div>
     </div>
   );
 }
 
-
+/* ─── Main Modal ──────────────────────────────────────────────────────────── */
 const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCrewClick, onStudioClick }) {
-  const [details, setDetails]         = useState(null);
+  const [details, setDetails] = useState(null);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
-  const { isWatched, isInWatchlist, addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, getRating, rateMovie, setTvProgressEntry, getTvProgress, clearTvProgress } = useStore();
+  const {
+    isWatched, isInWatchlist, addToWatched, addToWatchlist,
+    removeFromWatched, removeFromWatchlist, getRating, rateMovie,
+    setTvProgressEntry, getTvProgress, clearTvProgress,
+  } = useStore();
   const { lang } = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const watched  = movie ? isWatched(movie.id)     : false;
-  const inList   = movie ? isInWatchlist(movie.id) : false;
-  const type     = movie?.media_type || (movie?.title ? 'movie' : 'tv');
-  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE' };
+
+  const watched = movie ? isWatched(movie.id) : false;
+  const inList = movie ? isInWatchlist(movie.id) : false;
+  const type = movie?.media_type || (movie?.title ? 'movie' : 'tv');
+  const TMDB_LANG_MAP = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' };
   const langCode = TMDB_LANG_MAP[lang] || 'en-US';
   const posterUrl = tmdb.posterUrl(movie?.poster_path, 'w342');
   const accentColor = useDominantColor(posterUrl);
@@ -639,15 +587,17 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
 
   if (!movie) return null;
 
-  const title    = details?.title    || details?.name   || movie.title || movie.name || '';
-  const overview = details?.overview || movie.overview  || '';
-  const year     = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0,4);
+  const title = details?.title || details?.name || movie.title || movie.name || '';
+  const overview = details?.overview || movie.overview || '';
+  const year = (details?.release_date || details?.first_air_date || movie.release_date || movie.first_air_date || '').slice(0, 4);
   const backdrop = tmdb.backdropUrl(details?.backdrop_path || movie.backdrop_path);
-  const poster   = tmdb.posterUrl(details?.poster_path || movie.poster_path, 'w780');
-  const rating   = (details?.vote_average || movie.vote_average)?.toFixed(1);
-  const genres   = details?.genres?.slice(0,3).map(g => g.name) || [];
-  const runtime  = details?.runtime ? `${Math.floor(details.runtime/60)}${t('modal.hours')} ${details.runtime%60}${t('modal.minutes')}` : null;
-  const seasons  = details?.number_of_seasons;
+  const poster = tmdb.posterUrl(details?.poster_path || movie.poster_path, 'w780');
+  const rating = (details?.vote_average || movie.vote_average)?.toFixed(1);
+  const genres = details?.genres?.slice(0, 4).map(g => g.name) || [];
+  const runtime = details?.runtime
+    ? `${Math.floor(details.runtime / 60)}${t('modal.hours')} ${details.runtime % 60}${t('modal.minutes')}`
+    : null;
+  const seasons = details?.number_of_seasons;
   const certification = (() => {
     if (type === 'movie') {
       const results = details?.release_dates?.results || [];
@@ -667,178 +617,229 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
     }
     return null;
   })();
-  const cast       = details?.credits?.cast || [];
-  const crew       = details?.credits?.crew || [];
+
+  const cast = details?.credits?.cast || [];
+  const crew = details?.credits?.crew || [];
   const progress = movie ? getTvProgress(movie.id) : null;
-  const totalSeasons  = details?.number_of_seasons  || 1;
+  const totalSeasons = details?.number_of_seasons || 1;
 
   const handleMarkWatched = () => {
-    if (watched) {
-      removeFromWatched(movie.id);
-    } else {
-      addToWatched({ ...movie, media_type: type });
-    }
+    if (watched) removeFromWatched(movie.id);
+    else addToWatched({ ...movie, media_type: type });
   };
 
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div
-          className="modal"
-          onClick={e => e.stopPropagation()}
-          style={accentColor ? {
-            '--modal-accent': `rgb(${accentColor})`,
-            '--modal-accent-border': `rgba(${accentColor}, 0.35)`,
-          } : {}}
-        >
-          {accentColor && <div className="modal__accent-border" style={{background: `rgb(${accentColor})`}}/>}
+  const handleWatchlist = () => {
+    if (inList) removeFromWatchlist(movie.id);
+    else addToWatchlist({ ...movie, media_type: type });
+  };
 
-          <div className="modal__backdrop">
-            {(backdrop || poster) && <img src={backdrop || poster} alt="" className="modal__backdrop-img"/>}
-            <div className="modal__backdrop-fade"/>
-            <button className="modal__close" onClick={e => { e.stopPropagation(); onClose(); }}>
-              <CloseCircleLinear size={16} strokeWidth={2.5}/>
-            </button>
+  const accentStyle = accentColor ? {
+    '--mm-accent': `rgb(${accentColor})`,
+    '--mm-accent-rgb': accentColor,
+  } : {};
+
+  return (
+    <div className="mm-overlay" onClick={onClose}>
+      <div className="mm" onClick={e => e.stopPropagation()} style={accentStyle}>
+
+        {/* ── Accent border top ── */}
+        {accentColor && <div className="mm__accent-line" />}
+
+        {/* ── Hero ── */}
+        <div className="mm__hero">
+          <div className="mm__backdrop">
+            {(backdrop || poster) && (
+              <img src={backdrop || poster} alt="" className="mm__backdrop-img" />
+            )}
+            <div className="mm__backdrop-fade" />
           </div>
 
-          <div className="modal__poster-wrap">
-            {poster && <img className="modal__poster" src={poster} alt={title}/>}
-            <div className="modal__title-block">
-              <div className="modal__title-row">
-                <h2 className="modal__title">{title}</h2>
-                <MoreMenu movie={movie} lang={lang}/>
+          <button className="mm__close" onClick={e => { e.stopPropagation(); onClose(); }}>
+            <CloseCircleLinear size={18} strokeWidth={2.5} />
+          </button>
+
+          {/* ── Poster + title overlay ── */}
+          <div className="mm__hero-content">
+            {poster && (
+              <div className="mm__poster-wrap">
+                <img className="mm__poster" src={poster} alt={title} />
+                {accentColor && <div className="mm__poster-glow" />}
               </div>
-              <div className="modal__sub">
-                {year    && <span>{year}</span>}
-                {rating  && <span><StarLinear size={11} fill="currentColor"/>{rating}</span>}
-                {runtime && <span><ClockCircleLinear size={11}/>{runtime}</span>}
-                {seasons && <span><TVLinear size={11}/>{seasons} {t('modal.seasons')}</span>}
-                {certification && <span className="modal__cert-badge">{certification}</span>}
-                <span className="modal__type-badge">
-                  {type==='tv' ? <><TVLinear size={10}/>{t('modal.series')}</> : <><VideoLibraryLinear size={10}/>{t('modal.movie')}</>}
+            )}
+            <div className="mm__title-block">
+              <div className="mm__title-row">
+                <h2 className="mm__title">{title}</h2>
+                <MoreMenu movie={movie} />
+              </div>
+
+              {/* Meta pills */}
+              <div className="mm__meta">
+                {year && <span className="mm__meta-item">{year}</span>}
+                {rating && (
+                  <span className="mm__meta-item mm__meta-item--rating">
+                    <StarLinear size={10} fill="currentColor" />
+                    {rating}
+                  </span>
+                )}
+                {runtime && (
+                  <span className="mm__meta-item">
+                    <ClockCircleLinear size={10} />
+                    {runtime}
+                  </span>
+                )}
+                {seasons && (
+                  <span className="mm__meta-item">
+                    <TVLinear size={10} />
+                    {seasons} {t('modal.seasons')}
+                  </span>
+                )}
+                {certification && (
+                  <span className="mm__meta-item mm__meta-item--cert">{certification}</span>
+                )}
+                <span className="mm__meta-item mm__meta-item--type">
+                  {type === 'tv'
+                    ? <><TVLinear size={10} />{t('modal.series')}</>
+                    : <><VideoLibraryLinear size={10} />{t('modal.movie')}</>}
                 </span>
               </div>
-               {genres.length > 0 && <div className="modal__genres">{genres.map(g=><span key={g} className="modal__genre">{g}</span>)}</div>}
+
+              {/* Genre tags */}
+              {genres.length > 0 && (
+                <div className="mm__genres">
+                  {genres.map(g => <span key={g} className="mm__genre">{g}</span>)}
+                </div>
+              )}
             </div>
-          </div>
-
-          <div className="modal__content">
-            {overview && (
-              <div className="modal__overview-wrap">
-                <p className={"modal__overview" + (overviewExpanded ? ' expanded' : '')}>
-                  {overview}
-                </p>
-                {overview.length > 180 && (
-                  <button className="modal__overview-toggle" onClick={() => setOverviewExpanded(v => !v)}>
-                    {overviewExpanded ? t('modal.showLess') : t('modal.readMore')}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {watched && (
-              <InlineRating movieId={movie.id} lang={lang} getRating={getRating} rateMovie={rateMovie} type={type} title={title}/>
-            )}
-
-            {type === 'tv' && inList && (
-              <TvProgressTracker
-                id={movie.id}
-                progress={progress}
-                totalSeasons={totalSeasons}
-                lang={lang}
-                onChange={(data) => setTvProgressEntry(movie.id, data)}
-                onClear={() => clearTvProgress(movie.id)}
-              />
-            )}
-
-            <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
-
-            <MovieDetailsPanel details={details} type={type} t={t} onStudioClick={onStudioClick}/>
-
-            {cast.length > 0 && (
-              <ScrollablePeopleBlock
-                title={t('modal.cast')}
-                items={cast.map(c => ({
-                  id: c.id,
-                  name: c.name,
-                  profile_path: c.profile_path,
-                  sub: c.character,
-                }))}
-                onItemClick={(item) => onActorClick?.({ id: item.id, name: item.name, profile_path: item.profile_path })}
-              />
-            )}
-
-            {crew.length > 0 && (
-              <ScrollablePeopleBlock
-                title={t('modal.crew')}
-                items={(() => {
-                  const ALWAYS_SHOW_JOBS = new Set(['Director', 'Co-Director']);
-                  const KEY_WRITING_JOBS = new Set(['Screenplay', 'Writer', 'Story', 'Script', 'Original Story', 'Teleplay', 'Creator']);
-                  const KEY_PRODUCING_JOBS = new Set(['Producer', 'Executive Producer']);
-
-                  const seen = new Map();
-                  crew.forEach(c => {
-                    if (seen.has(c.id)) {
-                      const existing = seen.get(c.id);
-                      if (!existing.jobs.includes(c.job)) existing.jobs.push(c.job);
-                      if (!existing.profile_path && c.profile_path) existing.profile_path = c.profile_path;
-                    } else {
-                      seen.set(c.id, { id: c.id, name: c.name, profile_path: c.profile_path, jobs: [c.job], department: c.department });
-                    }
-                  });
-
-                  const allPeople = Array.from(seen.values()).map(p => ({ ...p, sub: p.jobs.join(', ') }));
-                  const writerCount   = allPeople.filter(p => p.jobs.some(j => KEY_WRITING_JOBS.has(j))).length;
-                  const producerCount = allPeople.filter(p => p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))).length;
-
-                  const deptOrder = { Directing:0, Writing:1, Production:2, 'Visual Effects':3, Sound:4, Camera:5, Editing:6, Art:7, 'Costume & Make-Up':8 };
-
-                  const filtered = allPeople.filter(p => {
-                    if (p.profile_path) return true;
-                    if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return true;
-                    if (p.jobs.some(j => KEY_WRITING_JOBS.has(j)) && writerCount <= 2) return true;
-                    if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j)) && producerCount <= 2) return true;
-                    return false;
-                  });
-
-                  const jobPriority = (p) => {
-                    if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return 0;
-                    if (p.jobs.some(j => KEY_WRITING_JOBS.has(j))) return 1;
-                    if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))) return 2;
-                    return 3;
-                  };
-
-                  return filtered.sort((a, b) => {
-                    const jp = jobPriority(a) - jobPriority(b);
-                    if (jp !== 0) return jp;
-                    return (deptOrder[a.department] ?? 99) - (deptOrder[b.department] ?? 99);
-                  });
-                })()}
-                onItemClick={onCrewClick ? (item) => onCrewClick({ id: item.id, name: item.name, profile_path: item.profile_path, department: item.department }) : null}
-              />
-            )}
-
-            <div className="modal__actions">
-              <button className={"modal__action-btn"+(watched?" active-green":"")} onClick={handleMarkWatched}>
-                {watched ? <><EyeClosedLinear size={15}/>{t('modal.watched')}</> : <><EyeLinear size={15}/>{t('modal.markWatched')}</>}
-              </button>
-              <button className={"modal__action-btn secondary"+(inList&&!watched?" active-yellow":"")}
-                onClick={() => inList ? removeFromWatchlist(movie.id) : addToWatchlist({...movie,media_type:type})}
-                disabled={watched}>
-                {inList&&!watched ? <><BookmarkOpenedLinear size={15}/>{t('modal.inList')}</> : <><BookmarkLinear size={15}/>{t('modal.watchlist')}</>}
-              </button>
-            </div>
-            <button
-              className="modal__similar-btn"
-              onClick={() => { const fromPath = window.location.pathname; onClose(); navigate(`/similar/${type}/${movie.id}`, { state: { sourceMovie: { ...movie, media_type: type }, fromPath } }); }}
-            >
-              <InfinityLinear size={15}/>
-              {t('modal.similar')}
-            </button>
           </div>
         </div>
+
+        {/* ── Scrollable body ── */}
+        <div className="mm__body">
+
+          {/* Overview */}
+          {overview && (
+            <div className="mm__overview-wrap">
+              <p className={'mm__overview' + (overviewExpanded ? ' expanded' : '')}>{overview}</p>
+              {overview.length > 200 && (
+                <button className="mm__overview-toggle" onClick={() => setOverviewExpanded(v => !v)}>
+                  {overviewExpanded ? t('modal.showLess') : t('modal.readMore')}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Rating (only when watched) */}
+          {watched && (
+            <InlineRating movieId={movie.id} getRating={getRating} rateMovie={rateMovie} />
+          )}
+
+          {/* TV tracker (only when in watchlist) */}
+          {type === 'tv' && inList && (
+            <TvProgressTracker
+              id={movie.id}
+              progress={progress}
+              totalSeasons={totalSeasons}
+              onChange={(data) => setTvProgressEntry(movie.id, data)}
+              onClear={() => clearTvProgress(movie.id)}
+            />
+          )}
+
+          {/* Where to watch */}
+          <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title} />
+
+          {/* Details panel */}
+          <MovieDetailsPanel details={details} type={type} t={t} onStudioClick={onStudioClick} />
+
+          {/* Cast */}
+          {cast.length > 0 && (
+            <ScrollablePeopleBlock
+              title={t('modal.cast')}
+              items={cast.map(c => ({ id: c.id, name: c.name, profile_path: c.profile_path, sub: c.character }))}
+              onItemClick={(item) => onActorClick?.({ id: item.id, name: item.name, profile_path: item.profile_path })}
+            />
+          )}
+
+          {/* Crew */}
+          {crew.length > 0 && (
+            <ScrollablePeopleBlock
+              title={t('modal.crew')}
+              items={(() => {
+                const ALWAYS_SHOW_JOBS = new Set(['Director', 'Co-Director']);
+                const KEY_WRITING_JOBS = new Set(['Screenplay', 'Writer', 'Story', 'Script', 'Original Story', 'Teleplay', 'Creator']);
+                const KEY_PRODUCING_JOBS = new Set(['Producer', 'Executive Producer']);
+                const seen = new Map();
+                crew.forEach(c => {
+                  if (seen.has(c.id)) {
+                    const ex = seen.get(c.id);
+                    if (!ex.jobs.includes(c.job)) ex.jobs.push(c.job);
+                    if (!ex.profile_path && c.profile_path) ex.profile_path = c.profile_path;
+                  } else {
+                    seen.set(c.id, { id: c.id, name: c.name, profile_path: c.profile_path, jobs: [c.job], department: c.department });
+                  }
+                });
+                const allPeople = Array.from(seen.values()).map(p => ({ ...p, sub: p.jobs.join(', ') }));
+                const writerCount = allPeople.filter(p => p.jobs.some(j => KEY_WRITING_JOBS.has(j))).length;
+                const producerCount = allPeople.filter(p => p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))).length;
+                const deptOrder = { Directing: 0, Writing: 1, Production: 2, 'Visual Effects': 3, Sound: 4, Camera: 5, Editing: 6, Art: 7, 'Costume & Make-Up': 8 };
+                const filtered = allPeople.filter(p => {
+                  if (p.profile_path) return true;
+                  if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return true;
+                  if (p.jobs.some(j => KEY_WRITING_JOBS.has(j)) && writerCount <= 2) return true;
+                  if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j)) && producerCount <= 2) return true;
+                  return false;
+                });
+                const jobPriority = (p) => {
+                  if (p.jobs.some(j => ALWAYS_SHOW_JOBS.has(j))) return 0;
+                  if (p.jobs.some(j => KEY_WRITING_JOBS.has(j))) return 1;
+                  if (p.jobs.some(j => KEY_PRODUCING_JOBS.has(j))) return 2;
+                  return 3;
+                };
+                return filtered.sort((a, b) => {
+                  const jp = jobPriority(a) - jobPriority(b);
+                  if (jp !== 0) return jp;
+                  return (deptOrder[a.department] ?? 99) - (deptOrder[b.department] ?? 99);
+                });
+              })()}
+              onItemClick={onCrewClick ? (item) => onCrewClick({ id: item.id, name: item.name, profile_path: item.profile_path, department: item.department }) : null}
+            />
+          )}
+
+          {/* Similar button */}
+          <button
+            className="mm__similar-btn"
+            onClick={() => {
+              const fromPath = window.location.pathname;
+              onClose();
+              navigate(`/similar/${type}/${movie.id}`, { state: { sourceMovie: { ...movie, media_type: type }, fromPath } });
+            }}
+          >
+            <InfinityLinear size={14} />
+            {t('modal.similar')}
+          </button>
+        </div>
+
+        {/* ── Sticky action bar ── */}
+        <div className="mm__actions">
+          <button
+            className={'mm__action-btn mm__action-btn--watch' + (watched ? ' active' : '')}
+            onClick={handleMarkWatched}
+          >
+            {watched ? <EyeClosedLinear size={16} /> : <EyeLinear size={16} />}
+            <span>{watched ? t('modal.watched') : t('modal.markWatched')}</span>
+          </button>
+          <button
+            className={'mm__action-btn mm__action-btn--list' + (inList && !watched ? ' active' : '')}
+            onClick={handleWatchlist}
+            disabled={watched}
+          >
+            {inList && !watched ? <BookmarkOpenedLinear size={16} /> : <BookmarkLinear size={16} />}
+            <span>{inList && !watched ? t('modal.inList') : t('modal.watchlist')}</span>
+          </button>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 });
+
 export default MovieModal;
