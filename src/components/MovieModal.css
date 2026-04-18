@@ -855,9 +855,9 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 }
 
 .mdetails__studio-logo {
-  height: 22px;
+  height: 28px;
   width: auto;
-  max-width: 90px;
+  max-width: 110px;
   object-fit: contain;
   filter: brightness(0) invert(0.75);
 }
@@ -892,4 +892,18 @@ body.modal-open { overflow: hidden !important; touch-action: none; }
 .mdetails__homepage:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* Clickable studio cards */
+.mdetails__studio--clickable {
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.mdetails__studio--clickable:hover {
+  border-color: var(--modal-accent, var(--accent));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.mdetails__studio--clickable:active {
+  transform: scale(0.96);
 }

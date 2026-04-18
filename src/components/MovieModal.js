@@ -441,7 +441,7 @@ function ScrollablePeopleBlock({ title, items, onItemClick }) {
 }
 
 // ─── Movie Details Panel (expandable) ────────────────────────────────────────
-function MovieDetailsPanel({ details, type, t }) {
+function MovieDetailsPanel({ details, type, t, onStudioClick }) {
   const [open, setOpen] = useState(false);
 
   const budget  = details?.budget;
@@ -477,7 +477,7 @@ function MovieDetailsPanel({ details, type, t }) {
       <button className={"mdetails__toggle" + (open ? " open" : "")} onClick={() => setOpen(v => !v)}>
         <span className="mdetails__toggle-left">
           <InfoCircleLinear size={13}/>
-          <span>More Details</span>
+          <span>{t("modal.moreDetails")}</span>
         </span>
         <AltArrowDownLinear size={14} className="mdetails__chevron"/>
       </button>
@@ -494,70 +494,77 @@ function MovieDetailsPanel({ details, type, t }) {
           <div className="mdetails__grid">
             {status && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><LayersMinimalisticLinear size={11}/>Status</span>
+                <span className="mdetails__label"><LayersMinimalisticLinear size={11}/>{t("modal.status")}</span>
                 <span className={"mdetails__value mdetails__status" + (inProduction ? " inprod" : "")}>{status}</span>
               </div>
             )}
 
             {releaseDate && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><CalendarLinear size={11}/>Release Date</span>
+                <span className="mdetails__label"><CalendarLinear size={11}/>{t("modal.releaseDate")}</span>
                 <span className="mdetails__value">{new Date(releaseDate).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</span>
               </div>
             )}
 
             {originalTitle && originalTitle !== details?.title && originalTitle !== details?.name && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><FlagLinear size={11}/>Original Title</span>
+                <span className="mdetails__label"><FlagLinear size={11}/>{t("modal.originalTitle")}</span>
                 <span className="mdetails__value">{originalTitle}</span>
               </div>
             )}
 
             {originalLang && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><GlobalLinear size={11}/>Language</span>
+                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.originalLanguage")}</span>
                 <span className="mdetails__value">{LANG_NAMES[originalLang] || originalLang?.toUpperCase()}</span>
               </div>
             )}
 
             {type === "tv" && episodeRuntime && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><ClockCircleLinear size={11}/>Episode Runtime</span>
-                <span className="mdetails__value">{episodeRuntime} min</span>
+                <span className="mdetails__label"><ClockCircleLinear size={11}/>{t("modal.episodeRuntime")}</span>
+                <span className="mdetails__value">{episodeRuntime} {t("modal.minutesShort")}</span>
               </div>
             )}
 
             {type === "tv" && totalEpisodes && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><TVLinear size={11}/>Total Episodes</span>
+                <span className="mdetails__label"><TVLinear size={11}/>{t("modal.totalEpisodes")}</span>
                 <span className="mdetails__value">{totalEpisodes}</span>
               </div>
             )}
 
             {formatMoney(budget) && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>Budget</span>
+                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>{t("modal.budget")}</span>
                 <span className="mdetails__value">{formatMoney(budget)}</span>
               </div>
             )}
 
             {formatMoney(revenue) && (
               <div className="mdetails__item">
-                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>Revenue</span>
+                <span className="mdetails__label"><DollarMinimalisticLinear size={11}/>{t("modal.revenue")}</span>
                 <span className={"mdetails__value" + (revenue > budget && budget > 0 ? " profit" : "")}>{formatMoney(revenue)}</span>
+              </div>
+            )}
+
+            {details?.vote_count > 0 && (
+              <div className="mdetails__item">
+                <span className="mdetails__label"><StarLinear size={11}/>{t("modal.voteCount")}</span>
+                <span className="mdetails__value">{details.vote_count.toLocaleString()} {t("modal.votes")}</span>
               </div>
             )}
 
             {countries.length > 0 && (
               <div className="mdetails__item mdetails__item--wide">
-                <span className="mdetails__label"><GlobalLinear size={11}/>Countries</span>
+                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.countries")}</span>
                 <span className="mdetails__value">{countries.join(", ")}</span>
               </div>
             )}
 
             {languages.length > 0 && (
               <div className="mdetails__item mdetails__item--wide">
-                <span className="mdetails__label"><GlobalLinear size={11}/>Languages</span>
+                <span className="mdetails__label"><GlobalLinear size={11}/>{t("modal.languages")}</span>
                 <span className="mdetails__value">{languages.join(", ")}</span>
               </div>
             )}
@@ -567,13 +574,19 @@ function MovieDetailsPanel({ details, type, t }) {
             <div className="mdetails__studios-section">
               <span className="mdetails__section-label">
                 <BuildingsLinear size={11}/>
-                {type === "tv" ? "Networks & Studios" : "Production"}
+                {type === "tv" ? t("modal.networksStudios") : t("modal.production")}
               </span>
               <div className="mdetails__studios">
-                {[...networks, ...studios].slice(0, 5).map(s => (
-                  <div key={s.id} className="mdetails__studio">
+                {[...networks.map(n => ({ ...n, _entityType: 'network' })),
+                   ...studios.map(s => ({ ...s, _entityType: 'company' }))].slice(0, 5).map(s => (
+                  <div
+                    key={s.id}
+                    className={"mdetails__studio" + (onStudioClick ? " mdetails__studio--clickable" : "")}
+                    onClick={() => onStudioClick && onStudioClick({ id: s.id, name: s.name, entityType: s._entityType, logo: s.logo_path ? `https://image.tmdb.org/t/p/w300${s.logo_path}` : null })}
+                    title={s.name}
+                  >
                     {s.logo_path
-                      ? <img src={`https://image.tmdb.org/t/p/w92${s.logo_path}`} alt={s.name} className="mdetails__studio-logo"/>
+                      ? <img src={`https://image.tmdb.org/t/p/w300${s.logo_path}`} alt={s.name} className="mdetails__studio-logo"/>
                       : <span className="mdetails__studio-name">{s.name}</span>
                     }
                   </div>
@@ -585,7 +598,7 @@ function MovieDetailsPanel({ details, type, t }) {
           {homepage && (
             <a href={homepage} target="_blank" rel="noopener noreferrer" className="mdetails__homepage">
               <GlobalLinear size={12}/>
-              <span>Official Website</span>
+              <span>{t("modal.officialSite")}</span>
               <LinkMinimalisticLinear size={10} style={{ opacity: 0.5, marginLeft: "auto" }}/>
             </a>
           )}
@@ -740,7 +753,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
 
             <WhereToWatch movieId={movie.id} type={type} lang={lang} title={title}/>
 
-            <MovieDetailsPanel details={details} type={type} t={t}/>
+            <MovieDetailsPanel details={details} type={type} t={t} onStudioClick={onStudioClick}/>
 
             {cast.length > 0 && (
               <ScrollablePeopleBlock

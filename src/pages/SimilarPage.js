@@ -21,7 +21,8 @@ export default function SimilarPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const langCode = lang === 'ru' ? 'ru-RU' : 'en-US';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
 
   // sourceMovie and fromPath passed via navigation state from MovieModal
   const sourceMovie = location.state?.sourceMovie || null;

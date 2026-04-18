@@ -17,7 +17,8 @@ export default function CollectionPage({ item, onBack }) {
   const navigate = useNavigate();
   const { lang } = useTheme();
   const { t } = useTranslation();
-  const langCode = lang === 'en' ? 'en-US' : 'ru-RU';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
 
   useEffect(() => {
     if (!item) return;
@@ -36,13 +37,69 @@ export default function CollectionPage({ item, onBack }) {
           setLoading(false);
         }).catch(() => setLoading(false));
     } else {
-      // company
-      fetch(`https://api.themoviedb.org/3/company/${item.id}?language=${langCode}`, { headers: HEADERS })
-        .then(r => r.json()).then(setInfo);
-      fetch(`https://api.themoviedb.org/3/discover/movie?with_companies=${item.id}&sort_by=vote_average.desc&vote_count.gte=200&language=${langCode}&page=1`, { headers: HEADERS })
-        .then(r => r.json())
-        .then(data => { setMovies(data.results||[]); setLoading(false); })
-        .catch(() => setLoading(false));
+      // company/network — smart multi-strategy fetch
+      const isNetwork = item.entityType === 'network';
+
+      const fetchPages = (url, pages = 3) =>
+        Promise.all(
+          Array.from({ length: pages }, (_, i) =>
+            fetch(`${url}&page=${i + 1}`, { headers: HEADERS }).then(r => r.json())
+          )
+        ).then(results => results.flatMap(d => d.results || []));
+
+      // Exclude reality, talk shows, awards, news, soap operas, shorts
+      const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768]);
+      const isQuality = m =>
+        m.poster_path &&
+        !(m.genre_ids || []).some(g => JUNK_GENRES.has(g)) &&
+        (m.vote_count || 0) >= 20;
+
+      const dedupe = (items) => {
+        const seen = new Set();
+        return items
+          .filter(m => isQuality(m) && !seen.has(m.id) && seen.add(m.id))
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+      };
+
+      if (isNetwork) {
+        // Networks (Netflix, HBO, Prime Video etc.) — use with_networks for TV
+        // and search company discover for movies as fallback
+        fetch(`https://api.themoviedb.org/3/network/${item.id}?language=${langCode}`, { headers: HEADERS })
+          .then(r => r.json()).then(setInfo).catch(() => {});
+
+        const tvUrl    = `https://api.themoviedb.org/3/discover/tv?with_networks=${item.id}&sort_by=popularity.desc&language=${langCode}`;
+        const movieUrl = `https://api.themoviedb.org/3/discover/movie?with_companies=${item.id}&sort_by=popularity.desc&language=${langCode}`;
+
+        Promise.all([fetchPages(tvUrl, 4), fetchPages(movieUrl, 2)])
+          .then(([shows, films]) => {
+            const merged = [
+              ...shows.map(s => ({ ...s, media_type: 'tv' })),
+              ...films.map(m => ({ ...m, media_type: 'movie' })),
+            ];
+            setMovies(dedupe(merged));
+            setLoading(false);
+          })
+          .catch(() => setLoading(false));
+
+      } else {
+        // Production companies — try both discover/movie and discover/tv
+        fetch(`https://api.themoviedb.org/3/company/${item.id}?language=${langCode}`, { headers: HEADERS })
+          .then(r => r.json()).then(setInfo).catch(() => {});
+
+        const movieUrl = `https://api.themoviedb.org/3/discover/movie?with_companies=${item.id}&sort_by=popularity.desc&language=${langCode}`;
+        const tvUrl    = `https://api.themoviedb.org/3/discover/tv?with_companies=${item.id}&sort_by=popularity.desc&language=${langCode}`;
+
+        Promise.all([fetchPages(movieUrl, 3), fetchPages(tvUrl, 3)])
+          .then(([films, shows]) => {
+            const merged = [
+              ...films.map(m => ({ ...m, media_type: 'movie' })),
+              ...shows.map(s => ({ ...s, media_type: 'tv' })),
+            ];
+            setMovies(dedupe(merged));
+            setLoading(false);
+          })
+          .catch(() => setLoading(false));
+      }
     }
   }, [item, langCode]);
 
@@ -71,7 +128,7 @@ export default function CollectionPage({ item, onBack }) {
         </div>
       </div>
 
-      {info?.overview && (
+      {info?.overview && info.overview !== 'Placeholder' && (
         <p className="collection-page__overview">{info.overview}</p>
       )}
 
@@ -81,7 +138,7 @@ export default function CollectionPage({ item, onBack }) {
         </div>
       ) : (
         <div className="collection-page__grid">
-          {movies.map(m => <div key={m.id}><MovieCard movie={{...m,media_type:'movie'}} onClick={setSelected}/></div>)}
+          {movies.map(m => <div key={m.id}><MovieCard movie={m} onClick={setSelected}/></div>)}
         </div>
       )}
 

@@ -14,7 +14,8 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
   const [credits, setCredits] = useState([]);
   const { lang } = useTheme();
   const { t } = useTranslation();
-  const langCode = lang === 'ru' ? 'ru-RU' : 'en-US';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
 
   useEffect(() => {
     if (!actor) return;
@@ -122,6 +123,7 @@ export default function ActorPage({ actor, onBack, onMovieClick }) {
 }
 
 function ActorBio({ bio }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const limit = 320;
   const short = bio.length > limit;
@@ -132,7 +134,7 @@ function ActorBio({ bio }) {
       </p>
       {short && (
         <button className="actor-page__bio-toggle" onClick={() => setExpanded(e => !e)}>
-          {expanded ? 'Скрыть' : 'Читать далее'}
+          {expanded ? t('modal.showLess') : t('modal.readMore')}
         </button>
       )}
     </div>

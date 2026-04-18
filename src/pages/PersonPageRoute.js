@@ -11,7 +11,8 @@ export default function PersonPageRoute() {
   const navigate                      = useNavigate();
   const location                      = useLocation();
   const { lang }                      = useTheme();
-  const langCode                      = lang === 'ru' ? 'ru-RU' : 'en-US';
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
+  const langCode                      = TMDB_LANG_MAP[lang] || 'en-US';
 
   const [person,  setPerson]  = useState(location.state?.person || null);
   const [loading, setLoading] = useState(!location.state?.person);

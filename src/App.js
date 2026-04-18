@@ -17,6 +17,7 @@ import Recs from './pages/Recs';
 import About, { LandingLangSwitcher } from './pages/About';
 import ActorPageRoute from './pages/ActorPageRoute';
 import PersonPageRoute from './pages/PersonPageRoute';
+import StudioPageRoute from './pages/StudioPageRoute';
 import PublicListPage from './pages/PublicListPage';
 import SimilarPage from './pages/SimilarPage';
 import TermsOfService from './pages/TermsOfService';
@@ -86,6 +87,7 @@ function AppInner() {
           <Route path="/community"      element={<CommunityGuidelines/>}/>
           <Route path="/actor/:actorId"   element={<ActorPageRoute/>}/>
           <Route path="/person/:personId" element={<PersonPageRoute/>}/>
+          <Route path="/studio/:studioId"  element={<StudioPageRoute/>}/>
           <Route path="/list/:listId"   element={<PublicListPage/>}/>
           <Route path="/similar/:type/:id" element={<SimilarPage/>}/>
           <Route path="*"              element={<Navigate to="/home" replace/>}/>

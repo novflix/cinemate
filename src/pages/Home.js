@@ -206,10 +206,25 @@ export default function Home() {
       tmdb.topRated('tv',2),
       tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
     ]).then(([tr,pm,tm,np,up,ptv,ttv,ny]) => {
+      // Genre IDs to exclude from popular sections (reality, talk shows, awards, news, soap)
+      const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768]);
+      const isQualityMovie = m =>
+        m.poster_path &&
+        (m.vote_count   || 0) >= 300 &&
+        (m.vote_average || 0) >= 5.5 &&
+        !(m.genre_ids||[]).some(g => JUNK_GENRES.has(g)) &&
+        (!m.release_date || m.release_date >= '1990-01-01');
+      const isQualityTV = m =>
+        m.poster_path &&
+        (m.vote_count   || 0) >= 100 &&
+        (m.vote_average || 0) >= 5.5 &&
+        !(m.genre_ids||[]).some(g => JUNK_GENRES.has(g)) &&
+        (!m.first_air_date || m.first_air_date >= '1990-01-01');
+
       const homeData = {
         trending:  (tr.results||[]).slice(0,10),
-        popularM:  (pm.results||[]).slice(0,50),
-        topM:      (tm.results||[]).slice(0,50),
+        popularM:  (pm.results||[]).filter(isQualityMovie).slice(0,50),
+        topM:      (tm.results||[]).filter(isQualityMovie).slice(0,50),
         nowPlaying:(np.results||[]).slice(0,50),
         upcoming:  (() => {
         const today = new Date().toISOString().split('T')[0];
@@ -218,8 +233,8 @@ export default function Home() {
           .sort((a,b) => a.release_date.localeCompare(b.release_date))
           .slice(0,50);
       })(),
-        popularTV: (ptv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
-        topTV:     (ttv.results||[]).slice(0,50).map(m=>({...m,media_type:'tv'})),
+        popularTV: (ptv.results||[]).filter(isQualityTV).slice(0,50).map(m=>({...m,media_type:'tv'})),
+        topTV:     (ttv.results||[]).filter(isQualityTV).slice(0,50).map(m=>({...m,media_type:'tv'})),
         newYear:   (ny.results||[]).slice(0,50),
       };
       setAllData(homeData);
@@ -259,16 +274,27 @@ export default function Home() {
   let sections = [];
   if (allData && mood==='all') {
     const heroIds = new Set(allData.trending.map(m=>m.id));
-    const [nowP,upcom,newY,popM,topM,popTV,topTV,seas] = dedup([
-      allData.nowPlaying,
-      allData.upcoming,
-      allData.newYear,
-      allData.popularM.filter(m=>!heroIds.has(m.id)),
-      allData.topM.filter(m=>!heroIds.has(m.id)),
-      allData.popularTV,
-      allData.topTV,
-      seasonData,
-    ]);
+
+    // Deduplicate within each group independently so popular sections
+    // don't get drained by nowPlaying / newYear overlap
+    const dedupSet = (arr, seen) => arr.filter(m => !seen.has(m.id) && seen.add(m.id));
+
+    const movieSeen = new Set(heroIds);
+    const tvSeen    = new Set();
+
+    const nowP   = dedupSet(allData.nowPlaying, movieSeen);
+    const upcom  = dedupSet(allData.upcoming,   new Set(movieSeen));
+    const newY   = dedupSet(allData.newYear,    new Set(movieSeen));
+
+    // Popular/Top get their own seen so they always have full content
+    const popMovieSeen = new Set(heroIds);
+    const topMovieSeen = new Set(heroIds);
+    const popM   = dedupSet(allData.popularM, popMovieSeen);
+    const topM   = dedupSet(allData.topM,     topMovieSeen);
+
+    const popTV  = dedupSet(allData.popularTV, tvSeen);
+    const topTV  = dedupSet(allData.topTV,     new Set(tvSeen));
+    const seas   = dedupSet(seasonData,        new Set(movieSeen));
     sections = [
       { icon:ClapperboardLinear, title:t('home.nowPlaying'),   items:nowP.slice(0,50),  countdown:false, gold:false },
       { icon:CalendarDateLinear, title:t('home.comingSoon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
