@@ -1,85 +1,93 @@
-.similar-page { overflow-x: hidden; }
+/* ─── SimilarPage ────────────────────────────────────────────────────────── */
+@keyframes spFadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes spSpin   { to { transform: rotate(360deg); } }
 
+.similar-page {
+  overflow-x: hidden;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--nav-h) + 24px);
+}
+
+@media (min-width: 900px) { .similar-page { padding-bottom: 48px; } }
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
 .similar-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 52px 20px 16px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 56px 18px 20px;
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(to bottom, var(--bg) 70%, transparent 100%);
+  backdrop-filter: blur(0px);
 }
-@media (min-width: 900px) {
-  .similar-header { padding: 32px 24px 16px; }
-}
+
+@media (min-width: 900px) { .similar-header { padding: 32px 24px 20px; position: static; } }
 
 .similar-back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--surface);
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text);
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s, transform 0.15s;
 }
-.similar-back:hover { border-color: var(--accent); color: var(--accent); }
+
+.similar-back:hover {
+  border-color: var(--accent); color: var(--accent); transform: scale(1.06);
+}
 
 .similar-header__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
+
 .similar-header__label {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  letter-spacing: 0.5px;
-  line-height: 1;
+  font-size: 30px; letter-spacing: 0.5px; line-height: 1;
   color: var(--text);
 }
+
 .similar-header__source {
-  font-size: 12px;
-  color: var(--text3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 12px; color: var(--text3); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 260px;
 }
 
+/* ─── Loading ────────────────────────────────────────────────────────────── */
 .similar-loading {
-  display: flex;
-  justify-content: center;
-  padding: 64px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+  color: var(--text3); font-size: 13px;
 }
+
 .similar-loading__spinner {
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--surface2);
+  width: 30px; height: 30px;
+  border: 2.5px solid var(--surface2);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spSpin 0.75s linear infinite;
 }
 
+/* ─── Empty state ────────────────────────────────────────────────────────── */
 .similar-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 64px 20px;
-  color: var(--text3);
-  font-size: 14px;
-  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; padding: 80px 24px;
+  gap: 10px; color: var(--text3);
+  font-size: 14px; text-align: center;
 }
 
+/* ─── Grid ───────────────────────────────────────────────────────────────── */
 .similar-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 4px 14px 32px;
+  gap: 9px;
+  padding: 0 14px 16px;
   align-items: start;
+  animation: spFadeUp 0.38s 0.08s cubic-bezier(0.16,1,0.3,1) both;
 }
+
 .similar-grid > div { align-self: start; min-width: 0; }
 
-@media (min-width: 480px) { .similar-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 480px) { .similar-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 600px) { .similar-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 900px) { .similar-grid { grid-template-columns: repeat(5, 1fr); padding: 4px 24px 32px; gap: 12px; } }
+@media (min-width: 900px) { .similar-grid { grid-template-columns: repeat(5, 1fr); padding: 0 24px 24px; gap: 12px; } }
 @media (min-width: 1200px) { .similar-grid { grid-template-columns: repeat(6, 1fr); } }
