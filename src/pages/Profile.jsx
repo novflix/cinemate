@@ -438,16 +438,7 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
       const { error } = await supabase.from('public_lists').upsert(payload, { onConflict: 'id' });
       if (error) throw error;
       const url = `${window.location.origin}/list/${listId}`;
-      try {
-        await navigator.clipboard.writeText(url);
-      } catch {
-        const el = document.createElement('textarea');
-        el.value = url;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      }
+      await navigator.clipboard.writeText(url);
       setShareLabel('copied');
       setTimeout(() => setShareLabel(null), 2500);
     } catch (e) {

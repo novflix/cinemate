@@ -21,11 +21,14 @@ function WhereToWatch({ movieId, type, lang, title }) {
 
   useEffect(() => {
     if (!movieId) return;
+    let cancelled = false;
     tmdb.watchProviders(type, movieId).then(data => {
+      if (cancelled) return;
       const results = data.results || {};
       const region = results['RU'] || results['US'] || results['GB'] || Object.values(results)[0];
       setProviders(region || null);
     }).catch(() => {});
+    return () => { cancelled = true; };
   }, [movieId, type]);
 
   if (!providers) return null;
@@ -123,7 +126,8 @@ function TvProgressTracker({ id, progress, totalSeasons, onChange, onClear }) {
     if (!open) return;
     if (epCache.current[season]) { setEpisodesInSeason(epCache.current[season]); return; }
     setEpisodesInSeason(null);
-    fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?language=en-US`, { headers: HEADERS })
+    const controller = new AbortController();
+    fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?language=en-US`, { headers: HEADERS, signal: controller.signal })
       .then(r => r.json())
       .then(data => {
         const count = data.episodes?.length || null;
@@ -131,7 +135,8 @@ function TvProgressTracker({ id, progress, totalSeasons, onChange, onClear }) {
         setEpisodesInSeason(count);
         if (count && episode > count) setEpisode(count);
       })
-      .catch(() => setEpisodesInSeason(null));
+      .catch(err => { if (err?.name !== 'AbortError') setEpisodesInSeason(null); });
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, season, id]);
 
@@ -568,7 +573,7 @@ const MovieModal = memo(function MovieModal({ movie, onClose, onActorClick, onCr
   const watched = movie ? isWatched(movie.id) : false;
   const inList = movie ? isInWatchlist(movie.id) : false;
   const type = movie?.media_type || (movie?.title ? 'movie' : 'tv');
-  const TMDB_LANG_MAP = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' };
+  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
   const langCode = TMDB_LANG_MAP[lang] || 'en-US';
   const posterUrl = tmdb.posterUrl(movie?.poster_path, 'w342');
   const accentColor = useDominantColor(posterUrl);

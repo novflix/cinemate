@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CloseCircleLinear } from 'solar-icon-set';
 import './DonateModal.css';
@@ -95,25 +95,26 @@ const WALLETS = [
   },
 ];
 
-export default function DonateModalde({ onClose }) {
+export default function DonateModal({ onClose }) {
   const { t } = useTranslation();
   const [copiedAddr, setCopiedAddr] = useState(null);
+
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
 
   const handleCopy = async (address) => {
     try {
       await navigator.clipboard.writeText(address);
-      setCopiedAddr(address);
-      setTimeout(() => setCopiedAddr(null), 2500);
     } catch {
-      const el = document.createElement('textarea');
-      el.value = address;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      setCopiedAddr(address);
-      setTimeout(() => setCopiedAddr(null), 2500);
+      // Clipboard API unavailable — silent fail, no feedback shown
+      return;
     }
+    setCopiedAddr(address);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopiedAddr(null), 2500);
   };
 
   return (
@@ -160,5 +161,3 @@ export default function DonateModalde({ onClose }) {
     </div>
   );
 }
-
-

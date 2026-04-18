@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { CloseCircleLinear, StarLinear } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useTranslation } from 'react-i18next';
@@ -6,37 +6,48 @@ import { tmdb } from '../api';
 import { SparkBurst } from './Effects';
 import './RatingPrompt.css';
 
-const COLORS    = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
+const COLORS = ['','#ef4444','#f97316','#fb923c','#fbbf24','#a3a3a3','#84cc16','#22c55e','#10b981','#3b82f6','#8b5cf6'];
 
 const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
   const { rateMovie, getRating } = useStore();
   const { t } = useTranslation();
-  const [hovered,  setHovered]  = useState(0);
-  const [selected, setSelected] = useState(getRating(movie?.id) || 0);
-  const [phase,    setPhase]    = useState('pick');
-  const [showSparks, setShowSparks] = useState(false); // 'pick' | 'confirm' | 'done'
+  const [hovered,    setHovered]    = useState(0);
+  const [selected,   setSelected]   = useState(getRating(movie?.id) || 0);
+  const [phase,      setPhase]      = useState('pick');
+  const [showSparks, setShowSparks] = useState(false);
+  const timersRef = useRef([]);
+
+  // Clear all pending timers on unmount to prevent setState-after-unmount
+  useEffect(() => {
+    return () => timersRef.current.forEach(clearTimeout);
+  }, []);
 
   if (!movie) return null;
 
-  const title  = movie.title || movie.name || movie._fallback_title || '';
-  const poster = tmdb.posterUrl(movie.poster_path);
+  const title   = movie.title || movie.name || movie._fallback_title || '';
+  const poster  = tmdb.posterUrl(movie.poster_path);
   const display = hovered || selected;
-  const labels = t('ratingLabels', { returnObjects: true });
-  const label  = labels[display] || '';
-  const color  = COLORS[display] || 'var(--accent)';
+  const labels  = t('ratingLabels', { returnObjects: true });
+  const label   = labels[display] || '';
+  const color   = COLORS[display] || 'var(--accent)';
+
+  const addTimer = (fn, ms) => {
+    const id = setTimeout(fn, ms);
+    timersRef.current.push(id);
+    return id;
+  };
 
   const handleRate = (score) => {
     setSelected(score);
     rateMovie(movie.id, score);
     if (score === 10) setShowSparks(true);
     setPhase('confirm');
-    // After showing confirm animation, close
-    setTimeout(() => setPhase('done'), 1800);
-    setTimeout(() => onClose(), 2400);
+    addTimer(() => setPhase('done'), 1800);
+    addTimer(() => onClose(), 2400);
   };
 
   return (
-    <div className={"rating-overlay" + (phase==='done' ? ' fading' : '')} onClick={phase==='pick' ? onClose : undefined}>
+    <div className={"rating-overlay" + (phase === 'done' ? ' fading' : '')} onClick={phase === 'pick' ? onClose : undefined}>
       <div className={"rating-prompt rating-prompt--" + phase} onClick={e => e.stopPropagation()}>
 
         {phase === 'pick' && (
@@ -47,9 +58,7 @@ const RatingPrompt = memo(function RatingPrompt({ movie, onClose }) {
           {poster && <img className="rating-prompt__poster" src={poster} alt={title}/>}
           <div>
             <p className="rating-prompt__ask">
-              {phase === 'pick'
-                ? t('rating.howWasIt')
-                : t('rating.ratingSaved')}
+              {phase === 'pick' ? t('rating.howWasIt') : t('rating.ratingSaved')}
             </p>
             <p className="rating-prompt__title">{title}</p>
           </div>
