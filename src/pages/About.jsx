@@ -1,6 +1,25 @@
-import { useEffect, useRef, useState, memo } from 'react';
+import { useEffect, useRef, useState, memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+
+/**
+ * Safe alternative to dangerouslySetInnerHTML.
+ * Parses translation strings that contain only <br/> and <em> tags
+ * and renders them as React elements — no raw HTML injected into the DOM.
+ */
+function SafeHtml({ text, className, as: Tag = 'h2' }) {
+  const nodes = useMemo(() => {
+    if (!text) return [text];
+    const parts = text.split(/(<br\s*\/?>|<em>[\s\S]*?<\/em>)/g);
+    return parts.map((part, i) => {
+      if (/^<br\s*\/?>$/.test(part)) return <br key={i} />;
+      const emMatch = part.match(/^<em>([\s\S]*?)<\/em>$/);
+      if (emMatch) return <em key={i}>{emMatch[1]}</em>;
+      return part;
+    });
+  }, [text]);
+  return <Tag className={className}>{nodes}</Tag>;
+}
 import {
   MagicStickLinear, TVLinear, StarLinear, ShuffleLinear,
   GlobalLinear, CloudLinear, HeartLinear, ForbiddenCircleLinear,
@@ -228,7 +247,7 @@ function AlgoSection() {
       <div className="about-algo__bg"/>
       <div className="about-algo__inner">
         <div className="about-section__label">✦ {t('about.algoLabel')}</div>
-        <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.algoTitle') }}/>
+        <SafeHtml as="h2" className="about-h2" text={t('about.algoTitle')}/>
         <p className="about-algo__sub">{t('about.algoSub')}</p>
         <div className="about-algo__signals">
           {signals.map((s, i) => (
@@ -322,7 +341,7 @@ function MoodSection() {
     <section className="about-moods" ref={ref}>
       <div className="about-moods__inner">
         <div className="about-section__label">✦ {t('about.moodLabel')}</div>
-        <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.moodTitle') }}/>
+        <SafeHtml as="h2" className="about-h2" text={t('about.moodTitle')}/>
         <p className="about-moods__sub">{t('about.moodSub')}</p>
         <div className={'about-moods__grid' + (visible ? ' revealed' : '')}>
           {moods.map((m, i) => (
@@ -378,7 +397,7 @@ function WatchlistSection() {
       <div className="about-watchlist__inner">
         <div className="about-watchlist__text">
           <div className="about-section__label">✦ {t('about.watchlistLabel')}</div>
-          <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.watchlistTitle') }}/>
+          <SafeHtml as="h2" className="about-h2" text={t('about.watchlistTitle')}/>
           <p className="about-watchlist__sub">{t('about.watchlistSub')}</p>
           <div className="about-watchlist__perks">
             {[
@@ -433,7 +452,7 @@ function CtaSection() {
       <div className="about-cta__orb"/>
       <div className="about-cta__orb2"/>
       <div className={'about-cta__content' + (visible ? ' revealed' : '')}>
-        <h2 className="about-cta__title" dangerouslySetInnerHTML={{ __html: t('about.ctaTitle') }}/>
+        <SafeHtml as="h2" className="about-cta__title" text={t('about.ctaTitle')}/>
         <p className="about-cta__sub">{t('about.ctaSub')}</p>
         <div className="about-cta__perks">
           {[
@@ -589,7 +608,7 @@ export default function About({ asLanding, onLogin, onRegister }) {
       {/* ── FEATURES ── */}
       <section className="about-section">
         <div className="about-section__label">✦ {t('about.featuresLabel')}</div>
-        <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.featuresTitle') }}/>
+        <SafeHtml as="h2" className="about-h2" text={t('about.featuresTitle')}/>
         <div className="about-features-grid">
           {features.map((f, i) => <FeatureCard key={i} {...f} delay={i * 45}/>)}
         </div>
@@ -600,7 +619,7 @@ export default function About({ asLanding, onLogin, onRegister }) {
         <div className="about-how__inner">
           <div className="about-how__left">
             <div className="about-section__label">✦ {t('about.howLabel')}</div>
-            <h2 className="about-h2" dangerouslySetInnerHTML={{ __html: t('about.howTitle') }}/>
+            <SafeHtml as="h2" className="about-h2" text={t('about.howTitle')}/>
             <p className="about-how__sub">{t('about.howSub')}</p>
           </div>
           <div className="about-how__steps">

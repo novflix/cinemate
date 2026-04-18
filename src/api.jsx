@@ -1,7 +1,12 @@
 const TMDB_TOKEN = import.meta.env.VITE_TMDB_TOKEN;
 const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
-export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
+
+if (!TMDB_TOKEN) {
+  console.error('[api] Missing VITE_TMDB_TOKEN. All TMDB requests will fail with 401.');
+}
+
+export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN ?? ''}`, 'Content-Type': 'application/json' };
 
 // ─── TV genre IDs that indicate non-movie/non-scripted content ────────────────
 const SHOW_GENRE_IDS = new Set([
@@ -166,7 +171,7 @@ export const tmdb = {
 // ─── Trakt API ────────────────────────────────────────────────────────────────
 // Free API (Client ID only, no OAuth needed for public endpoints).
 // Get your key at https://trakt.tv/oauth/applications/new
-// Then add REACT_APP_TRAKT_CLIENT_ID=your_key to your .env file.
+// Then add VITE_TRAKT_CLIENT_ID=your_key to your .env file.
 const TRAKT_CLIENT_ID = import.meta.env.VITE_TRAKT_CLIENT_ID;
 const TRAKT_BASE      = 'https://api.trakt.tv';
 const TRAKT_HEADERS   = {
@@ -263,4 +268,4 @@ export const STREAMING_LINKS = {
   555: { name: 'Okko',         url: 'https://okko.tv/search?query=' },
   505: { name: 'IVI',          url: 'https://www.ivi.ru/search/?q=' },
   635: { name: 'Kinopoisk',    url: 'https://www.kinopoisk.ru/index.php?kp_query=' },
-};  
+};

@@ -7,12 +7,26 @@ const memCache = {};
 // localStorage cache key
 const LC_KEY = 'tmdb_locale_cache';
 
-// Load persisted cache from localStorage
+// Load persisted cache from localStorage (with size eviction on load)
 let persistedCache = {};
 try {
   const raw = localStorage.getItem(LC_KEY);
-  if (raw) persistedCache = JSON.parse(raw);
-} catch {}
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    // Guard: must be a plain object, not an array or primitive
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const keys = Object.keys(parsed);
+      if (keys.length > 300) {
+        // Evict oldest entries on load so the cache never silently bloats
+        keys.slice(0, keys.length - 300).forEach(k => delete parsed[k]);
+      }
+      persistedCache = parsed;
+    }
+  }
+} catch {
+  // Corrupted cache — start fresh
+  try { localStorage.removeItem(LC_KEY); } catch {}
+}
 
 let _saveCacheTimer = null;
 function savePersistedCache() {
