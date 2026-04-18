@@ -19,13 +19,13 @@ import zh from './locales/zh.json';
 //   4. Add the TMDB language code to TMDB_LANG_MAP in api.js
 // ──────────────────────────────────────────────────────────────────────────
 export const SUPPORTED_LANGUAGES = [
-  { code: 'ru', label: 'Русский',    countryCode: 'ru' },
   { code: 'en', label: 'English',    countryCode: 'gb' },
+  { code: 'de', label: 'Deutsch',    countryCode: 'de' },
   { code: 'es', label: 'Español',    countryCode: 'es' },
   { code: 'fr', label: 'Français',   countryCode: 'fr' },
-  { code: 'de', label: 'Deutsch',    countryCode: 'de' },
-  { code: 'pt', label: 'Português',  countryCode: 'pt' },
   { code: 'it', label: 'Italiano',   countryCode: 'it' },
+  { code: 'pt', label: 'Português',  countryCode: 'pt' },
+  { code: 'ru', label: 'Русский',    countryCode: 'ru' },
   { code: 'tr', label: 'Türkçe',     countryCode: 'tr' },
   { code: 'zh', label: '中文',        countryCode: 'cn' },
 ];
