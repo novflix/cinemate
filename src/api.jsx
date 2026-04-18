@@ -1,4 +1,4 @@
-const TMDB_TOKEN = process.env.REACT_APP_TMDB_TOKEN;
+const TMDB_TOKEN = import.meta.env.VITE_TMDB_TOKEN;
 const BASE = 'https://api.themoviedb.org/3';
 const IMG  = 'https://image.tmdb.org/t/p';
 export const HEADERS = { Authorization: `Bearer ${TMDB_TOKEN}`, 'Content-Type': 'application/json' };
@@ -167,7 +167,7 @@ export const tmdb = {
 // Free API (Client ID only, no OAuth needed for public endpoints).
 // Get your key at https://trakt.tv/oauth/applications/new
 // Then add REACT_APP_TRAKT_CLIENT_ID=your_key to your .env file.
-const TRAKT_CLIENT_ID = process.env.REACT_APP_TRAKT_CLIENT_ID;
+const TRAKT_CLIENT_ID = import.meta.env.VITE_TRAKT_CLIENT_ID;
 const TRAKT_BASE      = 'https://api.trakt.tv';
 const TRAKT_HEADERS   = {
   'Content-Type': 'application/json',

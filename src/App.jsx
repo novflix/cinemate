@@ -27,8 +27,8 @@ import Confetti from './components/Confetti';
 import { SnowEffect } from './components/Effects';
 import './index.css';
 
-// Moved outside component — require() and date computation run once at module load
-const _pkg = require('../package.json');
+// Moved outside component — date computation runs once at module load
+import _pkg from '../package.json';
 const _BUILD_DATE = new Date().toISOString().slice(0,10).replace(/-/g,'');
 
 function VersionBadge() {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const ADMIN_ID = process.env.REACT_APP_ADMIN_ID || null;
+const ADMIN_ID = import.meta.env.VITE_ADMIN_ID || null;
 
 const AdminContext = createContext(null);
 

@@ -282,7 +282,7 @@ function useMoodPosters(ids) {
     if (!missing.length) return;
     missing.forEach(id => {
       fetch(`https://api.themoviedb.org/3/movie/${id}?language=en-US`, {
-        headers: { Authorization: `Bearer ${process.env.REACT_APP_TMDB_TOKEN}` }
+        headers: { Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}` }
       })
         .then(r => r.ok ? r.json() : null)
         .then(data => {

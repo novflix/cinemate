@@ -24,3 +24,9 @@ yarn-error.log*
 
 .env
 .env.local
+
+# Vite
+dist
+dist-ssr
+*.local
+vite.config.js.timestamp-*
