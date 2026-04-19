@@ -4,22 +4,18 @@ import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear,
-  CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear,
-  AltArrowLeftLinear, AltArrowRightLinear, CupLinear,
-  SunFogLinear, SnowflakeLinear, LeafLinear, CloudsLinear,
-  GhostLinear, StarFallMinimalisticLinear,
+  CupStarLinear, CalendarDateLinear, TVLinear, MagicStickLinear,
+  AltArrowLeftLinear, AltArrowRightLinear
 } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme } from '../theme';
-import { useAdmin } from '../admin';
-import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import ScrollRow from '../components/ScrollRow';
 import './Home.css';
 
 /* ─── Cache ─────────────────────────────────────────────────────────────── */
-const HOME_CACHE_KEY = 'cinimate_home_cache_v3';
+const HOME_CACHE_KEY = 'cinimate_home_cache_v5';
 function getHomeCache(lang) {
   try {
     const raw = sessionStorage.getItem(HOME_CACHE_KEY + '_' + lang);
@@ -35,43 +31,6 @@ function setHomeCache(lang, data) {
 
 const CURRENT_YEAR = new Date().getFullYear();
 const TMDB_LANG_MAP = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR', it: 'it-IT', tr: 'tr-TR', zh: 'zh-CN' };
-
-/* ─── Season meta ────────────────────────────────────────────────────────── */
-const SEASON_ICONS = {
-  halloween: GhostLinear,
-  newyear:   StarFallMinimalisticLinear,
-  summer:    SunFogLinear,
-  winter:    SnowflakeLinear,
-  spring:    LeafLinear,
-  autumn:    CloudsLinear,
-};
-
-const SEASON_COLORS = {
-  halloween: { from: '#ff6b35', to: '#c0392b', glow: 'rgba(255,107,53,0.4)'  },
-  newyear:   { from: '#e8c547', to: '#f39c12', glow: 'rgba(232,197,71,0.45)' },
-  summer:    { from: '#f7971e', to: '#ffd200', glow: 'rgba(247,151,30,0.4)'  },
-  winter:    { from: '#74b9ff', to: '#a29bfe', glow: 'rgba(116,185,255,0.4)' },
-  spring:    { from: '#fd79a8', to: '#e84393', glow: 'rgba(253,121,168,0.4)' },
-  autumn:    { from: '#e17055', to: '#d35400', glow: 'rgba(225,112,85,0.4)'  },
-};
-
-const SEASON_LABEL = {
-  halloween: { ru: 'Хэллоуин', en: 'Halloween' },
-  newyear:   { ru: 'Новый год', en: 'New Year'  },
-  summer:    { ru: 'Лето',      en: 'Summer'     },
-  winter:    { ru: 'Зима',      en: 'Winter'     },
-  spring:    { ru: 'Весна',     en: 'Spring'     },
-  autumn:    { ru: 'Осень',     en: 'Autumn'     },
-};
-
-const SEASON_QUOTES = {
-  summer:    ['Summer is for films with no subtitles.', 'Sun, popcorn, action.', 'The perfect evening starts here.'],
-  winter:    ['Wrap up, press play.', 'Cold outside. Perfect inside.', 'The best company on a winter night.'],
-  spring:    ['New season, new favorites.', 'Fresh picks for fresh days.', 'Your watchlist is blooming.'],
-  autumn:    ['Leaves fall, great films rise.', 'Cosy season, cosy picks.', 'Perfect time to rediscover cinema.'],
-  halloween: ['Things go bump in the night.', 'Enter if you dare.', 'The season of fear is here.'],
-  newyear:   ['End the year with a masterpiece.', 'Celebrate with great cinema.', 'The perfect last-night film.'],
-};
 
 const GENRE_NAMES = {
   18:    { ru: 'Драма',       en: 'Drama'      },
@@ -186,9 +145,9 @@ function ThreeCatBlock({ movies, series, animation, onSelect, lang, loading }) {
     { key: 'series',    Icon: TVLinear,           ru: 'Сериалы',  en: 'Series',    items: series    },
     { key: 'animation', Icon: MagicStickLinear,   ru: 'Анимация', en: 'Animation', items: animation },
   ];
-  if (loading) return <div className="home-sections" style={{ paddingTop: 4 }}>{cats.map(c => <SkeletonRow key={c.key} />)}</div>;
+  if (loading) return <div className="home-sections" style={{ paddingTop: 18 }}>{cats.map(c => <SkeletonRow key={c.key} />)}</div>;
   return (
-    <div className="home-sections" style={{ paddingTop: 4 }}>
+    <div className="home-sections" style={{ paddingTop: 18 }}>
       {cats.map(c => (
         <ContentSection key={c.key} Icon={c.Icon} title={lang === 'ru' ? c.ru : c.en} items={c.items} onSelect={onSelect} />
       ))}
@@ -236,7 +195,7 @@ function ComingSoonCard({ movie, onSelect }) {
 function PopularListsPlaceholder({ lang }) {
   return (
     <div className="placeholder-block">
-      <div className="placeholder-block__icon"><CupLinear size={40} /></div>
+      <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
       <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
       <p className="placeholder-block__desc">
         {lang === 'ru'
@@ -252,103 +211,14 @@ function PopularListsPlaceholder({ lang }) {
   );
 }
 
-/* ─── Seasonal Tab ───────────────────────────────────────────────────────── */
-function SeasonalTab({ season, seasonCfg, lang, onSelect, langCode }) {
-  const [movies, setMovies]       = useState([]);
-  const [series, setSeries]       = useState([]);
-  const [animation, setAnimation] = useState([]);
-  const [loaded, setLoaded]       = useState(false);
-  const [quoteIdx, setQuoteIdx]   = useState(0);
-
-  const colors    = SEASON_COLORS[season];
-  const SeasonIcon = SEASON_ICONS[season] || MagicStickLinear;
-  const label     = SEASON_LABEL[season]?.[lang] || season;
-  const quotes    = SEASON_QUOTES[season] || [];
-
-  // Rotate quote
-  useEffect(() => {
-    if (quotes.length < 2) return;
-    const id = setInterval(() => setQuoteIdx(q => (q + 1) % quotes.length), 4200);
-    return () => clearInterval(id);
-  }, [quotes.length]);
-
-  // Fetch data
-  const g = seasonCfg.genres.slice(0, 2).join(',');
-  useEffect(() => {
-    const minYear = new Date().getFullYear() - 18;
-    const JUNK = new Set([10764, 10767, 10763, 10766, 10768]);
-    const clean = arr => (arr || []).filter(m => m.poster_path && !(m.genre_ids || []).some(id => JUNK.has(id)));
-    Promise.all([
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${g}&sort_by=${seasonCfg.sort}&vote_count.gte=200&primary_release_date.gte=${minYear}-01-01&page=1`, { headers: HEADERS }).then(r => r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/tv?language=${langCode}&with_genres=${g}&sort_by=${seasonCfg.sort}&vote_count.gte=50&first_air_date.gte=${minYear}-01-01&page=1`, { headers: HEADERS }).then(r => r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${[seasonCfg.genres[0], 16].join(',')}&sort_by=popularity.desc&vote_count.gte=80&page=1`, { headers: HEADERS }).then(r => r.json()),
-    ]).then(([m, tv, anim]) => {
-      setMovies(clean(m.results).slice(0, 25));
-      setSeries(clean(tv.results).map(x => ({ ...x, media_type: 'tv' })).slice(0, 25));
-      setAnimation(clean(anim.results).slice(0, 20));
-      setLoaded(true);
-    }).catch(() => setLoaded(true));
-  }, [g, langCode, seasonCfg.sort, seasonCfg.genres]);
-
-  return (
-    <div className="seasonal-tab">
-      {/* Seasonal hero banner */}
-      <div
-        className="seasonal-hero"
-        style={{ '--s-from': colors.from, '--s-to': colors.to, '--s-glow': colors.glow }}
-      >
-        <div className="seasonal-hero__glow" />
-        <div className="seasonal-hero__top">
-          <div className="seasonal-hero__icon-ring">
-            <SeasonIcon size={28} />
-          </div>
-          <div className="seasonal-hero__titles">
-            <div className="seasonal-hero__name">{label}</div>
-            <div className="seasonal-hero__sub">{lang === 'ru' ? 'Подборка сезона' : 'Season collection'}</div>
-          </div>
-        </div>
-
-        {/* Animated rotating quote */}
-        {quotes.length > 0 && (
-          <div className="seasonal-hero__quote" key={quoteIdx}>
-            {quotes[quoteIdx]}
-          </div>
-        )}
-
-        {/* Genre chips */}
-        <div className="seasonal-hero__genres">
-          {seasonCfg.genres.slice(0, 5).map(gId => (
-            <span key={gId} className="seasonal-hero__chip">
-              {GENRE_NAMES[gId]?.[lang] || gId}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Content sliders */}
-      <div className="home-sections" style={{ paddingTop: 8 }}>
-        {!loaded ? (
-          <><SkeletonRow /><SkeletonRow /><SkeletonRow /></>
-        ) : (
-          <>
-            <ContentSection Icon={ClapperboardLinear} title={lang === 'ru' ? 'Фильмы' : 'Movies'} items={movies} onSelect={onSelect} />
-            <ContentSection Icon={TVLinear} title={lang === 'ru' ? 'Сериалы' : 'Series'} items={series} onSelect={onSelect} />
-            <ContentSection Icon={MagicStickLinear} title={lang === 'ru' ? 'Анимация' : 'Animation'} items={animation} onSelect={onSelect} />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ─── Main Tabs ──────────────────────────────────────────────────────────── */
 const MAIN_TABS = [
   { id: 'trending',   labelRu: 'Trending',           labelEn: 'Trending',        icon: FlameLinear        },
   { id: 'nowplaying', labelRu: 'Now Playing',         labelEn: 'Now Playing',     icon: PlayLinear         },
   { id: 'comingsoon', labelRu: 'Coming Soon',         labelEn: 'Coming Soon',     icon: CalendarDateLinear },
-  { id: 'popular',    labelRu: 'Popular',             labelEn: 'Popular',         icon: CupFirstLinear     },
+  { id: 'popular',    labelRu: 'Popular',             labelEn: 'Popular',         icon: CupStarLinear     },
   { id: 'new',        labelRu: `New ${CURRENT_YEAR}`, labelEn: `New ${CURRENT_YEAR}`, icon: MagicStickLinear },
-  { id: 'lists',      labelRu: 'Popular Lists',       labelEn: 'Popular Lists',   icon: CupLinear       },
+  { id: 'lists',      labelRu: 'Popular Lists',       labelEn: 'Popular Lists',   icon: CupStarLinear       },
   { id: 'seasonal',   labelRu: null,                  labelEn: null,              icon: null               },
 ];
 
@@ -358,27 +228,60 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('trending');
   const [animData, setAnimData] = useState({ trending: [], nowplaying: [], popular: [], new: [] });
+  const [comingSoon, setComingSoon] = useState([]);
+  const [comingSoonLoading, setComingSoonLoading] = useState(true);
 
   const { selected, openMovie, closeMovie } = useMovieModal();
   const navigate = useNavigate();
   const { lang } = useTheme();
-  const { overrides } = useAdmin();
   const langCode    = TMDB_LANG_MAP[lang] || 'en-US';
   const currentYear = new Date().getFullYear();
-  const season      = getCurrentSeason(overrides.season);
-  const seasonCfg   = SEASON_CONFIG[season];
-  const SeasonIcon  = SEASON_ICONS[season] || MagicStickLinear;
-  const seasonLabel = SEASON_LABEL[season]?.[lang] || season;
-  const seasonColors = SEASON_COLORS[season];
 
   useEffect(() => {
     const cached = getHomeCache(lang);
     if (cached) { setAllData(cached); setLoading(false); }
     else setLoading(true);
 
-    const JUNK   = new Set([10764, 10767, 10763, 10766, 10768]);
-    const isQM   = m => m.poster_path && (m.vote_count||0)>=300 && (m.vote_average||0)>=5.5 && !(m.genre_ids||[]).some(g=>JUNK.has(g)) && (!m.release_date || m.release_date>='1990-01-01');
-    const isQTV  = m => m.poster_path && (m.vote_count||0)>=100 && (m.vote_average||0)>=5.5 && !(m.genre_ids||[]).some(g=>JUNK.has(g)) && (!m.first_air_date || m.first_air_date>='1990-01-01');
+    const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768, 99, 10770]);
+    const ADULT_KEYWORDS = /\b(sex|erotic|xxx|porn|nude|naked|adult|hentai|softcore|hardcore|fetish|naughty|seduct|lust|explicit)\b/i;
+
+    // Universal quality filter — applied to every single item on the page
+    const isOK = m =>
+      m.poster_path &&
+      !m.adult &&
+      !(m.genre_ids || []).some(g => JUNK_GENRES.has(g)) &&
+      !ADULT_KEYWORDS.test(m.title || m.name || m.original_title || m.original_name || '');
+
+    const isQM  = m => isOK(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=5.0 && (!m.release_date   || m.release_date  >='1980-01-01');
+    const isQTV = m => isOK(m) && (m.vote_count||0)>=80  && (m.vote_average||0)>=5.0 && (!m.first_air_date || m.first_air_date>='1980-01-01');
+
+    const today      = new Date().toISOString().split('T')[0];
+    const oneYearOut = new Date(); oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
+    const oneYearStr = oneYearOut.toISOString().split('T')[0];
+
+    const csParams = `primary_release_date.gte=${today}&primary_release_date.lte=${oneYearStr}&language=en-US&without_genres=10764,10767,10763,10766,10770,99`;
+    const csByPop  = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=popularity.desc`;
+    const csByDate = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=primary_release_date.asc`;
+    setComingSoonLoading(true);
+    Promise.all([
+      ...[1,2,3,4,5,6,7,8].map(p => fetch(`${csByPop}&page=${p}`,  { headers: HEADERS }).then(r => r.json()).catch(() => ({ results: [] }))),
+      ...[1,2,3].map(p =>        fetch(`${csByDate}&page=${p}`, { headers: HEADERS }).then(r => r.json()).catch(() => ({ results: [] }))),
+    ]).then(pages => {
+      const BLOCKED_GENRES = new Set([10764, 10767, 10763, 10766, 10768, 99, 10770]);
+      const all = pages.flatMap(p => p.results || []);
+      const filtered = all.filter(m =>
+        isOK(m) &&
+        m.release_date &&
+        m.release_date >= today &&
+        m.release_date <= oneYearStr &&
+        (m.popularity || 0) >= 5 &&
+        !(m.genre_ids || []).some(g => BLOCKED_GENRES.has(g))
+      );
+      const unique = [...new Map(filtered.map(m => [m.id, m])).values()];
+      unique.sort((a, b) => a.release_date.localeCompare(b.release_date));
+      setComingSoon(unique.slice(0, 150));
+      setComingSoonLoading(false);
+    }).catch(() => setComingSoonLoading(false));
 
     Promise.all([
       tmdb.trending('all','week'),
@@ -387,22 +290,20 @@ export default function Home() {
       tmdb.popular('movie',2),
       tmdb.popular('tv',2),
       tmdb.nowPlaying(2),
-      tmdb.upcoming(2),
       tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
       tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':20},2),
-    ]).then(([tAll,tM,tTV,popM,popTV,nowP,upcom,newM,newTV])=>{
-      const today = new Date().toISOString().split('T')[0];
+    ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV])=>{
       const data = {
-        heroItems:       (tAll.results  ||[]).slice(0,10),
-        trendingMovies:  (tM.results    ||[]).filter(m=>m.poster_path).slice(0,30),
-        trendingSeries:  (tTV.results   ||[]).filter(m=>m.poster_path).map(m=>({...m,media_type:'tv'})).slice(0,30),
+        heroItems:       (tAll.results  ||[]).filter(isOK).slice(0,10),
+        trendingMovies:  (tM.results    ||[]).filter(isOK).slice(0,30),
+        trendingSeries:  (tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'})).slice(0,30),
         popularMovies:   (popM.results  ||[]).filter(isQM).slice(0,40),
         popularSeries:   (popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,40),
-        nowPlayingMovies:(nowP.results  ||[]).filter(m=>m.poster_path).slice(0,30),
+        nowPlayingMovies:(nowP.results  ||[]).filter(isOK).slice(0,30),
         nowPlayingSeries:(popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,20),
-        comingSoon:(upcom.results||[]).filter(m=>m.release_date&&m.release_date>today&&m.poster_path).sort((a,b)=>a.release_date.localeCompare(b.release_date)).slice(0,50),
-        newMovies: (newM.results  ||[]).filter(m=>m.poster_path&&(m.vote_count||0)>=30).slice(0,30),
-        newSeries: (newTV.results ||[]).filter(m=>m.poster_path&&!(m.genre_ids||[]).some(g=>JUNK.has(g))).map(m=>({...m,media_type:'tv'})).slice(0,30),
+        comingSoon: [],
+        newMovies: (newM.results  ||[]).filter(m=>isOK(m)&&(m.vote_count||0)>=30).slice(0,30),
+        newSeries: (newTV.results ||[]).filter(m=>isOK(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'})).slice(0,30),
       };
       setAllData(data);
       setHomeCache(lang,data);
@@ -411,16 +312,23 @@ export default function Home() {
 
     Promise.all([
       fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
       fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=1`,{headers:HEADERS}).then(r=>r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=100&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=2`,{headers:HEADERS}).then(r=>r.json()),
       fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&primary_release_year=${currentYear}&sort_by=popularity.desc&page=1`,{headers:HEADERS}).then(r=>r.json()),
-    ]).then(([tw,np,pop,ny])=>{
-      const isAnim = m => m.poster_path && (m.genre_ids||[]).includes(16);
+    ]).then(([tw1,tw2,np1,np2,pop1,pop2,ny])=>{
+      const isAnim = m => isOK(m) && (m.genre_ids||[]).includes(16);
+      const mergeAnim = (...pages) => {
+        const seen = new Set();
+        return pages.flatMap(p=>p.results||[]).filter(m=>{ if(seen.has(m.id))return false; seen.add(m.id); return isAnim(m); });
+      };
       setAnimData({
-        trending:  (tw.results  ||[]).filter(isAnim).slice(0,20),
-        nowplaying:(np.results  ||[]).filter(isAnim).slice(0,20),
-        popular:   (pop.results ||[]).filter(m=>m.poster_path).slice(0,20),
-        new:       (ny.results  ||[]).filter(m=>m.poster_path).slice(0,20),
+        trending:  mergeAnim(tw1,tw2).slice(0,25),
+        nowplaying:mergeAnim(np1,np2).slice(0,25),
+        popular:   mergeAnim(pop1,pop2).slice(0,25),
+        new:       (ny.results||[]).filter(m=>m.poster_path&&!m.adult).slice(0,25),
       });
     }).catch(()=>{});
   },[lang,currentYear,langCode]);
@@ -444,12 +352,11 @@ export default function Home() {
               return (
                 <button
                   key="seasonal"
-                  className={"main-tab main-tab--seasonal" + (isActive ? ' active' : '')}
+                  className={"main-tab main-tab--seasonal-wip" + (isActive ? ' active' : '')}
                   onClick={() => setActiveTab('seasonal')}
-                  style={{ '--s-from': seasonColors.from, '--s-to': seasonColors.to, '--s-glow': seasonColors.glow }}
                 >
-                  <span className="main-tab__s-icon"><SeasonIcon size={13}/></span>
-                  <span className="main-tab__s-text">{seasonLabel}</span>
+                  <MagicStickLinear size={13}/>
+                  <span>{lang === 'ru' ? 'Сезонное' : 'Seasonal'}</span>
                 </button>
               );
             }
@@ -500,11 +407,11 @@ export default function Home() {
 
         {activeTab === 'comingsoon' && (
           <div className="coming-soon-grid-wrap">
-            {loading
+            {comingSoonLoading
               ? [1,2,3,4,5,6].map(i=><div key={i} className="skeleton cs-card-skeleton"/>)
-              : allData?.comingSoon.length > 0
+              : comingSoon.length > 0
                 ? <div className="coming-soon-grid">
-                    {allData.comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie}/>)}
+                    {comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie}/>)}
                   </div>
                 : <div className="tab-empty">{lang==='ru'?'Нет данных':'No data'}</div>
             }
@@ -514,11 +421,21 @@ export default function Home() {
         {activeTab === 'lists' && <PopularListsPlaceholder lang={lang}/>}
 
         {activeTab === 'seasonal' && (
-          <SeasonalTab
-            season={season} seasonCfg={seasonCfg}
-            lang={lang} langCode={langCode}
-            onSelect={openMovie}
-          />
+          <div className="placeholder-block">
+            <div className="placeholder-block__icon"><MagicStickLinear size={40} /></div>
+            <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
+            <p className="placeholder-block__desc">
+              {lang === 'ru'
+                ? 'Сезонная вкладка с тематическими подборками, атмосферными коллекциями и уникальными фичами сейчас в разработке.'
+                : 'The seasonal tab with curated collections, atmospheric picks and unique features is currently in development.'}
+            </p>
+            <div className="placeholder-block__chips">
+              {lang === 'ru'
+                ? ['🎃 Хэллоуин', '🎄 Новый год', '☀️ Лето', '🍂 Осень'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
+                : ['🎃 Halloween', '🎄 New Year', '☀️ Summer', '🍂 Autumn'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
+              }
+            </div>
+          </div>
         )}
       </div>
 

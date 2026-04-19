@@ -115,69 +115,18 @@
 }
 .main-tab:active { transform: scale(0.96); }
 
-/* ── Seasonal Tab Button — the special one ─────────────────────────────── */
-/*
-  Uses CSS custom properties --s-from, --s-to, --s-glow injected inline
-  so each season has its own unique gradient.
-*/
-.main-tab--seasonal {
-  /* Base: neutral so it doesn't clash before active */
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--surface) 60%, transparent),
-    var(--surface)
-  );
-  border: 1.5px solid transparent;
-  /* Fake border trick: gradient border */
-  background-clip: padding-box;
-  position: relative;
-  padding: 8px 16px;
-  overflow: visible;
+/* ── Seasonal Tab Button ───────────────────────────────────────────────── */
+.main-tab--seasonal-wip {
+  opacity: 0.7;
 }
-
-/* Animated gradient border ring */
-.main-tab--seasonal::before {
-  content: '';
-  position: absolute; inset: -1.5px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, var(--s-from, #e8c547), var(--s-to, #ff6b35));
-  z-index: -1;
-  opacity: 0.55;
-  transition: opacity 0.3s;
+.main-tab--seasonal-wip.active {
+  background: linear-gradient(135deg, rgba(232,197,71,0.16) 0%, rgba(255,107,53,0.09) 100%);
+  border-color: rgba(232,197,71,0.4);
+  color: var(--accent);
+  box-shadow: 0 2px 12px rgba(232,197,71,0.15);
+  opacity: 1;
 }
-.main-tab--seasonal:hover::before,
-.main-tab--seasonal.active::before { opacity: 1; }
-
-/* Glow behind the button */
-.main-tab--seasonal::after {
-  content: '';
-  position: absolute; inset: -4px;
-  border-radius: 36px;
-  background: radial-gradient(ellipse at center, var(--s-glow, rgba(232,197,71,0.3)) 0%, transparent 75%);
-  z-index: -2;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.main-tab--seasonal:hover::after,
-.main-tab--seasonal.active::after { opacity: 1; }
-
-/* Active state — fill with season gradient */
-.main-tab--seasonal.active {
-  background: linear-gradient(135deg, var(--s-from, #e8c547), var(--s-to, #ff6b35));
-  color: #fff !important;
-  border-color: transparent;
-  box-shadow:
-    0 4px 20px var(--s-glow, rgba(232,197,71,0.4)),
-    0 0 0 1px rgba(255,255,255,0.1) inset;
-  font-weight: 700;
-}
-
-.main-tab--seasonal .main-tab__s-icon {
-  display: flex; align-items: center;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
-}
-.main-tab--seasonal .main-tab__s-text {
-  font-size: 12.5px; font-weight: 700; letter-spacing: 0.2px;
-}
+.main-tab--seasonal-wip:hover { opacity: 1; }
 
 /* ─── Tab Content ────────────────────────────────────────────────────────── */
 .tab-content { padding-bottom: 12px; }
@@ -190,6 +139,7 @@
 .home-section  { margin-bottom: 28px; }
 .home-section__title {
   font-size: 15px; font-weight: 700; padding: 0 20px; margin-bottom: 12px;
+  margin-top: 6px;
   display: flex; align-items: center; gap: 7px;
 }
 @media (min-width: 900px) { .home-section__title { padding: 0 28px; font-size: 16px; } }
@@ -296,75 +246,4 @@
   padding: 8px 16px; border-radius: 20px;
   background: var(--surface); border: 1px solid var(--border);
   color: var(--text2); font-size: 13px; font-weight: 600; opacity: 0.55;
-}
-
-/* ─── Seasonal Tab ───────────────────────────────────────────────────────── */
-.seasonal-tab { padding-bottom: 8px; }
-
-/* ── Hero Banner ── */
-.seasonal-hero {
-  position: relative; overflow: hidden;
-  margin: 16px 16px 0;
-  border-radius: 20px;
-  padding: 22px 20px 20px;
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--s-from) 22%, var(--surface2)),
-    color-mix(in srgb, var(--s-to)   14%, var(--surface))
-  );
-  border: 1px solid color-mix(in srgb, var(--s-from) 35%, transparent);
-}
-@media (min-width: 900px) {
-  .seasonal-hero { margin: 16px 28px 0; padding: 28px 28px 24px; }
-}
-
-/* Ambient glow orb */
-.seasonal-hero__glow {
-  position: absolute; top: -40px; right: -40px;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, var(--s-glow, rgba(232,197,71,0.3)) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.seasonal-hero__top {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
-}
-
-/* Icon ring */
-.seasonal-hero__icon-ring {
-  width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--s-from), var(--s-to));
-  display: flex; align-items: center; justify-content: center;
-  color: #fff;
-  box-shadow: 0 4px 16px var(--s-glow, rgba(232,197,71,0.35));
-}
-
-.seasonal-hero__name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px; letter-spacing: 0.5px; line-height: 1;
-  background: linear-gradient(135deg, var(--s-from), var(--s-to));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.seasonal-hero__sub {
-  font-size: 12px; color: var(--text2); font-weight: 500; margin-top: 3px;
-}
-
-/* Rotating quote */
-.seasonal-hero__quote {
-  font-size: 13px; color: var(--text2); font-style: italic;
-  margin-bottom: 14px; line-height: 1.5;
-  opacity: 0;
-  animation: quoteAppear 0.6s ease forwards;
-}
-@keyframes quoteAppear { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-
-/* Genre chips */
-.seasonal-hero__genres {
-  display: flex; flex-wrap: wrap; gap: 6px;
-}
-.seasonal-hero__chip {
-  padding: 4px 11px; border-radius: 12px;
-  background: rgba(255,255,255,0.09);
-  border: 1px solid rgba(255,255,255,0.12);
-  font-size: 11px; font-weight: 600; color: var(--text);
 }
