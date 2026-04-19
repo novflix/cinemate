@@ -110,16 +110,18 @@ const getPages = async (path, params = {}, pages = 3) => {
   try {
     const first = await get(path, { ...params, page: 1 });
     const total = Math.min(pages, first.total_pages || 1);
-    const results = [...(first.results || [])];
+    const raw = [...(first.results || [])];
     if (total > 1) {
       const rest = await Promise.all(
         Array.from({ length: total - 1 }, (_, i) =>
           get(path, { ...params, page: i + 2 }).catch(() => ({ results: [] }))
         )
       );
-      rest.forEach(d => results.push(...(d.results || [])));
+      rest.forEach(d => raw.push(...(d.results || [])));
     }
-    return results;
+    // Deduplicate by id to prevent the same item appearing in multiple pages
+    const seen = new Set();
+    return raw.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
   } catch { return []; }
 };
 
