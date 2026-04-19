@@ -252,7 +252,8 @@ export default function Home() {
       !(m.genre_ids || []).some(g => JUNK_GENRES.has(g)) &&
       !ADULT_KEYWORDS.test(m.title || m.name || m.original_title || m.original_name || '');
 
-    const isQM  = m => isOK(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=5.0 && (!m.release_date   || m.release_date  >='1980-01-01');
+    const isNotAnim = m => !(m.genre_ids || []).includes(16);
+    const isQM  = m => isOK(m) && isNotAnim(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=5.0 && (!m.release_date   || m.release_date  >='1980-01-01');
     const isQTV = m => isOK(m) && (m.vote_count||0)>=80  && (m.vote_average||0)>=5.0 && (!m.first_air_date || m.first_air_date>='1980-01-01');
 
     const today      = new Date().toISOString().split('T')[0];
@@ -293,17 +294,18 @@ export default function Home() {
       tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
       tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':20},2),
     ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV])=>{
+      const dedup = arr => { const s = new Set(); return arr.filter(m => { if (s.has(m.id)) return false; s.add(m.id); return true; }); };
       const data = {
-        heroItems:       (tAll.results  ||[]).filter(isOK).slice(0,10),
-        trendingMovies:  (tM.results    ||[]).filter(isOK).slice(0,30),
-        trendingSeries:  (tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'})).slice(0,30),
-        popularMovies:   (popM.results  ||[]).filter(isQM).slice(0,40),
-        popularSeries:   (popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,40),
-        nowPlayingMovies:(nowP.results  ||[]).filter(isOK).slice(0,30),
-        nowPlayingSeries:(popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,20),
+        heroItems:       dedup((tAll.results  ||[]).filter(isOK)).slice(0,10),
+        trendingMovies:  dedup((tM.results    ||[]).filter(m=>isOK(m)&&isNotAnim(m))).slice(0,30),
+        trendingSeries:  dedup((tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'}))).slice(0,30),
+        popularMovies:   dedup((popM.results  ||[]).filter(isQM)).slice(0,40),
+        popularSeries:   dedup((popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}))).slice(0,40),
+        nowPlayingMovies:dedup((nowP.results  ||[]).filter(m=>isOK(m)&&isNotAnim(m))).slice(0,30),
+        nowPlayingSeries:dedup((popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}))).slice(0,20),
         comingSoon: [],
-        newMovies: (newM.results  ||[]).filter(m=>isOK(m)&&(m.vote_count||0)>=30).slice(0,30),
-        newSeries: (newTV.results ||[]).filter(m=>isOK(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'})).slice(0,30),
+        newMovies: dedup((newM.results  ||[]).filter(m=>isOK(m)&&isNotAnim(m)&&(m.vote_count||0)>=30)).slice(0,30),
+        newSeries: dedup((newTV.results ||[]).filter(m=>isOK(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'}))).slice(0,30),
       };
       setAllData(data);
       setHomeCache(lang,data);
