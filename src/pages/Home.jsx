@@ -1,25 +1,27 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear, CupFirstLinear, CalendarDateLinear, TVLinear, MagicStickLinear, HeartLinear, AltArrowLeftLinear, AltArrowRightLinear, SmileCircleLinear, GhostLinear, BoltCircleLinear, GlassesLinear, ConfettiMinimalisticLinear, UsersGroupRoundedLinear } from 'solar-icon-set';
+import {
+  StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear,
+  CupStarLinear, CalendarDateLinear, TVLinear, MagicStickLinear,
+  AltArrowLeftLinear, AltArrowRightLinear
+} from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
 import { useTheme } from '../theme';
-import { useAdmin } from '../admin';
-import { getCurrentSeason, SEASON_CONFIG } from '../hooks/useSeason';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import ScrollRow from '../components/ScrollRow';
 import './Home.css';
 
-// Session cache — avoids refetching on tab switch within same session
-const HOME_CACHE_KEY = 'cinimate_home_cache_v1';
+/* ─── Cache ─────────────────────────────────────────────────────────────── */
+const HOME_CACHE_KEY = 'cinimate_home_cache_v5';
 function getHomeCache(lang) {
   try {
     const raw = sessionStorage.getItem(HOME_CACHE_KEY + '_' + lang);
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > 5 * 60 * 1000) return null; // 5 min TTL
+    if (Date.now() - ts > 5 * 60 * 1000) return null;
     return data;
   } catch { return null; }
 }
@@ -27,32 +29,27 @@ function setHomeCache(lang, data) {
   try { sessionStorage.setItem(HOME_CACHE_KEY + '_' + lang, JSON.stringify({ data, ts: Date.now() })); } catch {}
 }
 
-
-// TMDB uses different genre IDs for movies vs TV.
-// 'genres' = movie genre IDs, 'tvGenres' = TV-specific overrides (falls back to genres if not set)
-// Key differences: Action(28→10759), Adventure(12→10759), Sci-Fi(878→10765), Family(10751→10762)
-const MOODS = [
-  { id: 'all',    Icon: ClapperboardLinear, genres: [],              tvGenres: [],                ru: 'Всё',       en: 'All'     },
-  { id: 'fun',    Icon: SmileCircleLinear,  genres: [35,10751],     tvGenres: [35,10762,10751],  ru: 'Весёлое',   en: 'Fun'     },
-  { id: 'scary',  Icon: GhostLinear,        genres: [27,53],        tvGenres: [27,53,80],           ru: 'Страшное',  en: 'Scary'   },
-  { id: 'action', Icon: BoltCircleLinear,   genres: [28,12],        tvGenres: [10759],           ru: 'Экшн',      en: 'Action'  },
-  { id: 'drama',  Icon: HeartLinear,        genres: [18,10749],     tvGenres: [18,10749],        ru: 'Драма',     en: 'Drama'   },
-  { id: 'mind',   Icon: GlassesLinear,        genres: [878,9648,99],  tvGenres: [10765,9648,99],   ru: 'Для ума',   en: 'Mindful' },
-];
-
 const CURRENT_YEAR = new Date().getFullYear();
-const TOGETHER_TAGS = [
-  { id: 'date',    ru: 'Для свидания', en: 'First date',   Icon: HeartLinear,
-    params: { with_genres: '10749,35', sort_by: 'popularity.desc', 'vote_count.gte': 800,  'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
-  { id: 'friends', ru: 'С друзьями',   en: 'With friends', Icon: ConfettiMinimalisticLinear,
-    params: { with_genres: '35,28',    sort_by: 'popularity.desc', 'vote_count.gte': 1000, 'vote_average.gte': 6.5, 'primary_release_date.gte': `${CURRENT_YEAR - 10}-01-01` } },
-  { id: 'family',  ru: 'Для семьи',    en: 'Family',       Icon: UsersGroupRoundedLinear,
-    params: { with_genres: '10751,16', sort_by: 'popularity.desc', 'vote_count.gte': 400,  'vote_average.gte': 6.8, 'primary_release_date.gte': `${CURRENT_YEAR - 15}-01-01` } },
-];
+const TMDB_LANG_MAP = { ru: 'ru-RU', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR', it: 'it-IT', tr: 'tr-TR', zh: 'zh-CN' };
 
+const GENRE_NAMES = {
+  18:    { ru: 'Драма',       en: 'Drama'      },
+  27:    { ru: 'Ужасы',       en: 'Horror'     },
+  28:    { ru: 'Экшн',        en: 'Action'     },
+  35:    { ru: 'Комедия',     en: 'Comedy'     },
+  53:    { ru: 'Триллер',     en: 'Thriller'   },
+  9648:  { ru: 'Мистика',     en: 'Mystery'    },
+  10749: { ru: 'Романтика',   en: 'Romance'    },
+  10751: { ru: 'Семейное',    en: 'Family'     },
+  10765: { ru: 'Sci-Fi',      en: 'Sci-Fi'     },
+  14:    { ru: 'Фэнтези',     en: 'Fantasy'    },
+  12:    { ru: 'Приключения', en: 'Adventure'  },
+  16:    { ru: 'Анимация',    en: 'Animation'  },
+};
 
+/* ─── Hero Slider ────────────────────────────────────────────────────────── */
 function HeroSlider({ items, onSelect }) {
-  const [idx,  setIdx]  = useState(0);
+  const [idx, setIdx] = useState(0);
   const [anim, setAnim] = useState('in');
   const timerRef = useRef(null);
 
@@ -63,301 +60,391 @@ function HeroSlider({ items, onSelect }) {
 
   useEffect(() => {
     if (items.length < 2) return;
-    timerRef.current = setInterval(() => goTo(p => (p+1)%items.length), 5500);
+    timerRef.current = setInterval(() => goTo(p => (p + 1) % items.length), 5500);
     return () => clearInterval(timerRef.current);
   }, [items.length, goTo]);
 
-  const prev = () => { clearInterval(timerRef.current); goTo((idx-1+items.length)%items.length); };
-  const next = () => { clearInterval(timerRef.current); goTo((idx+1)%items.length); };
+  const prev = () => { clearInterval(timerRef.current); goTo((idx - 1 + items.length) % items.length); };
+  const next = () => { clearInterval(timerRef.current); goTo((idx + 1) % items.length); };
 
   if (!items.length) return null;
   const hero = items[idx];
 
   return (
     <div className="hero" onClick={() => onSelect(hero)}>
-      <div className={"hero__bg hero__bg--"+anim}>
-        {tmdb.backdropUrl(hero.backdrop_path) && <img src={tmdb.backdropUrl(hero.backdrop_path)} alt=""/>}
-        <div className="hero__fade"/>
+      <div className={"hero__bg hero__bg--" + anim}>
+        {tmdb.backdropUrl(hero.backdrop_path) && <img src={tmdb.backdropUrl(hero.backdrop_path)} alt="" />}
+        <div className="hero__fade" />
       </div>
-      <div className={"hero__content hero__content--"+anim}>
-        <div className="hero__label"><Chart2Linear size={10}/> #{idx+1}</div>
-        <h1 className="hero__title">{hero.title||hero.name}</h1>
+      <div className={"hero__content hero__content--" + anim}>
+        <div className="hero__label"><Chart2Linear size={10} /> #{idx + 1} Trending</div>
+        <h1 className="hero__title">{hero.title || hero.name}</h1>
         <div className="hero__meta">
-          {hero.vote_average > 0 && <span><StarLinear size={12} fill="currentColor"/> {hero.vote_average.toFixed(1)}</span>}
-          <span>{(hero.release_date||hero.first_air_date||'').slice(0,4)}</span>
+          {hero.vote_average > 0 && <span><StarLinear size={12} fill="currentColor" /> {hero.vote_average.toFixed(1)}</span>}
+          <span>{(hero.release_date || hero.first_air_date || '').slice(0, 4)}</span>
+          {hero.media_type && <span className="hero__type-badge">{hero.media_type === 'tv' ? 'Series' : hero.media_type === 'movie' ? 'Film' : ''}</span>}
         </div>
-        <button className="hero__btn" onClick={e=>{e.stopPropagation();onSelect(hero);}}>
-          <PlayLinear size={13} fill="currentColor"/>
+        <button className="hero__btn" onClick={e => { e.stopPropagation(); onSelect(hero); }}>
+          <PlayLinear size={13} fill="currentColor" />
         </button>
       </div>
       {items.length > 1 && <>
-        <button className="hero__arrow hero__arrow--left"  onClick={e=>{e.stopPropagation();prev();}}><AltArrowLeftLinear  size={20}/></button>
-        <button className="hero__arrow hero__arrow--right" onClick={e=>{e.stopPropagation();next();}}><AltArrowRightLinear size={20}/></button>
+        <button className="hero__arrow hero__arrow--left" onClick={e => { e.stopPropagation(); prev(); }}><AltArrowLeftLinear size={20} /></button>
+        <button className="hero__arrow hero__arrow--right" onClick={e => { e.stopPropagation(); next(); }}><AltArrowRightLinear size={20} /></button>
       </>}
-      <div className="hero__dots" onClick={e=>e.stopPropagation()}>
-        {items.map((_,i)=>(
-          <button key={i} className={"hero__dot"+(i===idx?" active":"")} onClick={()=>{clearInterval(timerRef.current);goTo(i);}}/>
+      <div className="hero__dots" onClick={e => e.stopPropagation()}>
+        {items.map((_, i) => (
+          <button key={i} className={"hero__dot" + (i === idx ? " active" : "")} onClick={() => { clearInterval(timerRef.current); goTo(i); }} />
         ))}
       </div>
     </div>
   );
 }
 
-const SectionRow = memo(function SectionRow({ items, onSelect, showCountdown=false, gold=false }) {
+/* ─── Skeleton Row ───────────────────────────────────────────────────────── */
+const SkeletonRow = () => (
+  <div className="home-section">
+    <div className="skeleton" style={{ height: 13, width: 140, marginBottom: 12, marginLeft: 20, borderRadius: 6 }} />
+    <div style={{ display: 'flex', gap: 12, overflow: 'hidden', padding: '0 20px' }}>
+      {[1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ width: 130, flexShrink: 0, borderRadius: 12, paddingBottom: '195px' }} />)}
+    </div>
+  </div>
+);
+
+/* ─── Section Row ────────────────────────────────────────────────────────── */
+const SectionRow = memo(function SectionRow({ items, onSelect, showCountdown = false }) {
   return (
     <ScrollRow>
       {items.map(m => (
-        <div key={m.id} className={"home-section__item"+(gold?" home-section__item--gold":"")}>
-          <MovieCard movie={m} onClick={onSelect} showCountdown={showCountdown}/>
+        <div key={m.id} className="home-section__item">
+          <MovieCard movie={m} onClick={onSelect} showCountdown={showCountdown} />
         </div>
       ))}
     </ScrollRow>
   );
 });
 
-function TogetherSection({ onSelect, lang }) {
-  const { t } = useTranslation();
-  const [activeTag, setActiveTag] = useState('date');
-  const [movies, setMovies] = useState({});
-  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
-  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
-
-  useEffect(() => {
-    TOGETHER_TAGS.forEach(tag => {
-      const query = new URLSearchParams({
-        language: langCode,
-        page: '1',
-        ...tag.params,
-      }).toString();
-      fetch(`https://api.themoviedb.org/3/discover/movie?${query}`, { headers: HEADERS })
-        .then(r=>r.json()).then(data=>{
-          setMovies(prev=>({...prev,[tag.id]:(data.results||[]).filter(m=>m.poster_path).slice(0,15)}));
-        }).catch(()=>{});
-    });
-  }, [langCode]);
-
-  const current = movies[activeTag] || [];
+/* ─── Single titled section ──────────────────────────────────────────────── */
+function ContentSection({ Icon, title, items, onSelect, showCountdown = false }) {
+  if (!items || items.length === 0) return null;
   return (
-    <div className="home-section together-section">
-      <h3 className="home-section__title"><HeartLinear size={15} className="home-section__icon"/>{t('profile.watchTogether')}</h3>
-      <div className="together-tags">
-        {TOGETHER_TAGS.map(tag=>(
-          <button key={tag.id} className={"together-tag"+(activeTag===tag.id?' active':'')} onClick={()=>setActiveTag(tag.id)}>
-            <tag.Icon size={14}/> {lang==='ru'?tag.ru:tag.en}
-          </button>
-        ))}
-      </div>
-      <ScrollRow>
-        {current.length > 0
-          ? current.map(m=><div key={m.id} className="home-section__item"><MovieCard movie={{...m,media_type:'movie'}} onClick={onSelect}/></div>)
-          : [1,2,3,4].map(i=><div key={i} className="skeleton home-section__item" style={{paddingBottom:'195px',borderRadius:12}}/>)
-        }
-      </ScrollRow>
+    <div className="home-section">
+      <h3 className="home-section__title">
+        {Icon && <Icon size={15} className="home-section__icon" />}
+        {title}
+      </h3>
+      <SectionRow items={items} onSelect={onSelect} showCountdown={showCountdown} />
     </div>
   );
 }
 
-
-function dedup(arrays) {
-  const seen = new Set();
-  return arrays.map(arr => arr.filter(m => { if(seen.has(m.id))return false; seen.add(m.id); return true; }));
+/* ─── Three-slider block (Movies + Series + Animation) ───────────────────── */
+function ThreeCatBlock({ movies, series, animation, onSelect, lang, loading }) {
+  const cats = [
+    { key: 'movies',    Icon: ClapperboardLinear, ru: 'Фильмы',   en: 'Movies',    items: movies    },
+    { key: 'series',    Icon: TVLinear,           ru: 'Сериалы',  en: 'Series',    items: series    },
+    { key: 'animation', Icon: MagicStickLinear,   ru: 'Анимация', en: 'Animation', items: animation },
+  ];
+  if (loading) return <div className="home-sections" style={{ paddingTop: 18 }}>{cats.map(c => <SkeletonRow key={c.key} />)}</div>;
+  return (
+    <div className="home-sections" style={{ paddingTop: 18 }}>
+      {cats.map(c => (
+        <ContentSection key={c.key} Icon={c.Icon} title={lang === 'ru' ? c.ru : c.en} items={c.items} onSelect={onSelect} />
+      ))}
+    </div>
+  );
 }
 
-const SkeletonRow = () => (
-  <div className="home-section">
-    <div className="skeleton" style={{height:14,width:160,marginBottom:14,marginLeft:20,borderRadius:6}}/>
-    <div style={{display:'flex',gap:12,overflow:'hidden',padding:'0 20px'}}>
-      {[1,2,3,4].map(i=><div key={i} className="skeleton" style={{width:130,flexShrink:0,borderRadius:12,paddingBottom:'195px'}}/>)}
-    </div>
-  </div>
-);
+/* ─── Coming Soon Card ───────────────────────────────────────────────────── */
+function ComingSoonCard({ movie, onSelect }) {
+  const days = useMemo(() => {
+    const d = movie.release_date;
+    if (!d) return null;
+    const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
+    return diff > 0 ? diff : null;
+  }, [movie.release_date]);
 
+  return (
+    <div className="cs-card" onClick={() => onSelect(movie)}>
+      <div className="cs-card__poster">
+        {movie.poster_path
+          ? <img src={tmdb.posterUrl(movie.poster_path)} alt={movie.title} />
+          : <div className="cs-card__no-poster"><ClapperboardLinear size={32} /></div>
+        }
+        {days !== null && (
+          <div className="cs-card__badge">
+            <span className="cs-card__days">{days}</span>
+            <span className="cs-card__days-label">days</span>
+          </div>
+        )}
+      </div>
+      <div className="cs-card__info">
+        <div className="cs-card__title">{movie.title || movie.name}</div>
+        {movie.release_date && (
+          <div className="cs-card__date">
+            <CalendarDateLinear size={11} />
+            {new Date(movie.release_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Popular Lists Placeholder ──────────────────────────────────────────── */
+function PopularListsPlaceholder({ lang }) {
+  return (
+    <div className="placeholder-block">
+      <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
+      <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
+      <p className="placeholder-block__desc">
+        {lang === 'ru'
+          ? 'Популярные списки фильмов и сериалов от сообщества сейчас в разработке. Скоро здесь появятся топы, подборки и рейтинги.'
+          : 'Community-curated lists are in development. Top picks, collections and rankings coming soon.'}
+      </p>
+      <div className="placeholder-block__chips">
+        {['🎬 Top 100 Movies', '📺 Best Series', '🌍 World Cinema', '🏆 Award Winners'].map(c => (
+          <div key={c} className="placeholder-block__chip">{c}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main Tabs ──────────────────────────────────────────────────────────── */
+const MAIN_TABS = [
+  { id: 'trending',   labelRu: 'Trending',           labelEn: 'Trending',        icon: FlameLinear        },
+  { id: 'nowplaying', labelRu: 'Now Playing',         labelEn: 'Now Playing',     icon: PlayLinear         },
+  { id: 'comingsoon', labelRu: 'Coming Soon',         labelEn: 'Coming Soon',     icon: CalendarDateLinear },
+  { id: 'popular',    labelRu: 'Popular',             labelEn: 'Popular',         icon: CupStarLinear     },
+  { id: 'new',        labelRu: `New ${CURRENT_YEAR}`, labelEn: `New ${CURRENT_YEAR}`, icon: MagicStickLinear },
+  { id: 'lists',      labelRu: 'Popular Lists',       labelEn: 'Popular Lists',   icon: CupStarLinear       },
+  { id: 'seasonal',   labelRu: null,                  labelEn: null,              icon: null               },
+];
+
+/* ─── Home Page ──────────────────────────────────────────────────────────── */
 export default function Home() {
-  const [allData,     setAllData]     = useState(null);
-  const [mood,        setMood]        = useState('all');
-  const [moodData,    setMoodData]    = useState(null);
-  const [seasonData,  setSeasonData]  = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [moodLoading, setMoodLoading] = useState(false);
+  const [allData, setAllData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('trending');
+  const [animData, setAnimData] = useState({ trending: [], nowplaying: [], popular: [], new: [] });
+  const [comingSoon, setComingSoon] = useState([]);
+  const [comingSoonLoading, setComingSoonLoading] = useState(true);
+
   const { selected, openMovie, closeMovie } = useMovieModal();
   const navigate = useNavigate();
   const { lang } = useTheme();
-  const { t } = useTranslation();
-  const { overrides } = useAdmin();
-  const TMDB_LANG_MAP = { ru:'ru-RU', en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE', pt:'pt-BR', it:'it-IT', tr:'tr-TR', zh:'zh-CN' };
-  const langCode = TMDB_LANG_MAP[lang] || 'en-US';
+  const langCode    = TMDB_LANG_MAP[lang] || 'en-US';
   const currentYear = new Date().getFullYear();
-  const season = getCurrentSeason(overrides.season);
-  const seasonCfg = SEASON_CONFIG[season];
 
   useEffect(() => {
-    setMood('all'); setMoodData(null);
-    // Try cache first
     const cached = getHomeCache(lang);
     if (cached) { setAllData(cached); setLoading(false); }
     else setLoading(true);
+
+    const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768, 99, 10770]);
+    const ADULT_KEYWORDS = /\b(sex|erotic|xxx|porn|nude|naked|adult|hentai|softcore|hardcore|fetish|naughty|seduct|lust|explicit)\b/i;
+
+    // Universal quality filter — applied to every single item on the page
+    const isOK = m =>
+      m.poster_path &&
+      !m.adult &&
+      !(m.genre_ids || []).some(g => JUNK_GENRES.has(g)) &&
+      !ADULT_KEYWORDS.test(m.title || m.name || m.original_title || m.original_name || '');
+
+    const isQM  = m => isOK(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=5.0 && (!m.release_date   || m.release_date  >='1980-01-01');
+    const isQTV = m => isOK(m) && (m.vote_count||0)>=80  && (m.vote_average||0)>=5.0 && (!m.first_air_date || m.first_air_date>='1980-01-01');
+
+    const today      = new Date().toISOString().split('T')[0];
+    const oneYearOut = new Date(); oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
+    const oneYearStr = oneYearOut.toISOString().split('T')[0];
+
+    const csParams = `primary_release_date.gte=${today}&primary_release_date.lte=${oneYearStr}&language=en-US&without_genres=10764,10767,10763,10766,10770,99`;
+    const csByPop  = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=popularity.desc`;
+    const csByDate = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=primary_release_date.asc`;
+    setComingSoonLoading(true);
+    Promise.all([
+      ...[1,2,3,4,5,6,7,8].map(p => fetch(`${csByPop}&page=${p}`,  { headers: HEADERS }).then(r => r.json()).catch(() => ({ results: [] }))),
+      ...[1,2,3].map(p =>        fetch(`${csByDate}&page=${p}`, { headers: HEADERS }).then(r => r.json()).catch(() => ({ results: [] }))),
+    ]).then(pages => {
+      const BLOCKED_GENRES = new Set([10764, 10767, 10763, 10766, 10768, 99, 10770]);
+      const all = pages.flatMap(p => p.results || []);
+      const filtered = all.filter(m =>
+        isOK(m) &&
+        m.release_date &&
+        m.release_date >= today &&
+        m.release_date <= oneYearStr &&
+        (m.popularity || 0) >= 5 &&
+        !(m.genre_ids || []).some(g => BLOCKED_GENRES.has(g))
+      );
+      const unique = [...new Map(filtered.map(m => [m.id, m])).values()];
+      unique.sort((a, b) => a.release_date.localeCompare(b.release_date));
+      setComingSoon(unique.slice(0, 150));
+      setComingSoonLoading(false);
+    }).catch(() => setComingSoonLoading(false));
+
     Promise.all([
       tmdb.trending('all','week'),
+      tmdb.trending('movie','week'),
+      tmdb.trending('tv','week'),
       tmdb.popular('movie',2),
-      tmdb.topRated('movie',2),
-      tmdb.nowPlaying(2),
-      tmdb.upcoming(2),
       tmdb.popular('tv',2),
-      tmdb.topRated('tv',2),
+      tmdb.nowPlaying(2),
       tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
-    ]).then(([tr,pm,tm,np,up,ptv,ttv,ny]) => {
-      // Genre IDs to exclude from popular sections (reality, talk shows, awards, news, soap)
-      const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768]);
-      const isQualityMovie = m =>
-        m.poster_path &&
-        (m.vote_count   || 0) >= 300 &&
-        (m.vote_average || 0) >= 5.5 &&
-        !(m.genre_ids||[]).some(g => JUNK_GENRES.has(g)) &&
-        (!m.release_date || m.release_date >= '1990-01-01');
-      const isQualityTV = m =>
-        m.poster_path &&
-        (m.vote_count   || 0) >= 100 &&
-        (m.vote_average || 0) >= 5.5 &&
-        !(m.genre_ids||[]).some(g => JUNK_GENRES.has(g)) &&
-        (!m.first_air_date || m.first_air_date >= '1990-01-01');
-
-      const homeData = {
-        trending:  (tr.results||[]).slice(0,10),
-        popularM:  (pm.results||[]).filter(isQualityMovie).slice(0,50),
-        topM:      (tm.results||[]).filter(isQualityMovie).slice(0,50),
-        nowPlaying:(np.results||[]).slice(0,50),
-        upcoming:  (() => {
-        const today = new Date().toISOString().split('T')[0];
-        return (up.results||[])
-          .filter(m => m.release_date && m.release_date > today)
-          .sort((a,b) => a.release_date.localeCompare(b.release_date))
-          .slice(0,50);
-      })(),
-        popularTV: (ptv.results||[]).filter(isQualityTV).slice(0,50).map(m=>({...m,media_type:'tv'})),
-        topTV:     (ttv.results||[]).filter(isQualityTV).slice(0,50).map(m=>({...m,media_type:'tv'})),
-        newYear:   (ny.results||[]).slice(0,50),
+      tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':20},2),
+    ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV])=>{
+      const data = {
+        heroItems:       (tAll.results  ||[]).filter(isOK).slice(0,10),
+        trendingMovies:  (tM.results    ||[]).filter(isOK).slice(0,30),
+        trendingSeries:  (tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'})).slice(0,30),
+        popularMovies:   (popM.results  ||[]).filter(isQM).slice(0,40),
+        popularSeries:   (popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,40),
+        nowPlayingMovies:(nowP.results  ||[]).filter(isOK).slice(0,30),
+        nowPlayingSeries:(popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'})).slice(0,20),
+        comingSoon: [],
+        newMovies: (newM.results  ||[]).filter(m=>isOK(m)&&(m.vote_count||0)>=30).slice(0,30),
+        newSeries: (newTV.results ||[]).filter(m=>isOK(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'})).slice(0,30),
       };
-      setAllData(homeData);
-      setHomeCache(lang, homeData);
+      setAllData(data);
+      setHomeCache(lang,data);
       setLoading(false);
     }).catch(()=>setLoading(false));
 
-    const g = seasonCfg.genres.slice(0,2).join(',');
-    const minYear = new Date().getFullYear() - 20;
-    fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=${g}&sort_by=${seasonCfg.sort}&vote_count.gte=200&primary_release_date.gte=${minYear}-01-01&page=1`,{headers:HEADERS})
-      .then(r=>r.json()).then(data=>setSeasonData((data.results||[]).filter(m=>m.poster_path).slice(0,20)))
-      .catch(()=>{});
-  }, [lang, currentYear, langCode, seasonCfg.genres, seasonCfg.sort]);
-
-  useEffect(() => {
-    if (mood==='all'||!allData){setMoodData(null);return;}
-    const cfg=MOODS.find(m=>m.id===mood);
-    if(!cfg?.genres.length){setMoodData(null);return;}
-    setMoodLoading(true);
-    const gMovie = cfg.genres.join('|');
-    // TV uses different genre IDs than movies — use tvGenres if defined
-    const gTv = (cfg.tvGenres?.length ? cfg.tvGenres : cfg.genres).join('|');
     Promise.all([
-      tmdb.discover('movie',{with_genres:gMovie,sort_by:'popularity.desc','vote_count.gte':200,'primary_release_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
-      tmdb.discover('tv',   {with_genres:gTv,  sort_by:'popularity.desc','vote_count.gte':50, 'first_air_date.gte':`${new Date().getFullYear()-15}-01-01`},3),
-    ]).then(([movies,tv])=>{
-      setMoodData({
-        movies:(movies.results||[]).filter(m=>m.poster_path).map(m=>({...m,media_type:'movie'})),
-        tv:    (tv.results   ||[]).filter(m=>m.poster_path).map(m=>({...m,media_type:'tv'})),
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&primary_release_year=${currentYear}&sort_by=popularity.desc&page=1`,{headers:HEADERS}).then(r=>r.json()),
+    ]).then(([tw1,tw2,np1,np2,pop1,pop2,ny])=>{
+      const isAnim = m => isOK(m) && (m.genre_ids||[]).includes(16);
+      const mergeAnim = (...pages) => {
+        const seen = new Set();
+        return pages.flatMap(p=>p.results||[]).filter(m=>{ if(seen.has(m.id))return false; seen.add(m.id); return isAnim(m); });
+      };
+      setAnimData({
+        trending:  mergeAnim(tw1,tw2).slice(0,25),
+        nowplaying:mergeAnim(np1,np2).slice(0,25),
+        popular:   mergeAnim(pop1,pop2).slice(0,25),
+        new:       (ny.results||[]).filter(m=>m.poster_path&&!m.adult).slice(0,25),
       });
-      setMoodLoading(false);
-    }).catch(()=>setMoodLoading(false));
-  }, [mood, allData]);
+    }).catch(()=>{});
+  },[lang,currentYear,langCode]);
 
-  const handleActorClick = (actor) => navigate(`/actor/${actor.id}`, { state: { actor } });
-
-  let sections = [];
-  if (allData && mood==='all') {
-    const heroIds = new Set(allData.trending.map(m=>m.id));
-
-    // Deduplicate within each group independently so popular sections
-    // don't get drained by nowPlaying / newYear overlap
-    const dedupSet = (arr, seen) => arr.filter(m => !seen.has(m.id) && seen.add(m.id));
-
-    const movieSeen = new Set(heroIds);
-    const tvSeen    = new Set();
-
-    const nowP   = dedupSet(allData.nowPlaying, movieSeen);
-    const upcom  = dedupSet(allData.upcoming,   new Set(movieSeen));
-    const newY   = dedupSet(allData.newYear,    new Set(movieSeen));
-
-    // Popular/Top get their own seen so they always have full content
-    const popMovieSeen = new Set(heroIds);
-    const topMovieSeen = new Set(heroIds);
-    const popM   = dedupSet(allData.popularM, popMovieSeen);
-    const topM   = dedupSet(allData.topM,     topMovieSeen);
-
-    const popTV  = dedupSet(allData.popularTV, tvSeen);
-    const topTV  = dedupSet(allData.topTV,     new Set(tvSeen));
-    const seas   = dedupSet(seasonData,        new Set(movieSeen));
-    sections = [
-      { icon:ClapperboardLinear, title:t('home.nowPlaying'),   items:nowP.slice(0,50),  countdown:false, gold:false },
-      { icon:CalendarDateLinear, title:t('home.comingSoon'),    items:upcom.slice(0,50), countdown:true,  gold:false },
-      { icon:MagicStickLinear,     title:t('home.newYear', {year: currentYear}), items:newY.slice(0,50), countdown:false, gold:false },
-      { icon:FlameLinear,        title:t('home.popularMovies'),  items:popM.slice(0,50),  countdown:false, gold:false },
-      { icon:CupFirstLinear,       title:t('home.topMovies'),          items:topM.slice(0,50),  countdown:false, gold:true  },
-      { icon:TVLinear,          title:t('home.popularSeries'), items:popTV.slice(0,50), countdown:false, gold:false },
-      { icon:CupFirstLinear,       title:t('home.topSeries'),         items:topTV.slice(0,50), countdown:false, gold:true  },
-      ...(seas.length?[{icon:MagicStickLinear,title:seasonCfg[lang==='en'?'en':'ru'],items:seas.slice(0,20),countdown:false,gold:false}]:[]),
-    ];
-  } else if (allData && moodData) {
-    const cfg=MOODS.find(m=>m.id===mood);
-    const [movies,tv]=dedup([moodData.movies,moodData.tv]);
-    const moodLabel = cfg ? t(`moods.${cfg.id}`) : mood;
-    sections=[
-      {icon:FlameLinear,title:lang === 'ru' ? `Фильмы — ${moodLabel}` : `Movies — ${moodLabel}`,items:movies.slice(0,50),countdown:false,gold:false},
-      {icon:TVLinear,  title:lang === 'ru' ? `Сериалы — ${moodLabel}` : `Series — ${moodLabel}`,items:tv.slice(0,50),   countdown:false,gold:false},
-    ];
-  }
+  const handleActorClick = a => navigate(`/actor/${a.id}`,{state:{actor:a}});
 
   return (
     <div className="page home-page">
-      {!loading && allData && <HeroSlider items={allData.trending} onSelect={openMovie}/>}
+
+      {/* Hero */}
+      {!loading && allData && <HeroSlider items={allData.heroItems} onSelect={openMovie}/>}
       {loading && <div className="hero hero--skeleton"><div className="skeleton" style={{width:'100%',height:'100%',borderRadius:0}}/></div>}
 
-      <div className="mood-bar">
-        {MOODS.map(m=>(
-          <button key={m.id} className={"mood-btn"+(mood===m.id?' active':'')} onClick={()=>setMood(m.id)}>
-            <span className="mood-btn__icon"><m.Icon size={18}/></span>
-            <span className="mood-btn__label">{t(`moods.${m.id}`)}</span>
-          </button>
-        ))}
+      {/* Main Tab Bar */}
+      <div className="main-tab-bar-wrap">
+        <div className="main-tab-bar">
+          {MAIN_TABS.map(tab => {
+            const isSeasonal = tab.id === 'seasonal';
+            const isActive   = activeTab === tab.id;
+            if (isSeasonal) {
+              return (
+                <button
+                  key="seasonal"
+                  className={"main-tab main-tab--seasonal-wip" + (isActive ? ' active' : '')}
+                  onClick={() => setActiveTab('seasonal')}
+                >
+                  <MagicStickLinear size={13}/>
+                  <span>{lang === 'ru' ? 'Сезонное' : 'Seasonal'}</span>
+                </button>
+              );
+            }
+            return (
+              <button
+                key={tab.id}
+                className={"main-tab" + (isActive ? ' active' : '')}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon && <tab.icon size={13}/>}
+                <span>{lang === 'ru' ? tab.labelRu : tab.labelEn}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="home-sections">
-        {(loading||moodLoading) ? <>{[1,2,3,4].map(i=><SkeletonRow key={i}/>)}</> : (
-          <>
-            {allData && mood==='all' && (
-              <div className="home-section">
-                <h3 className="home-section__title home-section__title--trending">
-                  <FlameLinear size={15} className="home-section__icon"/>
-                  {t('home.trending')}
-                </h3>
-                <SectionRow items={allData.trending.slice(0,10)} onSelect={openMovie}/>
-              </div>
-            )}
+      {/* Tab Content */}
+      <div className="tab-content">
 
-            {sections.map((s,i)=>(
-              <div key={i} className="home-section">
-                <h3 className="home-section__title">
-                  {s.icon && <s.icon size={15} className="home-section__icon"/>}
-                  {s.title}
-                </h3>
-                <SectionRow items={s.items} onSelect={openMovie} showCountdown={s.countdown} gold={s.gold}/>
-              </div>
-            ))}
+        {activeTab === 'trending' && (
+          <ThreeCatBlock
+            movies={allData?.trendingMovies} series={allData?.trendingSeries}
+            animation={animData.trending} onSelect={openMovie} lang={lang} loading={loading}
+          />
+        )}
 
-            {mood==='all' && <TogetherSection onSelect={openMovie} lang={lang}/>}
-          </>
+        {activeTab === 'nowplaying' && (
+          <ThreeCatBlock
+            movies={allData?.nowPlayingMovies} series={allData?.nowPlayingSeries}
+            animation={animData.nowplaying} onSelect={openMovie} lang={lang} loading={loading}
+          />
+        )}
+
+        {activeTab === 'popular' && (
+          <ThreeCatBlock
+            movies={allData?.popularMovies} series={allData?.popularSeries}
+            animation={animData.popular} onSelect={openMovie} lang={lang} loading={loading}
+          />
+        )}
+
+        {activeTab === 'new' && (
+          <ThreeCatBlock
+            movies={allData?.newMovies} series={allData?.newSeries}
+            animation={animData.new} onSelect={openMovie} lang={lang} loading={loading}
+          />
+        )}
+
+        {activeTab === 'comingsoon' && (
+          <div className="coming-soon-grid-wrap">
+            {comingSoonLoading
+              ? [1,2,3,4,5,6].map(i=><div key={i} className="skeleton cs-card-skeleton"/>)
+              : comingSoon.length > 0
+                ? <div className="coming-soon-grid">
+                    {comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie}/>)}
+                  </div>
+                : <div className="tab-empty">{lang==='ru'?'Нет данных':'No data'}</div>
+            }
+          </div>
+        )}
+
+        {activeTab === 'lists' && <PopularListsPlaceholder lang={lang}/>}
+
+        {activeTab === 'seasonal' && (
+          <div className="placeholder-block">
+            <div className="placeholder-block__icon"><MagicStickLinear size={40} /></div>
+            <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
+            <p className="placeholder-block__desc">
+              {lang === 'ru'
+                ? 'Сезонная вкладка с тематическими подборками, атмосферными коллекциями и уникальными фичами сейчас в разработке.'
+                : 'The seasonal tab with curated collections, atmospheric picks and unique features is currently in development.'}
+            </p>
+            <div className="placeholder-block__chips">
+              {lang === 'ru'
+                ? ['🎃 Хэллоуин', '🎄 Новый год', '☀️ Лето', '🍂 Осень'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
+                : ['🎃 Halloween', '🎄 New Year', '☀️ Summer', '🍂 Autumn'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
+              }
+            </div>
+          </div>
         )}
       </div>
 
-      <MovieModal movie={selected} onClose={closeMovie} onActorClick={a=>{ handleActorClick(a); }} onCrewClick={p=>{ navigate(`/person/${p.id}`, { state: { person: p } }); }} onStudioClick={s=>{ navigate(`/studio/${s.id}`, { state: { studio: s } }); }}/>
+      <MovieModal
+        movie={selected} onClose={closeMovie}
+        onActorClick={a=>handleActorClick(a)}
+        onCrewClick={p=>navigate(`/person/${p.id}`,{state:{person:p}})}
+        onStudioClick={s=>navigate(`/studio/${s.id}`,{state:{studio:s}})}
+      />
     </div>
   );
 }
