@@ -261,6 +261,8 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
   const fileRef = useRef();
 
   const listItems = (currentId && customLists[currentId]?.items) || [];
+  // Hydrate slim {id, media_type} objects with poster_path/title from TMDB
+  const hydratedListItems = useLocalizedMovies(listItems, lang);
 
   const [imageUploading, setImageUploading] = useState(false);
   const handleImage = async (e) => {
@@ -278,7 +280,7 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
     const meta = {
       name: name.trim(),
@@ -293,9 +295,35 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
     if (id) {
       updateListMeta(id, meta);
     } else {
-      id = createCustomList(name.trim(), desc.trim(), image, { showProgress, deadline: deadline || null });
+      id = createCustomList(name.trim(), desc.trim(), image, {
+        showProgress,
+        deadline: deadline || null,
+        isPublic,
+        separateTracking,
+      });
       setCurrentId(id);
     }
+
+    // Sync to Supabase: upsert if public, delete if private
+    try {
+      if (isPublic) {
+        const currentItems = (id && customLists[id]?.items) || listItems;
+        await supabase.from('public_lists').upsert({
+          id,
+          name: meta.name.slice(0, 100),
+          description: (meta.description || '').slice(0, 500),
+          image: meta.image || null,
+          items: currentItems,
+          updated_at: new Date().toISOString(),
+          is_public: true,
+        }, { onConflict: 'id' });
+      } else if (id) {
+        await supabase.from('public_lists').delete().eq('id', id);
+      }
+    } catch (e) {
+      console.warn('[lists] supabase sync failed:', e);
+    }
+
     onSaved(id);
   };
 
@@ -392,9 +420,9 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
         </button>
       </div>
 
-      {listItems.length > 0 && (
+      {hydratedListItems.length > 0 && (
         <div className="poster-grid" style={{padding:'0 16px'}}>
-          {listItems.map(m => {
+          {hydratedListItems.map(m => {
             const poster = tmdb.posterUrl(m.poster_path);
             const title  = m.title || m.name || m._fallback_title || '';
             return (
@@ -661,12 +689,61 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
   );
 }
 
+/* ─── Custom List Card with hydrated posters ─── */
+function CustomListCard({ list, onOpenList, onEditList, onDeleteClick, lang }) {
+  const { t } = useTranslation();
+  const { isWatched } = useStore();
+  // Hydrate slim items to get poster_path
+  const hydratedItems = useLocalizedMovies(list.items.slice(0, 4), lang);
+  const posters = hydratedItems.map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
+  const total   = list.items.length;
+  const watched = list.items.filter(m => isWatched(m.id)).length;
+  const pct     = total > 0 ? Math.round((watched / total) * 100) : 0;
+
+  return (
+    <div className="custom-list-card" onClick={() => onOpenList(list.id)}>
+      <div className="custom-list-card__avatar">
+        {list.image
+          ? <img src={list.image} alt=""/>
+          : posters.length > 0
+            ? posters.map((url, i) => <img key={i} src={url} alt=""/>)
+            : <div className="custom-list-card__avatar--empty"><ListLinear size={22} strokeWidth={1}/></div>
+        }
+      </div>
+      <div className="custom-list-card__info">
+        <span className="custom-list-card__name">
+          {list.isPublic === false && <LockKeyholeMinimalisticLinear size={11} style={{marginRight:4,opacity:0.5}}/>}
+          {list.name}
+        </span>
+        <div className="custom-list-card__meta">
+          <span>{total} {t('profile.titles')}</span>
+          {list.showProgress !== false && total > 0 && (
+            <span className="custom-list-card__pct">{pct}%</span>
+          )}
+        </div>
+        {list.showProgress !== false && total > 0 && (
+          <div className="custom-list-card__bar">
+            <div className="custom-list-card__bar-fill" style={{width:`${pct}%`}}/>
+          </div>
+        )}
+      </div>
+      <div className="custom-list-card__actions">
+        <button className="custom-list-card__edit" onClick={e=>{e.stopPropagation();onEditList(list.id);}}>
+          <Pen2Linear size={13}/>
+        </button>
+        <button className="custom-list-card__del" onClick={e=>onDeleteClick(e, list)}>
+          <TrashBinMinimalistic2Linear size={13}/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Custom Lists Grid ─── */
 function CustomListsGrid({ customLists, onOpenList, onEditList, onCreateList, deleteCustomList, lang }) {
   const { t } = useTranslation();
   const lists = Object.values(customLists).sort((a,b) => b.createdAt - a.createdAt);
   const [confirmId, setConfirmId] = useState(null);
-  const { isWatched } = useStore();
 
   const handleDeleteClick = (e, list) => {
     e.stopPropagation();
@@ -699,49 +776,16 @@ function CustomListsGrid({ customLists, onOpenList, onEditList, onCreateList, de
         </div>
       )}
       <div className="custom-lists__grid">
-        {lists.map(list => {
-          const posters = list.items.slice(0,4).map(m=>tmdb.posterUrl(m.poster_path)).filter(Boolean);
-          const total   = list.items.length;
-          const watched = list.items.filter(m => isWatched(m.id)).length;
-          const pct     = total > 0 ? Math.round((watched/total)*100) : 0;
-          return (
-            <div key={list.id} className="custom-list-card" onClick={()=>onOpenList(list.id)}>
-              <div className="custom-list-card__avatar">
-                {list.image
-                  ? <img src={list.image} alt=""/>
-                  : posters.length > 0
-                    ? posters.map((url,i)=><img key={i} src={url} alt=""/>)
-                    : <div className="custom-list-card__avatar--empty"><ListLinear size={22} strokeWidth={1}/></div>
-                }
-              </div>
-              <div className="custom-list-card__info">
-                <span className="custom-list-card__name">
-                  {list.isPublic === false && <LockKeyholeMinimalisticLinear size={11} style={{marginRight:4,opacity:0.5}}/>}
-                  {list.name}
-                </span>
-                <div className="custom-list-card__meta">
-                  <span>{total} {t('profile.titles')}</span>
-                  {list.showProgress !== false && total > 0 && (
-                    <span className="custom-list-card__pct">{pct}%</span>
-                  )}
-                </div>
-                {list.showProgress !== false && total > 0 && (
-                  <div className="custom-list-card__bar">
-                    <div className="custom-list-card__bar-fill" style={{width:`${pct}%`}}/>
-                  </div>
-                )}
-              </div>
-              <div className="custom-list-card__actions">
-                <button className="custom-list-card__edit" onClick={e=>{e.stopPropagation();onEditList(list.id);}}>
-                  <Pen2Linear size={13}/>
-                </button>
-                <button className="custom-list-card__del" onClick={e=>handleDeleteClick(e,list)}>
-                  <TrashBinMinimalistic2Linear size={13}/>
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {lists.map(list => (
+          <CustomListCard
+            key={list.id}
+            list={list}
+            onOpenList={onOpenList}
+            onEditList={onEditList}
+            onDeleteClick={handleDeleteClick}
+            lang={lang}
+          />
+        ))}
       </div>
       <button className="custom-lists__new" onClick={onCreateList}>
         <AddCircleLinear size={16}/> {t('profile.newList')}
