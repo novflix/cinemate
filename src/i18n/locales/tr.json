@@ -114,6 +114,9 @@
     "catAnimation": "Animasyon",
     "daysLabel": "gün",
     "noData": "Veri yok",
+    "siteListBadge": "Official",
+    "siteListsHeader": "From CinΗmate",
+    "communityListsHeader": "Community picks",
     "listsEmpty": "Henüz liste yok",
     "listsEmptyDesc": "Topluluk listeleri burada görünecek",
     "listsTitles": "başlık",
@@ -427,7 +430,9 @@
     "publicListHint": "Herkese görünür, aranabilir",
     "privateListHint": "Bu listeyi yalnızca sen görebilirsin",
     "separateTracking": "Ayrı izleme takibi",
-    "separateTrackingHint": "Bu listede izlenen/kuyruktaki içerikler profilinden ayrı kalır"
+    "separateTrackingHint": "Bu listede izlenen/kuyruktaki içerikler profilinden ayrı kalır",
+    "siteList": "Publish as site list",
+    "siteListHint": "Appears in \"From CinΗmate\" on Home. Author shown as CinΗmate."
   },
   "publiclist": {
     "notFound": "Liste bulunamadı",

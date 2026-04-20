@@ -114,6 +114,9 @@
     "catAnimation": "Animazione",
     "daysLabel": "giorni",
     "noData": "Nessun dato",
+    "siteListBadge": "Official",
+    "siteListsHeader": "From CinΗmate",
+    "communityListsHeader": "Community picks",
     "listsEmpty": "Nessuna lista ancora",
     "listsEmptyDesc": "Le liste pubbliche della comunità appariranno qui",
     "listsTitles": "titoli",
@@ -427,7 +430,9 @@
     "publicListHint": "Visibile a tutti, ricercabile",
     "privateListHint": "Solo tu puoi vedere questa lista",
     "separateTracking": "Tracciamento separato",
-    "separateTrackingHint": "Visto/in coda in questa lista resta separato dal tuo profilo"
+    "separateTrackingHint": "Visto/in coda in questa lista resta separato dal tuo profilo",
+    "siteList": "Publish as site list",
+    "siteListHint": "Appears in \"From CinΗmate\" on Home. Author shown as CinΗmate."
   },
   "publiclist": {
     "notFound": "Lista non trovata",

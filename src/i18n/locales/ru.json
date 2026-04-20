@@ -114,6 +114,9 @@
     "catAnimation": "Анимация",
     "daysLabel": "дн.",
     "noData": "Нет данных",
+    "siteListBadge": "Официальный",
+    "siteListsHeader": "От CinΗmate",
+    "communityListsHeader": "Выборка сообщества",
     "listsEmpty": "Пока пусто",
     "listsEmptyDesc": "Публичные списки пользователей появятся здесь",
     "listsTitles": "тайтлов",
@@ -427,7 +430,9 @@
     "publicListHint": "Виден всем, можно найти через поиск",
     "privateListHint": "Только вы видите этот список",
     "separateTracking": "Отдельный учёт просмотров",
-    "separateTrackingHint": "Просмотренное в списке не попадает в общий профиль"
+    "separateTrackingHint": "Просмотренное в списке не попадает в общий профиль",
+    "siteList": "Опубликовать как список сайта",
+    "siteListHint": "Появится в разделе «От CinΗmate» на главной. Автор — CinΗmate."
   },
   "publiclist": {
     "notFound": "Список не найден",
