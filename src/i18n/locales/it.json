@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Basato sulle tue valutazioni e liste · passa il mouse per rimuovere",
     "nothingYet": "Ancora niente",
     "startHint": "Salva film, valuta ciò che hai visto o metti mi piace a un attore preferito",
-    "newYear": "Nuovo {{year}}"
+    "newYear": "Nuovo {{year}}",
+    "popular": "Popolare",
+    "tabTrending": "Di tendenza",
+    "tabNowPlaying": "Ora al cinema",
+    "tabComingSoon": "In arrivo",
+    "tabPopular": "Popolare",
+    "tabNew": "Nuovo {{year}}",
+    "tabLists": "Liste popolari",
+    "tabSeasonal": "Stagionale",
+    "catMovies": "Film",
+    "catSeries": "Serie",
+    "catAnimation": "Animazione",
+    "daysLabel": "giorni",
+    "noData": "Nessun dato",
+    "listsEmpty": "Nessuna lista ancora",
+    "listsEmptyDesc": "Le liste pubbliche della comunità appariranno qui",
+    "listsTitles": "titoli",
+    "listsComingSoon": "Prossimamente",
+    "listsComingSoonDesc": "Le liste della comunità sono in sviluppo. Presto appariranno selezioni, raccolte e classifiche.",
+    "seasonalComingSoon": "Prossimamente",
+    "seasonalComingSoonDesc": "La scheda stagionale con raccolte curate, selezioni atmosferiche e funzionalità uniche è in sviluppo.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 Capodanno",
+      "☀️ Estate",
+      "🍂 Autunno"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Film",
+      "📺 Migliori Serie",
+      "🌍 Cinema Mondiale",
+      "🏆 Premiati"
+    ]
   },
   "search": {
     "title": "Cerca",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Collezione",
     "studio": "Studio",
-    "films": "film"
+    "films": "film",
+    "catalog": "Catalogo",
+    "network": "Rete",
+    "series": "serie"
   },
   "about": {
     "twoLanguages": "Più Lingue",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Mostra quanti titoli sono stati visti",
     "deadline": "Scadenza",
     "deadlineHint": "Quando vuoi finire",
-    "addTitlesBtn": "Aggiungi titoli"
+    "addTitlesBtn": "Aggiungi titoli",
+    "readOnly": "Lista di sola lettura",
+    "readOnlyDesc": "Questa lista è stata aggiunta da una lista pubblica. Fai una copia per modificarla.",
+    "publicList": "Lista pubblica",
+    "privateList": "Lista privata",
+    "publicListHint": "Visibile a tutti, ricercabile",
+    "privateListHint": "Solo tu puoi vedere questa lista",
+    "separateTracking": "Tracciamento separato",
+    "separateTrackingHint": "Visto/in coda in questa lista resta separato dal tuo profilo"
   },
   "publiclist": {
     "notFound": "Lista non trovata",
@@ -394,7 +437,8 @@
     "titles": "titoli",
     "copied": " Copiato!",
     "copyLink": "Copia link",
-    "listEmpty": "Lista vuota"
+    "listEmpty": "Lista vuota",
+    "copyList": "Copia lista"
   },
   "ratingLabels": [
     "",

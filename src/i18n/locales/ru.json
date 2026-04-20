@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "На основе твоих оценок и списков · наведи на карточку чтобы убрать",
     "nothingYet": "Пока пусто",
     "startHint": "Добавь фильмы в списки, оцени просмотренные или поставь лайк любимому актёру",
-    "newYear": "Новинки {{year}}"
+    "newYear": "Новинки {{year}}",
+    "popular": "Популярное",
+    "tabTrending": "Тренды",
+    "tabNowPlaying": "Сейчас в кино",
+    "tabComingSoon": "Скоро в кино",
+    "tabPopular": "Популярное",
+    "tabNew": "Новинки {{year}}",
+    "tabLists": "Популярные списки",
+    "tabSeasonal": "Сезонное",
+    "catMovies": "Фильмы",
+    "catSeries": "Сериалы",
+    "catAnimation": "Анимация",
+    "daysLabel": "дн.",
+    "noData": "Нет данных",
+    "listsEmpty": "Пока пусто",
+    "listsEmptyDesc": "Публичные списки пользователей появятся здесь",
+    "listsTitles": "тайтлов",
+    "listsComingSoon": "Скоро появится",
+    "listsComingSoonDesc": "Популярные списки фильмов и сериалов от сообщества сейчас в разработке. Скоро здесь появятся топы, подборки и рейтинги.",
+    "seasonalComingSoon": "Скоро появится",
+    "seasonalComingSoonDesc": "Сезонная вкладка с тематическими подборками, атмосферными коллекциями и уникальными фичами сейчас в разработке.",
+    "seasonalChips": [
+      "🎃 Хэллоуин",
+      "🎄 Новый год",
+      "☀️ Лето",
+      "🍂 Осень"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Movies",
+      "📺 Best Series",
+      "🌍 World Cinema",
+      "🏆 Award Winners"
+    ]
   },
   "search": {
     "title": "Поиск",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Коллекция",
     "studio": "Студия",
-    "films": "фильмов"
+    "films": "фильмов",
+    "catalog": "Каталог",
+    "network": "Сеть",
+    "series": "сериалов"
   },
   "about": {
     "twoLanguages": "Несколько языков",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Показывать сколько тайтлов уже просмотрено",
     "deadline": "Дедлайн",
     "deadlineHint": "Когда хочешь досмотреть",
-    "addTitlesBtn": "Добавить тайтлы"
+    "addTitlesBtn": "Добавить тайтлы",
+    "readOnly": "Список только для чтения",
+    "readOnlyDesc": "Этот список добавлен из публичного списка. Создай копию, чтобы редактировать.",
+    "publicList": "Публичный список",
+    "privateList": "Приватный список",
+    "publicListHint": "Виден всем, можно найти через поиск",
+    "privateListHint": "Только вы видите этот список",
+    "separateTracking": "Отдельный учёт просмотров",
+    "separateTrackingHint": "Просмотренное в списке не попадает в общий профиль"
   },
   "publiclist": {
     "notFound": "Список не найден",
@@ -394,7 +437,8 @@
     "titles": "проектов",
     "copied": " Скопировано!",
     "copyLink": "Скопировать ссылку",
-    "listEmpty": "Список пуст"
+    "listEmpty": "Список пуст",
+    "copyList": "Скопировать список"
   },
   "ratingLabels": [
     "",

@@ -409,15 +409,15 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
       <div className="list-edit__options list-edit__options--stack">
         <ToggleRow
           icon={isPublic ? <LockKeyholeUnlockedLinear size={16}/> : <LockKeyholeMinimalisticLinear size={16}/>}
-          label={isPublic ? (lang === 'ru' ? 'Публичный список' : 'Public list') : (lang === 'ru' ? 'Приватный список' : 'Private list')}
-          hint={isPublic ? (lang === 'ru' ? 'Виден всем, можно найти через поиск' : 'Visible to everyone, searchable') : (lang === 'ru' ? 'Только вы видите этот список' : 'Only you can see this list')}
+          label={isPublic ? t('listeditor.publicList') : t('listeditor.privateList')}
+          hint={isPublic ? t('listeditor.publicListHint') : t('listeditor.privateListHint')}
           value={isPublic}
           onChange={setIsPublic}
         />
         <ToggleRow
           icon={<EyeLinear size={16}/>}
-          label={lang === 'ru' ? 'Отдельный учёт просмотров' : 'Separate watch tracking'}
-          hint={lang === 'ru' ? 'Просмотренное в списке не попадает в общий профиль' : 'Watched/queued in this list stays separate from your profile'}
+          label={t('listeditor.separateTracking')}
+          hint={t('listeditor.separateTrackingHint')}
           value={separateTracking}
           onChange={setSeparateTracking}
         />

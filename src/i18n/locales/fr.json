@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Basé sur vos notes et listes · survolez pour supprimer",
     "nothingYet": "Rien pour l'instant",
     "startHint": "Sauvegardez des films, notez ce que vous avez vu ou aimez un acteur favori",
-    "newYear": "Nouveautés {{year}}"
+    "newYear": "Nouveautés {{year}}",
+    "popular": "Populaire",
+    "tabTrending": "Tendances",
+    "tabNowPlaying": "À l'affiche",
+    "tabComingSoon": "Prochainement",
+    "tabPopular": "Populaire",
+    "tabNew": "Nouveau {{year}}",
+    "tabLists": "Listes populaires",
+    "tabSeasonal": "Saisonnier",
+    "catMovies": "Films",
+    "catSeries": "Séries",
+    "catAnimation": "Animation",
+    "daysLabel": "jours",
+    "noData": "Aucune donnée",
+    "listsEmpty": "Pas encore de listes",
+    "listsEmptyDesc": "Les listes publiques de la communauté apparaîtront ici",
+    "listsTitles": "titres",
+    "listsComingSoon": "Prochainement",
+    "listsComingSoonDesc": "Les listes de la communauté sont en développement. Bientôt des sélections, collections et classements.",
+    "seasonalComingSoon": "Prochainement",
+    "seasonalComingSoonDesc": "L'onglet saisonnier avec des collections curatées, des sélections atmosphériques et des fonctionnalités uniques est en développement.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 Nouvel An",
+      "☀️ Été",
+      "🍂 Automne"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Films",
+      "📺 Meilleures Séries",
+      "🌍 Cinéma Mondial",
+      "🏆 Primés"
+    ]
   },
   "search": {
     "title": "Rechercher",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Collection",
     "studio": "Studio",
-    "films": "films"
+    "films": "films",
+    "catalog": "Catalogue",
+    "network": "Réseau",
+    "series": "séries"
   },
   "about": {
     "twoLanguages": "Plusieurs langues",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Afficher combien de titres ont été vus",
     "deadline": "Échéance",
     "deadlineHint": "Quand vous voulez terminer",
-    "addTitlesBtn": "Ajouter des titres"
+    "addTitlesBtn": "Ajouter des titres",
+    "readOnly": "Liste en lecture seule",
+    "readOnlyDesc": "Cette liste a été ajoutée depuis une liste publique. Faites une copie pour la modifier.",
+    "publicList": "Liste publique",
+    "privateList": "Liste privée",
+    "publicListHint": "Visible par tous, consultable",
+    "privateListHint": "Seul vous pouvez voir cette liste",
+    "separateTracking": "Suivi séparé",
+    "separateTrackingHint": "Vu/en file d'attente dans cette liste reste séparé de votre profil"
   },
   "publiclist": {
     "notFound": "Liste introuvable",
@@ -394,7 +437,8 @@
     "titles": "titres",
     "copied": " Copié !",
     "copyLink": "Copier le lien",
-    "listEmpty": "Liste vide"
+    "listEmpty": "Liste vide",
+    "copyList": "Copier la liste"
   },
   "ratingLabels": [
     "",

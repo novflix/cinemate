@@ -101,7 +101,39 @@
     "basedOnRatingsLists": "Based on your ratings & lists · hover to remove",
     "nothingYet": "Nothing yet",
     "startHint": "Save movies, rate what you watched, or like a favourite actor",
-    "newYear": "New {{year}}"
+    "newYear": "New {{year}}",
+    "popular": "Popular",
+    "tabTrending": "Trending",
+    "tabNowPlaying": "Now Playing",
+    "tabComingSoon": "Coming Soon",
+    "tabPopular": "Popular",
+    "tabNew": "New {{year}}",
+    "tabLists": "Popular Lists",
+    "tabSeasonal": "Seasonal",
+    "catMovies": "Movies",
+    "catSeries": "Series",
+    "catAnimation": "Animation",
+    "daysLabel": "days",
+    "noData": "No data",
+    "listsEmpty": "No lists yet",
+    "listsEmptyDesc": "Public community lists will appear here",
+    "listsTitles": "titles",
+    "listsComingSoon": "Coming Soon",
+    "listsComingSoonDesc": "Community-curated lists are in development. Top picks, collections and rankings coming soon.",
+    "seasonalComingSoon": "Coming Soon",
+    "seasonalComingSoonDesc": "The seasonal tab with curated collections, atmospheric picks and unique features is currently in development.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 New Year",
+      "☀️ Summer",
+      "🍂 Autumn"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Movies",
+      "📺 Best Series",
+      "🌍 World Cinema",
+      "🏆 Award Winners"
+    ]
   },
   "search": {
     "title": "Search",
@@ -189,7 +221,10 @@
   "collection": {
     "collection": "Collection",
     "studio": "Studio",
-    "films": "films"
+    "films": "films",
+    "catalog": "Catalog",
+    "network": "Network",
+    "series": "series"
   },
   "about": {
     "twoLanguages": "Multiple Languages",
@@ -385,7 +420,15 @@
     "watchProgressHint": "Show how many titles are watched",
     "deadline": "Deadline",
     "deadlineHint": "When you want to finish",
-    "addTitlesBtn": "Add titles"
+    "addTitlesBtn": "Add titles",
+    "readOnly": "Read-only list",
+    "readOnlyDesc": "This list was added from a public list. Make a copy to edit it.",
+    "publicList": "Public list",
+    "privateList": "Private list",
+    "publicListHint": "Visible to everyone, searchable",
+    "privateListHint": "Only you can see this list",
+    "separateTracking": "Separate watch tracking",
+    "separateTrackingHint": "Watched/queued in this list stays separate from your profile"
   },
   "publiclist": {
     "notFound": "List not found",
@@ -395,7 +438,8 @@
     "titles": "titles",
     "copied": "Copied!",
     "copyLink": "Copy link",
-    "listEmpty": "List is empty"
+    "listEmpty": "List is empty",
+    "copyList": "Copy list"
   },
   "ratingLabels": [
     "",

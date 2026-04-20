@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Puanlarınıza ve listelerinize göre · kaldırmak için üzerine gelin",
     "nothingYet": "Henüz bir şey yok",
     "startHint": "Film kaydedin, izlediklerinizi puanlayın veya favori bir aktörü beğenin",
-    "newYear": "Yeni {{year}}"
+    "newYear": "Yeni {{year}}",
+    "popular": "Popüler",
+    "tabTrending": "Trend",
+    "tabNowPlaying": "Vizyonda",
+    "tabComingSoon": "Yakında",
+    "tabPopular": "Popüler",
+    "tabNew": "Yeni {{year}}",
+    "tabLists": "Popüler Listeler",
+    "tabSeasonal": "Mevsimsel",
+    "catMovies": "Filmler",
+    "catSeries": "Diziler",
+    "catAnimation": "Animasyon",
+    "daysLabel": "gün",
+    "noData": "Veri yok",
+    "listsEmpty": "Henüz liste yok",
+    "listsEmptyDesc": "Topluluk listeleri burada görünecek",
+    "listsTitles": "başlık",
+    "listsComingSoon": "Yakında",
+    "listsComingSoonDesc": "Topluluk tarafından oluşturulan listeler geliştiriliyor. En iyi seçimler, koleksiyonlar ve sıralamalar yakında burada.",
+    "seasonalComingSoon": "Yakında",
+    "seasonalComingSoonDesc": "Özel koleksiyonlar, atmosferik seçimler ve benzersiz özelliklerle mevsimsel sekme geliştiriliyor.",
+    "seasonalChips": [
+      "🎃 Cadılar Bayramı",
+      "🎄 Yeni Yıl",
+      "☀️ Yaz",
+      "🍂 Sonbahar"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Film",
+      "📺 En İyi Diziler",
+      "🌍 Dünya Sineması",
+      "🏆 Ödüllü Yapımlar"
+    ]
   },
   "search": {
     "title": "Ara",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Koleksiyon",
     "studio": "Stüdyo",
-    "films": "film"
+    "films": "film",
+    "catalog": "Katalog",
+    "network": "Ağ",
+    "series": "dizi"
   },
   "about": {
     "twoLanguages": "Çoklu Dil",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Kaç başlığın izlendiğini göster",
     "deadline": "Son tarih",
     "deadlineHint": "Ne zaman bitirmek istiyorsunuz",
-    "addTitlesBtn": "Başlık ekle"
+    "addTitlesBtn": "Başlık ekle",
+    "readOnly": "Salt okunur liste",
+    "readOnlyDesc": "Bu liste, genel bir listeden eklendi. Düzenlemek için bir kopyasını oluştur.",
+    "publicList": "Herkese açık liste",
+    "privateList": "Özel liste",
+    "publicListHint": "Herkese görünür, aranabilir",
+    "privateListHint": "Bu listeyi yalnızca sen görebilirsin",
+    "separateTracking": "Ayrı izleme takibi",
+    "separateTrackingHint": "Bu listede izlenen/kuyruktaki içerikler profilinden ayrı kalır"
   },
   "publiclist": {
     "notFound": "Liste bulunamadı",
@@ -394,7 +437,8 @@
     "titles": "başlık",
     "copied": " Kopyalandı!",
     "copyLink": "Bağlantıyı kopyala",
-    "listEmpty": "Liste boş"
+    "listEmpty": "Liste boş",
+    "copyList": "Listeyi kopyala"
   },
   "ratingLabels": [
     "",

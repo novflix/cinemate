@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "基于您的评分和列表 · 悬停可移除",
     "nothingYet": "暂无内容",
     "startHint": "收藏电影、为看过的评分，或喜欢一位最爱的演员",
-    "newYear": "新的 {{year}} 年"
+    "newYear": "新的 {{year}} 年",
+    "popular": "热门",
+    "tabTrending": "趋势",
+    "tabNowPlaying": "正在上映",
+    "tabComingSoon": "即将上映",
+    "tabPopular": "热门",
+    "tabNew": "新片 {{year}}",
+    "tabLists": "热门列表",
+    "tabSeasonal": "季节性",
+    "catMovies": "电影",
+    "catSeries": "剧集",
+    "catAnimation": "动画",
+    "daysLabel": "天",
+    "noData": "暂无数据",
+    "listsEmpty": "暂无列表",
+    "listsEmptyDesc": "社区公开列表将在此显示",
+    "listsTitles": "个标题",
+    "listsComingSoon": "即将推出",
+    "listsComingSoonDesc": "社区精选列表正在开发中，即将推出精选、合集和排行榜。",
+    "seasonalComingSoon": "即将推出",
+    "seasonalComingSoonDesc": "季节性标签页正在开发中，将包含精心策划的合集、氛围精选和独特功能。",
+    "seasonalChips": [
+      "🎃 万圣节",
+      "🎄 新年",
+      "☀️ 夏日",
+      "🍂 秋天"
+    ],
+    "listsChips": [
+      "🎬 Top 100 电影",
+      "📺 最佳剧集",
+      "🌍 世界电影",
+      "🏆 获奖作品"
+    ]
   },
   "search": {
     "title": "搜索",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "系列",
     "studio": "制片公司",
-    "films": "部影片"
+    "films": "部影片",
+    "catalog": "目录",
+    "network": "频道",
+    "series": "剧集"
   },
   "about": {
     "twoLanguages": "多语言支持",
@@ -384,7 +419,15 @@
     "watchProgressHint": "显示已看作品数量",
     "deadline": "截止日期",
     "deadlineHint": "您想何时完成",
-    "addTitlesBtn": "添加作品"
+    "addTitlesBtn": "添加作品",
+    "readOnly": "只读列表",
+    "readOnlyDesc": "此列表从公开列表添加。请复制后编辑。",
+    "publicList": "公开列表",
+    "privateList": "私密列表",
+    "publicListHint": "对所有人可见，可搜索",
+    "privateListHint": "只有你能看到此列表",
+    "separateTracking": "独立观看追踪",
+    "separateTrackingHint": "此列表中的已观看/队列内容与个人资料分开记录"
   },
   "publiclist": {
     "notFound": "列表未找到",
@@ -394,7 +437,8 @@
     "titles": "个作品",
     "copied": " 已复制！",
     "copyLink": "复制链接",
-    "listEmpty": "列表为空"
+    "listEmpty": "列表为空",
+    "copyList": "复制列表"
   },
   "ratingLabels": [
     "",

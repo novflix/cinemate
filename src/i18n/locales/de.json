@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Basierend auf deinen Bewertungen & Listen · hover zum Entfernen",
     "nothingYet": "Noch nichts",
     "startHint": "Speichere Filme, bewerte Gesehenes oder like einen Lieblingsschauspieler",
-    "newYear": "Neuheiten {{year}}"
+    "newYear": "Neuheiten {{year}}",
+    "popular": "Beliebt",
+    "tabTrending": "Trending",
+    "tabNowPlaying": "Jetzt im Kino",
+    "tabComingSoon": "Demnächst",
+    "tabPopular": "Beliebt",
+    "tabNew": "Neu {{year}}",
+    "tabLists": "Beliebte Listen",
+    "tabSeasonal": "Saisonal",
+    "catMovies": "Filme",
+    "catSeries": "Serien",
+    "catAnimation": "Animation",
+    "daysLabel": "Tage",
+    "noData": "Keine Daten",
+    "listsEmpty": "Noch keine Listen",
+    "listsEmptyDesc": "Öffentliche Community-Listen erscheinen hier",
+    "listsTitles": "Titel",
+    "listsComingSoon": "Demnächst verfügbar",
+    "listsComingSoonDesc": "Community-Listen sind in Entwicklung. Bald erscheinen hier Top-Picks, Sammlungen und Rankings.",
+    "seasonalComingSoon": "Demnächst verfügbar",
+    "seasonalComingSoonDesc": "Der saisonale Bereich mit kuratierten Sammlungen, stimmungsvollen Picks und einzigartigen Features ist in Entwicklung.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 Neujahr",
+      "☀️ Sommer",
+      "🍂 Herbst"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Filme",
+      "📺 Beste Serien",
+      "🌍 Weltkino",
+      "🏆 Preisträger"
+    ]
   },
   "search": {
     "title": "Suchen",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Sammlung",
     "studio": "Studio",
-    "films": "Filme"
+    "films": "Filme",
+    "catalog": "Katalog",
+    "network": "Netzwerk",
+    "series": "Serien"
   },
   "about": {
     "twoLanguages": "Mehrere Sprachen",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Zeigen, wie viele Titel gesehen wurden",
     "deadline": "Frist",
     "deadlineHint": "Wann du fertig sein willst",
-    "addTitlesBtn": "Titel hinzufügen"
+    "addTitlesBtn": "Titel hinzufügen",
+    "readOnly": "Nur-Lese-Liste",
+    "readOnlyDesc": "Diese Liste wurde aus einer öffentlichen Liste hinzugefügt. Erstelle eine Kopie zum Bearbeiten.",
+    "publicList": "Öffentliche Liste",
+    "privateList": "Private Liste",
+    "publicListHint": "Für alle sichtbar, durchsuchbar",
+    "privateListHint": "Nur du kannst diese Liste sehen",
+    "separateTracking": "Getrennte Sehverfolgung",
+    "separateTrackingHint": "Gesehen/In Warteschlange in dieser Liste bleibt getrennt von deinem Profil"
   },
   "publiclist": {
     "notFound": "Liste nicht gefunden",
@@ -394,7 +437,8 @@
     "titles": "Titel",
     "copied": " Kopiert!",
     "copyLink": "Link kopieren",
-    "listEmpty": "Liste ist leer"
+    "listEmpty": "Liste ist leer",
+    "copyList": "Liste kopieren"
   },
   "ratingLabels": [
     "",

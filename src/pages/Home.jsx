@@ -142,17 +142,18 @@ function ContentSection({ Icon, title, items, onSelect, showCountdown = false })
 }
 
 /* ─── Three-slider block (Movies + Series + Animation) ───────────────────── */
-function ThreeCatBlock({ movies, series, animation, onSelect, lang, loading }) {
+function ThreeCatBlock({ movies, series, animation, onSelect, loading }) {
+  const { t } = useTranslation();
   const cats = [
-    { key: 'movies',    Icon: ClapperboardLinear, ru: 'Фильмы',   en: 'Movies',    items: movies    },
-    { key: 'series',    Icon: TVLinear,           ru: 'Сериалы',  en: 'Series',    items: series    },
-    { key: 'animation', Icon: MagicStickLinear,   ru: 'Анимация', en: 'Animation', items: animation },
+    { key: 'movies',    Icon: ClapperboardLinear, label: t('home.catMovies'),    items: movies    },
+    { key: 'series',    Icon: TVLinear,           label: t('home.catSeries'),    items: series    },
+    { key: 'animation', Icon: MagicStickLinear,   label: t('home.catAnimation'), items: animation },
   ];
   if (loading) return <div className="home-sections" style={{ paddingTop: 18 }}>{cats.map(c => <SkeletonRow key={c.key} />)}</div>;
   return (
     <div className="home-sections" style={{ paddingTop: 18 }}>
       {cats.map(c => (
-        <ContentSection key={c.key} Icon={c.Icon} title={lang === 'ru' ? c.ru : c.en} items={c.items} onSelect={onSelect} />
+        <ContentSection key={c.key} Icon={c.Icon} title={c.label} items={c.items} onSelect={onSelect} />
       ))}
     </div>
   );
@@ -160,6 +161,7 @@ function ThreeCatBlock({ movies, series, animation, onSelect, lang, loading }) {
 
 /* ─── Coming Soon Card ───────────────────────────────────────────────────── */
 function ComingSoonCard({ movie, onSelect }) {
+  const { t } = useTranslation();
   const days = useMemo(() => {
     const d = movie.release_date;
     if (!d) return null;
@@ -177,7 +179,7 @@ function ComingSoonCard({ movie, onSelect }) {
         {days !== null && (
           <div className="cs-card__badge">
             <span className="cs-card__days">{days}</span>
-            <span className="cs-card__days-label">days</span>
+            <span className="cs-card__days-label">{t('home.daysLabel')}</span>
           </div>
         )}
       </div>
@@ -199,6 +201,7 @@ function PopularListsContent({ lang }) {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     supabase
@@ -248,8 +251,8 @@ function PopularListsContent({ lang }) {
   if (lists.length === 0) return (
     <div className="placeholder-block">
       <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
-      <h3 className="placeholder-block__title">{lang === 'ru' ? 'Пока пусто' : 'No lists yet'}</h3>
-      <p className="placeholder-block__desc">{lang === 'ru' ? 'Публичные списки пользователей появятся здесь' : 'Public community lists will appear here'}</p>
+      <h3 className="placeholder-block__title">{t('home.listsEmpty')}</h3>
+      <p className="placeholder-block__desc">{t('home.listsEmptyDesc')}</p>
     </div>
   );
 
@@ -278,7 +281,7 @@ function PopularListsContent({ lang }) {
             <div className="pop-list-card__info">
               <p className="pop-list-card__name">{list.name}</p>
               <p className="pop-list-card__meta">
-                {list.author_name} · {items.length} {lang === 'ru' ? 'тайтлов' : 'titles'}
+                {list.author_name} · {items.length} {t('home.listsTitles')}
                 {list.likes > 0 && <span className="pop-list-card__likes"> · ♥ {list.likes}</span>}
               </p>
               {list.description && <p className="pop-list-card__desc">{list.description}</p>}
@@ -290,18 +293,16 @@ function PopularListsContent({ lang }) {
   );
 }
 
-function PopularListsPlaceholder({ lang }) {
+function PopularListsPlaceholder() {
+  const { t } = useTranslation();
+  const chips = t('home.listsChips', { returnObjects: true });
   return (
     <div className="placeholder-block">
       <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
-      <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
-      <p className="placeholder-block__desc">
-        {lang === 'ru'
-          ? 'Популярные списки фильмов и сериалов от сообщества сейчас в разработке. Скоро здесь появятся топы, подборки и рейтинги.'
-          : 'Community-curated lists are in development. Top picks, collections and rankings coming soon.'}
-      </p>
+      <h3 className="placeholder-block__title">{t('home.listsComingSoon')}</h3>
+      <p className="placeholder-block__desc">{t('home.listsComingSoonDesc')}</p>
       <div className="placeholder-block__chips">
-        {['🎬 Top 100 Movies', '📺 Best Series', '🌍 World Cinema', '🏆 Award Winners'].map(c => (
+        {Array.isArray(chips) && chips.map(c => (
           <div key={c} className="placeholder-block__chip">{c}</div>
         ))}
       </div>
@@ -311,13 +312,13 @@ function PopularListsPlaceholder({ lang }) {
 
 /* ─── Main Tabs ──────────────────────────────────────────────────────────── */
 const MAIN_TABS = [
-  { id: 'trending',   labelRu: 'Trending',           labelEn: 'Trending',        icon: FlameLinear        },
-  { id: 'nowplaying', labelRu: 'Now Playing',         labelEn: 'Now Playing',     icon: PlayLinear         },
-  { id: 'comingsoon', labelRu: 'Coming Soon',         labelEn: 'Coming Soon',     icon: CalendarDateLinear },
-  { id: 'popular',    labelRu: 'Popular',             labelEn: 'Popular',         icon: CupStarLinear     },
-  { id: 'new',        labelRu: `New ${CURRENT_YEAR}`, labelEn: `New ${CURRENT_YEAR}`, icon: MagicStickLinear },
-  { id: 'lists',      labelRu: 'Popular Lists',       labelEn: 'Popular Lists',   icon: CupStarLinear       },
-  { id: 'seasonal',   labelRu: null,                  labelEn: null,              icon: null               },
+  { id: 'trending',   i18nKey: 'home.tabTrending',   icon: FlameLinear        },
+  { id: 'nowplaying', i18nKey: 'home.tabNowPlaying',  icon: PlayLinear         },
+  { id: 'comingsoon', i18nKey: 'home.tabComingSoon',  icon: CalendarDateLinear },
+  { id: 'popular',    i18nKey: 'home.tabPopular',     icon: CupStarLinear      },
+  { id: 'new',        i18nKey: 'home.tabNew',         icon: MagicStickLinear   },
+  { id: 'lists',      i18nKey: 'home.tabLists',       icon: CupStarLinear      },
+  { id: 'seasonal',   i18nKey: 'home.tabSeasonal',    icon: null               },
 ];
 
 /* ─── Home Page ──────────────────────────────────────────────────────────── */
@@ -333,6 +334,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { lang } = useTheme();
   const { isAdmin } = useAdmin();
+  const { t } = useTranslation();
   const langCode    = TMDB_LANG_MAP[lang] || 'en-US';
   const currentYear = new Date().getFullYear();
 
@@ -457,10 +459,13 @@ export default function Home() {
                   onClick={() => setActiveTab('seasonal')}
                 >
                   <MagicStickLinear size={13}/>
-                  <span>{lang === 'ru' ? 'Сезонное' : 'Seasonal'}</span>
+                  <span>{t('home.tabSeasonal')}</span>
                 </button>
               );
             }
+            const label = tab.id === 'new'
+              ? t('home.tabNew', { year: CURRENT_YEAR })
+              : t(tab.i18nKey);
             return (
               <button
                 key={tab.id}
@@ -468,7 +473,7 @@ export default function Home() {
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.icon && <tab.icon size={13}/>}
-                <span>{lang === 'ru' ? tab.labelRu : tab.labelEn}</span>
+                <span>{label}</span>
               </button>
             );
           })}
@@ -481,28 +486,28 @@ export default function Home() {
         {activeTab === 'trending' && (
           <ThreeCatBlock
             movies={allData?.trendingMovies} series={allData?.trendingSeries}
-            animation={animData.trending} onSelect={openMovie} lang={lang} loading={loading}
+            animation={animData.trending} onSelect={openMovie} loading={loading}
           />
         )}
 
         {activeTab === 'nowplaying' && (
           <ThreeCatBlock
             movies={allData?.nowPlayingMovies} series={allData?.nowPlayingSeries}
-            animation={animData.nowplaying} onSelect={openMovie} lang={lang} loading={loading}
+            animation={animData.nowplaying} onSelect={openMovie} loading={loading}
           />
         )}
 
         {activeTab === 'popular' && (
           <ThreeCatBlock
             movies={allData?.popularMovies} series={allData?.popularSeries}
-            animation={animData.popular} onSelect={openMovie} lang={lang} loading={loading}
+            animation={animData.popular} onSelect={openMovie} loading={loading}
           />
         )}
 
         {activeTab === 'new' && (
           <ThreeCatBlock
             movies={allData?.newMovies} series={allData?.newSeries}
-            animation={animData.new} onSelect={openMovie} lang={lang} loading={loading}
+            animation={animData.new} onSelect={openMovie} loading={loading}
           />
         )}
 
@@ -514,30 +519,26 @@ export default function Home() {
                 ? <div className="coming-soon-grid">
                     {comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie}/>)}
                   </div>
-                : <div className="tab-empty">{lang==='ru'?'Нет данных':'No data'}</div>
+                : <div className="tab-empty">{t('home.noData')}</div>
             }
           </div>
         )}
 
-        {activeTab === 'lists' && (isAdmin ? <PopularListsContent lang={lang}/> : <PopularListsPlaceholder lang={lang}/>)}
+        {activeTab === 'lists' && (isAdmin ? <PopularListsContent lang={lang}/> : <PopularListsPlaceholder/>)}
 
-        {activeTab === 'seasonal' && (
-          <div className="placeholder-block">
-            <div className="placeholder-block__icon"><MagicStickLinear size={40} /></div>
-            <h3 className="placeholder-block__title">{lang === 'ru' ? 'Скоро появится' : 'Coming Soon'}</h3>
-            <p className="placeholder-block__desc">
-              {lang === 'ru'
-                ? 'Сезонная вкладка с тематическими подборками, атмосферными коллекциями и уникальными фичами сейчас в разработке.'
-                : 'The seasonal tab with curated collections, atmospheric picks and unique features is currently in development.'}
-            </p>
-            <div className="placeholder-block__chips">
-              {lang === 'ru'
-                ? ['🎃 Хэллоуин', '🎄 Новый год', '☀️ Лето', '🍂 Осень'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
-                : ['🎃 Halloween', '🎄 New Year', '☀️ Summer', '🍂 Autumn'].map(c => <div key={c} className="placeholder-block__chip">{c}</div>)
-              }
+        {activeTab === 'seasonal' && (() => {
+          const chips = t('home.seasonalChips', { returnObjects: true });
+          return (
+            <div className="placeholder-block">
+              <div className="placeholder-block__icon"><MagicStickLinear size={40} /></div>
+              <h3 className="placeholder-block__title">{t('home.seasonalComingSoon')}</h3>
+              <p className="placeholder-block__desc">{t('home.seasonalComingSoonDesc')}</p>
+              <div className="placeholder-block__chips">
+                {Array.isArray(chips) && chips.map(c => <div key={c} className="placeholder-block__chip">{c}</div>)}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <MovieModal

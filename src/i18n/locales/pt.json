@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Com base nas suas avaliações e listas · passe o mouse para remover",
     "nothingYet": "Nada ainda",
     "startHint": "Salve filmes, avalie o que assistiu ou curta um ator favorito",
-    "newYear": "Novo {{year}}"
+    "newYear": "Novo {{year}}",
+    "popular": "Popular",
+    "tabTrending": "Em alta",
+    "tabNowPlaying": "Em cartaz",
+    "tabComingSoon": "Em breve",
+    "tabPopular": "Popular",
+    "tabNew": "Novo {{year}}",
+    "tabLists": "Listas populares",
+    "tabSeasonal": "Sazonal",
+    "catMovies": "Filmes",
+    "catSeries": "Séries",
+    "catAnimation": "Animação",
+    "daysLabel": "dias",
+    "noData": "Sem dados",
+    "listsEmpty": "Ainda sem listas",
+    "listsEmptyDesc": "As listas públicas da comunidade aparecerão aqui",
+    "listsTitles": "títulos",
+    "listsComingSoon": "Em breve",
+    "listsComingSoonDesc": "As listas da comunidade estão em desenvolvimento. Em breve aparecerão seleções, coleções e rankings.",
+    "seasonalComingSoon": "Em breve",
+    "seasonalComingSoonDesc": "A aba sazonal com coleções curadas, seleções atmosféricas e funcionalidades únicas está em desenvolvimento.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 Ano Novo",
+      "☀️ Verão",
+      "🍂 Outono"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Filmes",
+      "📺 Melhores Séries",
+      "🌍 Cinema Mundial",
+      "🏆 Premiados"
+    ]
   },
   "search": {
     "title": "Buscar",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Coleção",
     "studio": "Estúdio",
-    "films": "filmes"
+    "films": "filmes",
+    "catalog": "Catálogo",
+    "network": "Rede",
+    "series": "séries"
   },
   "about": {
     "twoLanguages": "Múltiplos Idiomas",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Mostrar quantos títulos foram assistidos",
     "deadline": "Prazo",
     "deadlineHint": "Quando você quer terminar",
-    "addTitlesBtn": "Adicionar títulos"
+    "addTitlesBtn": "Adicionar títulos",
+    "readOnly": "Lista somente leitura",
+    "readOnlyDesc": "Esta lista foi adicionada de uma lista pública. Faça uma cópia para editar.",
+    "publicList": "Lista pública",
+    "privateList": "Lista privada",
+    "publicListHint": "Visível para todos, pesquisável",
+    "privateListHint": "Somente você pode ver esta lista",
+    "separateTracking": "Rastreamento separado",
+    "separateTrackingHint": "Assistido/na fila nesta lista fica separado do seu perfil"
   },
   "publiclist": {
     "notFound": "Lista não encontrada",
@@ -394,7 +437,8 @@
     "titles": "títulos",
     "copied": " Copiado!",
     "copyLink": "Copiar link",
-    "listEmpty": "Lista vazia"
+    "listEmpty": "Lista vazia",
+    "copyList": "Copiar lista"
   },
   "ratingLabels": [
     "",

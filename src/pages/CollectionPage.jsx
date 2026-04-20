@@ -112,7 +112,7 @@ export default function CollectionPage({ item, onBack }) {
   const typeLabel = item.type === 'collection'
     ? t('collection.collection')
     : item.entityType === 'network'
-      ? t('collection.network') || 'Network'
+      ? t('collection.network')
       : t('collection.studio');
 
   return (
@@ -155,7 +155,7 @@ export default function CollectionPage({ item, onBack }) {
               {tvCount > 0 && (
                 <span>
                   <TVLinear size={11} />
-                  {tvCount} {t('collection.series') || 'series'}
+                  {tvCount} {t('collection.series')}
                 </span>
               )}
               {avgRating > 0 && (
@@ -180,7 +180,7 @@ export default function CollectionPage({ item, onBack }) {
       {!loading && movies.length > 0 && (
         <div className="collection-page__grid-header">
           <span className="collection-page__grid-label">
-            {item.type === 'collection' ? t('collection.films') : t('collection.catalog') || 'Catalog'}
+            {item.type === 'collection' ? t('collection.films') : t('collection.catalog')}
             <span className="collection-page__count-badge">{movies.length}</span>
           </span>
         </div>

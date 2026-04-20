@@ -100,7 +100,39 @@
     "basedOnRatingsLists": "Basado en tus valoraciones y listas · pasa el cursor para eliminar",
     "nothingYet": "Nada aún",
     "startHint": "Guarda películas, valora lo que has visto o dale me gusta a tu actor favorito",
-    "newYear": "Novedades {{year}}"
+    "newYear": "Novedades {{year}}",
+    "popular": "Popular",
+    "tabTrending": "Tendencias",
+    "tabNowPlaying": "En cines",
+    "tabComingSoon": "Próximamente",
+    "tabPopular": "Popular",
+    "tabNew": "Nuevo {{year}}",
+    "tabLists": "Listas populares",
+    "tabSeasonal": "Estacional",
+    "catMovies": "Películas",
+    "catSeries": "Series",
+    "catAnimation": "Animación",
+    "daysLabel": "días",
+    "noData": "Sin datos",
+    "listsEmpty": "Sin listas aún",
+    "listsEmptyDesc": "Las listas públicas de la comunidad aparecerán aquí",
+    "listsTitles": "títulos",
+    "listsComingSoon": "Próximamente",
+    "listsComingSoonDesc": "Las listas de la comunidad están en desarrollo. Pronto aparecerán selecciones, colecciones y rankings.",
+    "seasonalComingSoon": "Próximamente",
+    "seasonalComingSoonDesc": "La pestaña estacional con colecciones curadas, selecciones atmosféricas y funciones únicas está en desarrollo.",
+    "seasonalChips": [
+      "🎃 Halloween",
+      "🎄 Año Nuevo",
+      "☀️ Verano",
+      "🍂 Otoño"
+    ],
+    "listsChips": [
+      "🎬 Top 100 Películas",
+      "📺 Mejores Series",
+      "🌍 Cine Mundial",
+      "🏆 Premiadas"
+    ]
   },
   "search": {
     "title": "Buscar",
@@ -188,7 +220,10 @@
   "collection": {
     "collection": "Colección",
     "studio": "Estudio",
-    "films": "películas"
+    "films": "películas",
+    "catalog": "Catálogo",
+    "network": "Red",
+    "series": "series"
   },
   "about": {
     "twoLanguages": "Varios idiomas",
@@ -384,7 +419,15 @@
     "watchProgressHint": "Mostrar cuántos títulos se han visto",
     "deadline": "Fecha límite",
     "deadlineHint": "Cuándo quieres terminar",
-    "addTitlesBtn": "Añadir títulos"
+    "addTitlesBtn": "Añadir títulos",
+    "readOnly": "Lista de solo lectura",
+    "readOnlyDesc": "Esta lista fue añadida desde una lista pública. Haz una copia para editarla.",
+    "publicList": "Lista pública",
+    "privateList": "Lista privada",
+    "publicListHint": "Visible para todos, searchable",
+    "privateListHint": "Solo tú puedes ver esta lista",
+    "separateTracking": "Seguimiento separado",
+    "separateTrackingHint": "Lo visto/en cola en esta lista queda separado de tu perfil"
   },
   "publiclist": {
     "notFound": "Lista no encontrada",
@@ -394,7 +437,8 @@
     "titles": "títulos",
     "copied": " ¡Copiado!",
     "copyLink": "Copiar enlace",
-    "listEmpty": "Lista vacía"
+    "listEmpty": "Lista vacía",
+    "copyList": "Copiar lista"
   },
   "ratingLabels": [
     "",
