@@ -213,3 +213,50 @@
   }
   .plp-share-btn { max-width: 260px; }
 }
+
+/* ─── Like button ──────────────────────────────────────────────────────────── */
+.plp-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.plp-like-btn:hover {
+  border-color: #e05c6a;
+  color: #e05c6a;
+  background: rgba(224,92,106,0.08);
+}
+.plp-like-btn.liked {
+  border-color: #e05c6a;
+  background: rgba(224,92,106,0.12);
+  color: #e05c6a;
+}
+.plp-like-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ─── Actions row: like + share on same line ──────────────────────────────── */
+.plp-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.plp-actions-row .plp-share-btn {
+  margin-top: 0;
+  flex: 1;
+  width: auto;
+}
+.plp-actions-row .plp-like-btn {
+  flex-shrink: 0;
+}

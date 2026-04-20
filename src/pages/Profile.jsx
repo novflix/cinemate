@@ -7,10 +7,11 @@ import {
   ShareLinear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
-  HeartLinear, StarLinear
+  HeartLinear, StarLinear, LockKeyholeMinimalisticLinear, HeartAngleLinear, LockKeyholeUnlockedLinear
 } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
+import { useAdmin } from '../admin';
 import { useTheme } from '../theme';
 import { tmdb, HEADERS } from '../api';
 import { useLocalizedMovies } from '../useLocalizedMovies';
@@ -252,6 +253,8 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
   const [desc,         setDesc]         = useState(existing?.description  || '');
   const [image,        setImage]        = useState(existing?.image        || null);
   const [showProgress, setShowProgress] = useState(existing?.showProgress !== undefined ? existing.showProgress : true);
+  const [isPublic, setIsPublic] = useState(existing?.isPublic !== undefined ? existing.isPublic : true);
+  const [separateTracking, setSeparateTracking] = useState(existing?.separateTracking || false);
   const [deadline,     setDeadline]     = useState(existing?.deadline     || '');
   const [currentId,    setCurrentId]    = useState(listId || null);
   const [showPicker,   setShowPicker]   = useState(false);
@@ -283,6 +286,8 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
       image,
       showProgress,
       deadline: deadline || null,
+      isPublic,
+      separateTracking,
     };
     let id = currentId;
     if (id) {
@@ -339,7 +344,21 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
       </div>
 
       {/* Options */}
-      <div className="list-edit__options">
+      <div className="list-edit__options list-edit__options--stack">
+        <ToggleRow
+          icon={isPublic ? <LockKeyholeUnlockedLinear size={16}/> : <LockKeyholeMinimalisticLinear size={16}/>}
+          label={isPublic ? (lang === 'ru' ? 'Публичный список' : 'Public list') : (lang === 'ru' ? 'Приватный список' : 'Private list')}
+          hint={isPublic ? (lang === 'ru' ? 'Виден всем, можно найти через поиск' : 'Visible to everyone, searchable') : (lang === 'ru' ? 'Только вы видите этот список' : 'Only you can see this list')}
+          value={isPublic}
+          onChange={setIsPublic}
+        />
+        <ToggleRow
+          icon={<EyeLinear size={16}/>}
+          label={lang === 'ru' ? 'Отдельный учёт просмотров' : 'Separate watch tracking'}
+          hint={lang === 'ru' ? 'Просмотренное в списке не попадает в общий профиль' : 'Watched/queued in this list stays separate from your profile'}
+          value={separateTracking}
+          onChange={setSeparateTracking}
+        />
         <ToggleRow
           icon={<Chart2Linear size={16}/>}
           label={t('listeditor.watchProgress')}
@@ -413,12 +432,26 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 /* ─── List Detail Page ─── */
 function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCustomList, addToCustomList, lang }) {
   const { t } = useTranslation();
+  // Hydrate slim {id,media_type} items with poster_path, title etc from TMDB
+  const localizedItems = useLocalizedMovies(list.items || [], lang);
   const [showPicker,  setShowPicker]  = useState(false);
   const [sharing,     setSharing]     = useState(false);
   const [shareLabel,  setShareLabel]  = useState(null); // null | 'copying' | 'copied' | 'error'
-  const { addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, isWatched, isInWatchlist } = useStore();
+  const { addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist, isWatched, isInWatchlist,
+          addToListWatched, removeFromListWatched, addToListWatchlist, removeFromListWatchlist,
+          isListWatched, isListInWatchlist } = useStore();
   const { profile } = useStore();
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  // Load like count from supabase
+  useEffect(() => {
+    supabase.from('public_lists').select('likes').eq('id', listId).single()
+      .then(({ data }) => { if (data?.likes) setLikeCount(data.likes); });
+  }, [listId]);
 
   const handleShare = async () => {
     setSharing(true);
@@ -434,6 +467,7 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
         items:       list.items,
         author_name: (profile?.name || t('profile.anonymous')).slice(0, 50),
         updated_at:  new Date().toISOString(),
+        is_public:   list.isPublic !== false,
       };
       const { error } = await supabase.from('public_lists').upsert(payload, { onConflict: 'id' });
       if (error) throw error;
@@ -451,7 +485,9 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
 
   // Progress calculation
   const total     = list.items.length;
-  const watchedCount = list.items.filter(m => isWatched(m.id)).length;
+  const watchedCount = list.separateTracking
+    ? list.items.filter(m => isListWatched(listId, m.id)).length
+    : list.items.filter(m => isWatched(m.id)).length;
   const pct       = total > 0 ? Math.round((watchedCount / total) * 100) : 0;
 
   return (
@@ -465,29 +501,44 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
                style={{width:72,height:72,borderRadius:12,flexShrink:0}}>
             {list.image
               ? <img src={list.image} alt=""/>
-              : list.items.slice(0,4).map(m=>tmdb.posterUrl(m.poster_path)).filter(Boolean).length>0
-                ? list.items.slice(0,4).map(m=>tmdb.posterUrl(m.poster_path)).filter(Boolean).map((url,i)=><img key={i} src={url} alt=""/>)
+              : localizedItems.slice(0,4).map(m=>tmdb.posterUrl(m.poster_path)).filter(Boolean).length>0
+                ? localizedItems.slice(0,4).map(m=>tmdb.posterUrl(m.poster_path)).filter(Boolean).map((url,i)=><img key={i} src={url} alt=""/>)
                 : <div className="custom-list-card__avatar--empty"><ListLinear size={28} strokeWidth={1}/></div>
             }
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div className="ldp-title-row">
               <h1 className="list-detail__title">{list.name}</h1>
-              <button className="list-detail__edit-btn" onClick={onEdit} title={t('profile.editList')}>
-                <Pen2Linear size={15}/>
-              </button>
-              <button
-                className={"list-detail__share-btn" + (shareLabel === 'copied' ? ' copied' : shareLabel === 'error' ? ' error' : '')}
-                onClick={handleShare}
-                disabled={sharing}
-                title={t('profile.share')}
-              >
-                <ShareLinear size={15}/>
-                <span>{shareLabel === 'copied' ? t('profile.copied') : shareLabel === 'error' ? t('profile.error') : t('profile.share')}</span>
-              </button>
+              <span className={"list-privacy-badge " + (list.isPublic === false ? "list-privacy-badge--private" : "list-privacy-badge--public")}>
+                {list.isPublic === false ? <LockKeyholeMinimalisticLinear size={11}/> : <LockKeyholeUnlockedLinear size={11}/>}
+              </span>
             </div>
+            {list.isOwned === false && list.authorName && (
+              <p className="ldp-author">by {list.authorName}</p>
+            )}
             {list.description && <p className="list-detail__desc">{list.description}</p>}
             <p className="list-detail__count">{total} {t('profile.titles')}</p>
+            <div className="ldp-actions-row">
+              {list.isOwned !== false && (
+                <button className="list-detail__edit-btn" onClick={onEdit} title={t('profile.editList')}>
+                  <Pen2Linear size={15}/>
+                </button>
+              )}
+              {list.isPublic !== false && list.isOwned !== false && (
+                <button
+                  className={"list-detail__share-btn" + (shareLabel === 'copied' ? ' copied' : shareLabel === 'error' ? ' error' : '')}
+                  onClick={handleShare}
+                  disabled={sharing}
+                  title={t('profile.share')}
+                >
+                  <ShareLinear size={15}/>
+                  <span>{shareLabel === 'copied' ? t('profile.copied') : shareLabel === 'error' ? t('profile.error') : t('profile.share')}</span>
+                </button>
+              )}
+              {likeCount > 0 && (
+                <span className="list-like-count"><HeartAngleLinear size={12}/> {likeCount}</span>
+              )}
+            </div>
 
             {/* Progress bar */}
             {list.showProgress !== false && total > 0 && (
@@ -519,7 +570,7 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
         </div>
       ) : (
         <div className="poster-grid" style={{padding:'0 16px'}}>
-          {list.items.map(m => {
+          {localizedItems.map(m => {
             const poster  = tmdb.posterUrl(m.poster_path);
             const title   = m.title || m.name || m._fallback_title || '';
             const watched = isWatched(m.id);
@@ -529,29 +580,59 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
                 <div className="poster-grid__poster">
                   {poster ? <img src={poster} alt={title} loading="lazy"/> : <div className="poster-grid__no-poster"/>}
 
-                  {watched && <div className="movie-card__badge watched"><EyeLinear size={10}/></div>}
-                  {!watched && inWl && <div className="movie-card__badge watchlist"><BookmarkLinear size={10}/></div>}
+                  {(() => {
+                    const showW = list.separateTracking ? isListWatched(listId, m.id) : watched;
+                    const showWl = list.separateTracking ? isListInWatchlist(listId, m.id) : inWl;
+                    return (<>
+                      {showW && <div className="movie-card__badge watched"><EyeLinear size={10}/></div>}
+                      {!showW && showWl && <div className="movie-card__badge watchlist"><BookmarkLinear size={10}/></div>}
+                    </>);
+                  })()}
 
                   {/* Action buttons — identical to MovieCard */}
                   <div className="ldp-overlay" onClick={e => e.stopPropagation()}>
-                    <button
-                      className={"movie-card__btn" + (watched ? ' g' : '')}
-                      onClick={e => { e.stopPropagation(); watched ? removeFromWatched(m.id) : addToWatched(m); }}
-                    >
-                      {watched ? <EyeClosedLinear size={14}/> : <EyeLinear size={14}/>}
-                    </button>
-                    <button
-                      className={"movie-card__btn" + (inWl && !watched ? ' y' : '')}
-                      onClick={e => { e.stopPropagation(); if (!watched) { inWl ? removeFromWatchlist(m.id) : addToWatchlist(m); } }}
-                      disabled={watched}
-                    >
-                      {inWl && !watched ? <BookmarkOpenedLinear size={14}/> : <BookmarkLinear size={14}/>}
-                    </button>
+                    {list.separateTracking ? (() => {
+                      const lw  = isListWatched(listId, m.id);
+                      const lwl = isListInWatchlist(listId, m.id);
+                      return (<>
+                        <button
+                          className={"movie-card__btn" + (lw ? ' g' : '')}
+                          onClick={e => { e.stopPropagation(); lw ? removeFromListWatched(listId, m.id) : addToListWatched(listId, m); }}
+                          title={lw ? 'Убрать из просмотренных' : 'Отметить просмотренным'}
+                        >
+                          {lw ? <EyeClosedLinear size={14}/> : <EyeLinear size={14}/>}
+                        </button>
+                        <button
+                          className={"movie-card__btn" + (lwl && !lw ? ' y' : '')}
+                          onClick={e => { e.stopPropagation(); if (!lw) { lwl ? removeFromListWatchlist(listId, m.id) : addToListWatchlist(listId, m); } }}
+                          disabled={lw}
+                          title={lwl ? 'Убрать из очереди' : 'В очередь'}
+                        >
+                          {lwl && !lw ? <BookmarkOpenedLinear size={14}/> : <BookmarkLinear size={14}/>}
+                        </button>
+                      </>);
+                    })() : (<>
+                      <button
+                        className={"movie-card__btn" + (watched ? ' g' : '')}
+                        onClick={e => { e.stopPropagation(); watched ? removeFromWatched(m.id) : addToWatched(m); }}
+                      >
+                        {watched ? <EyeClosedLinear size={14}/> : <EyeLinear size={14}/>}
+                      </button>
+                      <button
+                        className={"movie-card__btn" + (inWl && !watched ? ' y' : '')}
+                        onClick={e => { e.stopPropagation(); if (!watched) { inWl ? removeFromWatchlist(m.id) : addToWatchlist(m); } }}
+                        disabled={watched}
+                      >
+                        {inWl && !watched ? <BookmarkOpenedLinear size={14}/> : <BookmarkLinear size={14}/>}
+                      </button>
+                    </>)}
                   </div>
 
-                  <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();removeFromCustomList(listId,m.id);}}>
-                    <TrashBinMinimalistic2Linear size={11}/>
-                  </button>
+                  {list.isOwned !== false && (
+                    <button className="poster-grid__remove" onClick={e=>{e.stopPropagation();removeFromCustomList(listId,m.id);}}>
+                      <TrashBinMinimalistic2Linear size={11}/>
+                    </button>
+                  )}
                 </div>
                 <p className="poster-grid__title">{title}</p>
               </div>
@@ -560,11 +641,13 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
         </div>
       )}
 
-      <div style={{padding:'16px 16px 0'}}>
-        <button className="custom-lists__new" onClick={() => setShowPicker(true)}>
-          <AddCircleLinear size={16}/> {t('listeditor.addTitles')}
-        </button>
-      </div>
+      {list.isOwned !== false && (
+        <div style={{padding:'16px 16px 0'}}>
+          <button className="custom-lists__new" onClick={() => setShowPicker(true)}>
+            <AddCircleLinear size={16}/> {t('listeditor.addTitles')}
+          </button>
+        </div>
+      )}
 
       {showPicker && (
         <TitlePickerModal
@@ -632,7 +715,10 @@ function CustomListsGrid({ customLists, onOpenList, onEditList, onCreateList, de
                 }
               </div>
               <div className="custom-list-card__info">
-                <span className="custom-list-card__name">{list.name}</span>
+                <span className="custom-list-card__name">
+                  {list.isPublic === false && <LockKeyholeMinimalisticLinear size={11} style={{marginRight:4,opacity:0.5}}/>}
+                  {list.name}
+                </span>
                 <div className="custom-list-card__meta">
                   <span>{total} {t('profile.titles')}</span>
                   {list.showProgress !== false && total > 0 && (

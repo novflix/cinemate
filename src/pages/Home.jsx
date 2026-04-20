@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 import {
   StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear,
   CupStarLinear, CalendarDateLinear, TVLinear, MagicStickLinear,
-  AltArrowLeftLinear, AltArrowRightLinear
+  AltArrowLeftLinear, AltArrowRightLinear, ListLinear
 } from 'solar-icon-set';
 import { tmdb, HEADERS } from '../api';
+import { useAdmin } from '../admin';
+import { supabase } from '../supabase';
 import { useTheme } from '../theme';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
@@ -191,7 +193,70 @@ function ComingSoonCard({ movie, onSelect }) {
   );
 }
 
-/* ─── Popular Lists Placeholder ──────────────────────────────────────────── */
+/* ─── Popular Lists ──────────────────────────────────────────────────────── */
+function PopularListsContent({ lang }) {
+  const [lists, setLists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase
+      .from('public_lists')
+      .select('id, name, description, image, items, author_name, likes')
+      .eq('is_public', true)
+      .order('likes', { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        setLists(data || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div className="home-sections" style={{paddingTop:18}}>
+      {[1,2,3].map(i => <div key={i} className="skeleton" style={{height:80,borderRadius:14,margin:'0 20px 12px'}}/>)}
+    </div>
+  );
+
+  if (lists.length === 0) return (
+    <div className="placeholder-block">
+      <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
+      <h3 className="placeholder-block__title">{lang === 'ru' ? 'Пока пусто' : 'No lists yet'}</h3>
+      <p className="placeholder-block__desc">{lang === 'ru' ? 'Публичные списки пользователей появятся здесь' : 'Public community lists will appear here'}</p>
+    </div>
+  );
+
+  return (
+    <div className="popular-lists-grid">
+      {lists.map(list => {
+        const items = list.items || [];
+        const posters = items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
+        return (
+          <div key={list.id} className="pop-list-card" onClick={() => navigate(`/list/${list.id}`)}>
+            <div className={`pop-list-card__cover${posters.length === 1 ? ' pop-list-card__cover--single' : ''}`}>
+              {list.image
+                ? <img src={list.image} alt=""/>
+                : posters.length > 0
+                  ? posters.map((url, i) => <img key={i} src={url} alt=""/>)
+                  : <div className="pop-list-card__cover--empty"><ListLinear size={24} strokeWidth={1}/></div>
+              }
+            </div>
+            <div className="pop-list-card__info">
+              <p className="pop-list-card__name">{list.name}</p>
+              <p className="pop-list-card__meta">
+                {list.author_name} · {items.length} {lang === 'ru' ? 'тайтлов' : 'titles'}
+                {list.likes > 0 && <span className="pop-list-card__likes"> · ♥ {list.likes}</span>}
+              </p>
+              {list.description && <p className="pop-list-card__desc">{list.description}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function PopularListsPlaceholder({ lang }) {
   return (
     <div className="placeholder-block">
@@ -234,6 +299,7 @@ export default function Home() {
   const { selected, openMovie, closeMovie } = useMovieModal();
   const navigate = useNavigate();
   const { lang } = useTheme();
+  const { isAdmin } = useAdmin();
   const langCode    = TMDB_LANG_MAP[lang] || 'en-US';
   const currentYear = new Date().getFullYear();
 
@@ -420,7 +486,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === 'lists' && <PopularListsPlaceholder lang={lang}/>}
+        {activeTab === 'lists' && (isAdmin ? <PopularListsContent lang={lang}/> : <PopularListsPlaceholder lang={lang}/>)}
 
         {activeTab === 'seasonal' && (
           <div className="placeholder-block">

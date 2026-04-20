@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ListLinear, AltArrowLeftLinear } from 'solar-icon-set';
+import { ListLinear, AltArrowLeftLinear, HeartAngleLinear } from 'solar-icon-set';
+import { useStore } from '../store';
+import { useAuth } from '../auth';
+import { useLocalizedMovies } from '../useLocalizedMovies';
 import { supabase } from '../supabase';
 import { tmdb } from '../api';
 import MovieModal from '../components/MovieModal';
@@ -17,6 +20,19 @@ export default function PublicListPage() {
   const [error,   setError]   = useState(false);
   const [selected, setSelected] = useState(null);
   const [copied,  setCopied]  = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked,     setLiked]     = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  const { createCustomList, addToCustomList, customLists } = useStore();
+  const { user } = useAuth();
+  const [lang] = useState(() => { try { return localStorage.getItem('lang') || 'en'; } catch { return 'en'; } });
+  const listItems = list?.items || [];
+  const localizedItems = useLocalizedMovies(listItems, lang);
+
+  // Track which lists the user has liked (localStorage)
+  const likedKey = `cinimate_liked_lists`;
+  const getLikedSet = () => { try { return new Set(JSON.parse(localStorage.getItem(likedKey) || '[]')); } catch { return new Set(); } };
 
   useEffect(() => {
     setLoading(true);
@@ -28,10 +44,44 @@ export default function PublicListPage() {
       .single()
       .then(({ data, error: err }) => {
         if (err || !data) { setError(true); setLoading(false); return; }
+        // Only show if public or owner
+        if (data.is_public === false && data.user_id !== user?.id) {
+          setError(true); setLoading(false); return;
+        }
         setList(data);
+        setLikeCount(data.likes || 0);
+        setLiked(getLikedSet().has(listId));
         setLoading(false);
       });
   }, [listId]);
+
+  const handleLike = async () => {
+    if (likeLoading) return;
+    setLikeLoading(true);
+    const likedSet = getLikedSet();
+    const nowLiked = !liked;
+    const delta = nowLiked ? 1 : -1;
+    const newCount = Math.max(0, likeCount + delta);
+
+    setLiked(nowLiked);
+    setLikeCount(newCount);
+
+    if (nowLiked) likedSet.add(listId); else likedSet.delete(listId);
+    try { localStorage.setItem(likedKey, JSON.stringify([...likedSet])); } catch {}
+
+    // Update likes count in supabase
+    await supabase.from('public_lists').update({ likes: newCount }).eq('id', listId);
+
+    // If liking — add list to own custom lists (if not already owned)
+    if (nowLiked && list && list.user_id !== user?.id) {
+      const alreadyHas = Object.values(customLists).some(l => l.id === listId || l.name === list.name);
+      if (!alreadyHas) {
+        const newId = createCustomList(list.name, list.description || '', list.image || null, { isPublic: false, isOwned: false, authorName: list.author_name || null });
+        (list.items || []).forEach(m => addToCustomList(newId, m));
+      }
+    }
+    setLikeLoading(false);
+  };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -57,8 +107,8 @@ export default function PublicListPage() {
     </div>
   );
 
-  const items   = list.items || [];
-  const coverPosters = items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
+  const items   = list?.items || [];
+  const coverPosters = localizedItems.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
 
   return (
     <div className="plp-page">
@@ -90,11 +140,19 @@ export default function PublicListPage() {
           </div>
         </div>
 
-        <button className="plp-share-btn" onClick={handleCopyLink}>
-          {copied
-            ? (t('publiclist.copied'))
-            : (t('publiclist.copyLink'))}
-        </button>
+        <div className="plp-actions-row">
+          <button
+            className={"plp-like-btn" + (liked ? ' liked' : '')}
+            onClick={handleLike}
+            disabled={likeLoading}
+          >
+            <HeartAngleLinear size={15}/>
+            {likeCount > 0 && <span>{likeCount}</span>}
+          </button>
+          <button className="plp-share-btn" onClick={handleCopyLink}>
+            {copied ? (t('publiclist.copied')) : (t('publiclist.copyLink'))}
+          </button>
+        </div>
       </div>
 
       {/* Grid */}
@@ -105,7 +163,7 @@ export default function PublicListPage() {
         </div>
       ) : (
         <div className="plp-grid">
-          {items.map(m => {
+          {localizedItems.map(m => {
             const poster = tmdb.posterUrl(m.poster_path);
             const title  = m.title || m.name || m._fallback_title || '';
             return (

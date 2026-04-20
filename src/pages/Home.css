@@ -247,3 +247,72 @@
   background: var(--surface); border: 1px solid var(--border);
   color: var(--text2); font-size: 13px; font-weight: 600; opacity: 0.55;
 }
+/* ─── Popular Lists grid (admin view) ─────────────────────────────────────── */
+.popular-lists-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 32px;
+}
+.pop-list-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pop-list-card:hover {
+  background: var(--surface2, rgba(255,255,255,0.06));
+  border-color: rgba(232,197,71,0.25);
+}
+.pop-list-card__cover {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  background: var(--surface2, rgba(255,255,255,0.05));
+}
+.pop-list-card__cover--single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.pop-list-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pop-list-card__cover--empty {
+  width: 60px; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+  grid-column: 1 / -1; grid-row: 1 / -1;
+}
+.pop-list-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pop-list-card__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text1, var(--text));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pop-list-card__meta {
+  font-size: 12px;
+  color: var(--text3);
+}
+.pop-list-card__likes { color: #e05c6a; }
+.pop-list-card__desc {
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}

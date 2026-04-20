@@ -247,7 +247,17 @@ export function StoreProvider({ children, userId }) {
   // ── Custom Lists ──────────────────────────────────────────────────────────
   const createCustomList = useCallback((name, description = '', image = null, opts = {}) => {
     const id = `list_${Date.now()}`;
-    setCustomLists(prev => ({ ...prev, [id]: { id, name, description, image, items: [], createdAt: Date.now(), showProgress: opts.showProgress !== false, deadline: opts.deadline || null } }));
+    setCustomLists(prev => ({ ...prev, [id]: {
+      id, name, description, image, items: [], createdAt: Date.now(),
+      showProgress: opts.showProgress !== false,
+      deadline: opts.deadline || null,
+      isPublic: opts.isPublic !== undefined ? opts.isPublic : true,
+      separateTracking: opts.separateTracking || false,
+      listWatched: [],
+      listWatchlist: [],
+      isOwned: opts.isOwned !== undefined ? opts.isOwned : true,
+      authorName: opts.authorName || null,
+    } }));
     return id;
   }, []);
 
@@ -270,6 +280,43 @@ export function StoreProvider({ children, userId }) {
   }), []);
 
   const isInCustomList = useCallback((listId, movieId) => !!customLists[listId]?.items.find(m => m.id === Number(movieId)), [customLists]);
+
+  // ── Per-list tracking (separate from global watched/watchlist) ────────────
+  const addToListWatched = useCallback((listId, movie) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    const norm = normalize(movie);
+    const listWatched = list.listWatched || [];
+    const listWatchlist = (list.listWatchlist || []).filter(m => m.id !== norm.id);
+    if (listWatched.find(m => m.id === norm.id)) return prev;
+    return { ...prev, [listId]: { ...list, listWatched: [norm, ...listWatched], listWatchlist } };
+  }), []);
+
+  const removeFromListWatched = useCallback((listId, movieId) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    return { ...prev, [listId]: { ...list, listWatched: (list.listWatched || []).filter(m => m.id !== Number(movieId)) } };
+  }), []);
+
+  const addToListWatchlist = useCallback((listId, movie) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    const norm = normalize(movie);
+    const listWatched = list.listWatched || [];
+    if (listWatched.find(m => m.id === norm.id)) return prev;
+    const listWatchlist = list.listWatchlist || [];
+    if (listWatchlist.find(m => m.id === norm.id)) return prev;
+    return { ...prev, [listId]: { ...list, listWatchlist: [norm, ...listWatchlist] } };
+  }), []);
+
+  const removeFromListWatchlist = useCallback((listId, movieId) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    return { ...prev, [listId]: { ...list, listWatchlist: (list.listWatchlist || []).filter(m => m.id !== Number(movieId)) } };
+  }), []);
+
+  const isListWatched    = useCallback((listId, movieId) => !!(customLists[listId]?.listWatched || []).find(m => m.id === Number(movieId)), [customLists]);
+  const isListInWatchlist= useCallback((listId, movieId) => !!(customLists[listId]?.listWatchlist || []).find(m => m.id === Number(movieId)), [customLists]);
   const updateListMeta = useCallback((listId, meta) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
@@ -292,6 +339,8 @@ export function StoreProvider({ children, userId }) {
     tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
     customLists, createCustomList, deleteCustomList, renameCustomList,
     addToCustomList, removeFromCustomList, isInCustomList, updateListMeta,
+    addToListWatched, removeFromListWatched, addToListWatchlist, removeFromListWatchlist,
+    isListWatched, isListInWatchlist,
     pendingRating, setPendingRating, showConfetti, setShowConfetti,
     addToWatched, addToWatchlist, removeFromWatched, removeFromWatchlist,
     isWatched, isInWatchlist, rateMovie, getRating,
