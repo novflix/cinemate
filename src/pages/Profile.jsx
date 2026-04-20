@@ -7,7 +7,8 @@ import {
   ShareLinear, CloseCircleLinear, CheckCircleLinear,
   TrashBinMinimalistic2Linear, ListLinear,
   AddCircleLinear, CalendarLinear, Chart2Linear, EyeClosedLinear, BookmarkOpenedLinear,
-  HeartLinear, StarLinear, LockKeyholeMinimalisticLinear, HeartAngleLinear, LockKeyholeUnlockedLinear
+  HeartLinear, StarLinear, LockKeyholeMinimalisticLinear, HeartAngleLinear, LockKeyholeUnlockedLinear,
+  CupStarLinear
 } from 'solar-icon-set';
 import { useStore } from '../store';
 import { useAuth } from '../auth';
@@ -248,6 +249,7 @@ function ToggleRow({ icon, label, hint, value, onChange }) {
 /* ─── List Edit Page (create & edit) ─── */
 function ListEditPage({ listId, customLists, createCustomList, updateListMeta, onBack, onSaved, addToCustomList, lang }) {
   const { t } = useTranslation();
+  const { isAdmin } = useAdmin();
   const existing = listId ? customLists[listId] : null;
   const readOnly = !!existing && existing.isOwned === false;
   const [name,         setName]         = useState(existing?.name         || '');
@@ -256,6 +258,7 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
   const [showProgress, setShowProgress] = useState(existing?.showProgress !== undefined ? existing.showProgress : true);
   const [isPublic, setIsPublic] = useState(existing?.isPublic !== undefined ? existing.isPublic : true);
   const [separateTracking, setSeparateTracking] = useState(existing?.separateTracking || false);
+  const [isSiteList,   setIsSiteList]   = useState(existing?.isSiteList   || false);
   const [deadline,     setDeadline]     = useState(existing?.deadline     || '');
   const [currentId,    setCurrentId]    = useState(listId || null);
   const [showPicker,   setShowPicker]   = useState(false);
@@ -284,14 +287,18 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
   const handleSave = async () => {
     if (readOnly) return;
     if (!name.trim()) return;
+    // isSiteList forces the list to be public
+    const effectiveSiteList = isAdmin && isSiteList;
+    const effectivePublic   = isPublic || effectiveSiteList;
     const meta = {
       name: name.trim(),
       description: desc.trim(),
       image,
       showProgress,
       deadline: deadline || null,
-      isPublic,
+      isPublic: effectivePublic,
       separateTracking,
+      isSiteList: effectiveSiteList,
     };
     let id = currentId;
     if (id) {
@@ -300,15 +307,16 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
       id = createCustomList(name.trim(), desc.trim(), image, {
         showProgress,
         deadline: deadline || null,
-        isPublic,
+        isPublic: effectivePublic,
         separateTracking,
+        isSiteList: effectiveSiteList,
       });
       setCurrentId(id);
     }
 
     // Sync to Supabase: upsert if public, delete if private
     try {
-      if (isPublic) {
+      if (effectivePublic) {
         const currentItems = (id && customLists[id]?.items) || listItems;
         await supabase.from('public_lists').upsert({
           id,
@@ -318,6 +326,8 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
           items: currentItems,
           updated_at: new Date().toISOString(),
           is_public: true,
+          is_site_list: effectiveSiteList,
+          author_name: effectiveSiteList ? 'CinΗmate' : undefined,
         }, { onConflict: 'id' });
       } else if (id) {
         await supabase.from('public_lists').delete().eq('id', id);
@@ -445,6 +455,17 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
             min={new Date().toISOString().split('T')[0]}
           />
         </div>
+
+        {/* Admin-only: publish as site list */}
+        {isAdmin && (
+          <ToggleRow
+            icon={<CupStarLinear size={16}/>}
+            label={t('listeditor.siteList')}
+            hint={t('listeditor.siteListHint')}
+            value={isSiteList}
+            onChange={v => { setIsSiteList(v); if (v) setIsPublic(true); }}
+          />
+        )}
       </div>
 
       {/* Add titles */}

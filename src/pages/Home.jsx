@@ -203,7 +203,8 @@ function ComingSoonCard({ movie, onSelect, lang }) {
 
 /* ─── Popular Lists ──────────────────────────────────────────────────────── */
 function PopularListsContent({ lang }) {
-  const [lists, setLists] = useState([]);
+  const [siteLists, setSiteLists] = useState([]);
+  const [userLists, setUserLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -211,23 +212,29 @@ function PopularListsContent({ lang }) {
   useEffect(() => {
     supabase
       .from('public_lists')
-      .select('id, name, description, image, items, author_name, likes')
+      .select('id, name, description, image, items, author_name, likes, is_site_list')
       .eq('is_public', true)
+      .gte('likes', 100)
+      .order('is_site_list', { ascending: false })
       .order('likes', { ascending: false })
-      .limit(20)
+      .limit(50)
       .then(({ data }) => {
-        setLists(data || []);
+        const all = data || [];
+        setSiteLists(all.filter(l => l.is_site_list));
+        setUserLists(all.filter(l => !l.is_site_list));
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const allLists = useMemo(() => [...siteLists, ...userLists], [siteLists, userLists]);
 
   // public_lists.items stores slim entries (usually {id, media_type, ...}) without poster_path.
   // Hydrate the first 4 items from each list so the cover collage works (same approach as Profile).
   const previewEntries = useMemo(() => {
     const out = [];
     const seen = new Set();
-    for (const list of lists) {
+    for (const list of allLists) {
       const slice = (list.items || []).slice(0, 4);
       for (const entry of slice) {
         if (!entry?.id || !entry?.media_type) continue;
@@ -238,7 +245,7 @@ function PopularListsContent({ lang }) {
       }
     }
     return out;
-  }, [lists]);
+  }, [allLists]);
 
   const localizedPreview = useLocalizedMovies(previewEntries, lang);
   const localizedByKey = useMemo(() => {
@@ -247,13 +254,50 @@ function PopularListsContent({ lang }) {
     return m;
   }, [localizedPreview]);
 
+  const renderListCard = (list) => {
+    const items = list.items || [];
+    const posters = list.image
+      ? []
+      : items
+          .slice(0, 4)
+          .map(e => localizedByKey.get(`${e?.id}-${e?.media_type}`))
+          .filter(Boolean)
+          .map(m => tmdb.posterUrl(m.poster_path))
+          .filter(Boolean);
+    return (
+      <div key={list.id} className="pop-list-card" onClick={() => navigate(`/list/${list.id}`)}>
+        <div className={`pop-list-card__cover${posters.length === 1 ? ' pop-list-card__cover--single' : ''}`}>
+          {list.image
+            ? <img src={list.image} alt=""/>
+            : posters.length > 0
+              ? posters.map((url, i) => <img key={i} src={url} alt=""/>)
+              : <div className="pop-list-card__cover--empty"><ListLinear size={24} strokeWidth={1}/></div>
+          }
+        </div>
+        <div className="pop-list-card__info">
+          <p className="pop-list-card__name">
+            {list.is_site_list && (
+              <span className="pop-list-card__site-badge">{t('home.siteListBadge')}</span>
+            )}
+            {list.name}
+          </p>
+          <p className="pop-list-card__meta">
+            {list.author_name} · {items.length} {t('home.listsTitles')}
+            {list.likes > 0 && <span className="pop-list-card__likes"> · ♥ {list.likes}</span>}
+          </p>
+          {list.description && <p className="pop-list-card__desc">{list.description}</p>}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) return (
     <div className="home-sections" style={{paddingTop:18}}>
       {[1,2,3].map(i => <div key={i} className="skeleton" style={{height:80,borderRadius:14,margin:'0 20px 12px'}}/>)}
     </div>
   );
 
-  if (lists.length === 0) return (
+  if (siteLists.length === 0 && userLists.length === 0) return (
     <div className="placeholder-block">
       <div className="placeholder-block__icon"><CupStarLinear size={40} /></div>
       <h3 className="placeholder-block__title">{t('home.listsEmpty')}</h3>
@@ -262,38 +306,31 @@ function PopularListsContent({ lang }) {
   );
 
   return (
-    <div className="popular-lists-grid">
-      {lists.map(list => {
-        const items = list.items || [];
-        const posters = list.image
-          ? []
-          : items
-              .slice(0, 4)
-              .map(e => localizedByKey.get(`${e?.id}-${e?.media_type}`))
-              .filter(Boolean)
-              .map(m => tmdb.posterUrl(m.poster_path))
-              .filter(Boolean);
-        return (
-          <div key={list.id} className="pop-list-card" onClick={() => navigate(`/list/${list.id}`)}>
-            <div className={`pop-list-card__cover${posters.length === 1 ? ' pop-list-card__cover--single' : ''}`}>
-              {list.image
-                ? <img src={list.image} alt=""/>
-                : posters.length > 0
-                  ? posters.map((url, i) => <img key={i} src={url} alt=""/>)
-                  : <div className="pop-list-card__cover--empty"><ListLinear size={24} strokeWidth={1}/></div>
-              }
-            </div>
-            <div className="pop-list-card__info">
-              <p className="pop-list-card__name">{list.name}</p>
-              <p className="pop-list-card__meta">
-                {list.author_name} · {items.length} {t('home.listsTitles')}
-                {list.likes > 0 && <span className="pop-list-card__likes"> · ♥ {list.likes}</span>}
-              </p>
-              {list.description && <p className="pop-list-card__desc">{list.description}</p>}
-            </div>
+    <div className="popular-lists-wrap">
+      {siteLists.length > 0 && (
+        <div className="popular-lists-section">
+          <div className="popular-lists-section__header">
+            <CupStarLinear size={13}/>
+            <span>{t('home.siteListsHeader')}</span>
           </div>
-        );
-      })}
+          <div className="popular-lists-grid">
+            {siteLists.map(renderListCard)}
+          </div>
+        </div>
+      )}
+      {userLists.length > 0 && (
+        <div className="popular-lists-section">
+          {siteLists.length > 0 && (
+            <div className="popular-lists-section__header popular-lists-section__header--community">
+              <FlameLinear size={13}/>
+              <span>{t('home.communityListsHeader')}</span>
+            </div>
+          )}
+          <div className="popular-lists-grid">
+            {userLists.map(renderListCard)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

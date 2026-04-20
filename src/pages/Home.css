@@ -316,3 +316,43 @@
   text-overflow: ellipsis;
   margin-top: 1px;
 }
+/* ─── Popular Lists sub-sections ─────────────────────────── */
+.popular-lists-wrap { padding-bottom: 24px; }
+
+.popular-lists-section { margin-bottom: 4px; }
+
+.popular-lists-section__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 20px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+}
+
+.popular-lists-section__header--community {
+  color: var(--text2);
+  margin-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  padding-top: 20px;
+}
+
+.pop-list-card__site-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-right: 5px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  opacity: 0.9;
+}
