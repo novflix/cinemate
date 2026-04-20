@@ -248,7 +248,7 @@ export function StoreProvider({ children, userId }) {
   const createCustomList = useCallback((name, description = '', image = null, opts = {}) => {
     const id = `list_${Date.now()}`;
     setCustomLists(prev => ({ ...prev, [id]: {
-      id, name, description, image, items: [], createdAt: Date.now(),
+      id, name, description, image, items: Array.isArray(opts.items) ? slimify(opts.items) : [], createdAt: Date.now(),
       showProgress: opts.showProgress !== false,
       deadline: opts.deadline || null,
       isPublic: opts.isPublic !== undefined ? opts.isPublic : true,
@@ -257,18 +257,35 @@ export function StoreProvider({ children, userId }) {
       listWatchlist: [],
       isOwned: opts.isOwned !== undefined ? opts.isOwned : true,
       authorName: opts.authorName || null,
+      sourceListId: opts.sourceListId || null,
+      sourceAuthorName: opts.sourceAuthorName || null,
     } }));
     return id;
   }, []);
 
+  const canEditCustomList = (list) => list?.isOwned !== false;
+
   const deleteCustomList = useCallback((listId) => setCustomLists(prev => { const n = {...prev}; delete n[listId]; return n; }), []);
-  const renameCustomList = useCallback((listId, name) => setCustomLists(prev => ({
-    ...prev, [listId]: { ...prev[listId], name }
-  })), []);
+
+  // Allows the user to take ownership of a previously read-only list (e.g. a liked public list).
+  const promoteCustomListOwnership = useCallback((listId) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    if (list.isOwned !== false) return prev;
+    return { ...prev, [listId]: { ...list, isOwned: true } };
+  }), []);
+
+  const renameCustomList = useCallback((listId, name) => setCustomLists(prev => {
+    const list = prev[listId];
+    if (!list) return prev;
+    if (!canEditCustomList(list)) return prev;
+    return { ...prev, [listId]: { ...list, name } };
+  }), []);
 
   const addToCustomList = useCallback((listId, movie) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
+    if (!canEditCustomList(list)) return prev;
     if (list.items.find(m => m.id === Number(movie.id))) return prev;
     return { ...prev, [listId]: { ...list, items: [normalize(movie), ...list.items.map(m=>normalize(m))] } };
   }), []);
@@ -276,6 +293,7 @@ export function StoreProvider({ children, userId }) {
   const removeFromCustomList = useCallback((listId, movieId) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
+    if (!canEditCustomList(list)) return prev;
     return { ...prev, [listId]: { ...list, items: list.items.filter(m => m.id !== Number(movieId)) } };
   }), []);
 
@@ -320,6 +338,7 @@ export function StoreProvider({ children, userId }) {
   const updateListMeta = useCallback((listId, meta) => setCustomLists(prev => {
     const list = prev[listId];
     if (!list) return prev;
+    if (!canEditCustomList(list)) return prev;
     return { ...prev, [listId]: { ...list, ...meta } };
   }), []);
 
@@ -337,7 +356,7 @@ export function StoreProvider({ children, userId }) {
     likedActors, likeActor, unlikeActor, isActorLiked,
     dislikedIds, addDisliked, isDisliked,
     tvProgress, setTvProgressEntry, getTvProgress, clearTvProgress,
-    customLists, createCustomList, deleteCustomList, renameCustomList,
+    customLists, createCustomList, deleteCustomList, renameCustomList, promoteCustomListOwnership,
     addToCustomList, removeFromCustomList, isInCustomList, updateListMeta,
     addToListWatched, removeFromListWatched, addToListWatchlist, removeFromListWatchlist,
     isListWatched, isListInWatchlist,

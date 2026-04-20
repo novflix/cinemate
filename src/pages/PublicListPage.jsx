@@ -23,8 +23,10 @@ export default function PublicListPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [liked,     setLiked]     = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [copyLoading, setCopyLoading] = useState(false);
+  const [copyLabel, setCopyLabel] = useState(null); // null | 'copied' | 'exists' | 'error'
 
-  const { createCustomList, addToCustomList, customLists } = useStore();
+  const { createCustomList, deleteCustomList, customLists, promoteCustomListOwnership } = useStore();
   const { user } = useAuth();
   const [lang] = useState(() => { try { return localStorage.getItem('lang') || 'en'; } catch { return 'en'; } });
   const listItems = list?.items || [];
@@ -72,15 +74,66 @@ export default function PublicListPage() {
     // Update likes count in supabase
     await supabase.from('public_lists').update({ likes: newCount }).eq('id', listId);
 
-    // If liking — add list to own custom lists (if not already owned)
-    if (nowLiked && list && list.user_id !== user?.id) {
-      const alreadyHas = Object.values(customLists).some(l => l.id === listId || l.name === list.name);
-      if (!alreadyHas) {
-        const newId = createCustomList(list.name, list.description || '', list.image || null, { isPublic: false, isOwned: false, authorName: list.author_name || null });
-        (list.items || []).forEach(m => addToCustomList(newId, m));
+    // If liking — add list to profile as read-only
+    if (list && list.user_id !== user?.id) {
+      const existingLocal = Object.values(customLists).find(l => l.sourceListId === listId);
+      if (nowLiked) {
+        if (!existingLocal) {
+          createCustomList(list.name, list.description || '', list.image || null, {
+            isPublic: false,
+            isOwned: false,
+            authorName: list.author_name || null,
+            sourceListId: listId,
+            sourceAuthorName: list.author_name || null,
+            items: list.items || [],
+          });
+        }
+      } else {
+        if (existingLocal && existingLocal.isOwned === false) {
+          deleteCustomList(existingLocal.id);
+        }
       }
     }
     setLikeLoading(false);
+  };
+
+  const handleCopyList = () => {
+    if (copyLoading) return;
+    if (!user) {
+      alert(t('auth.signInToCopy', 'Please sign in to copy this list'));
+      return;
+    }
+    setCopyLoading(true);
+    try {
+      const existingLocal = Object.values(customLists).find(l => l.sourceListId === listId);
+      if (existingLocal) {
+        if (existingLocal.isOwned !== false) {
+          setCopyLabel('exists');
+          setTimeout(() => setCopyLabel(null), 2200);
+        } else {
+          promoteCustomListOwnership(existingLocal.id);
+          setCopyLabel('copied');
+          setTimeout(() => setCopyLabel(null), 2200);
+        }
+        return;
+      }
+
+      createCustomList(list.name, list.description || '', list.image || null, {
+        isPublic: false,
+        isOwned: true,
+        sourceListId: listId,
+        sourceAuthorName: list.author_name || null,
+        items: list.items || [],
+      });
+      setCopyLabel('copied');
+      setTimeout(() => setCopyLabel(null), 2200);
+    } catch (e) {
+      console.error(e);
+      setCopyLabel('error');
+      setTimeout(() => setCopyLabel(null), 2200);
+    } finally {
+      setCopyLoading(false);
+    }
   };
 
   const handleCopyLink = () => {
@@ -148,6 +201,15 @@ export default function PublicListPage() {
           >
             <HeartAngleLinear size={15}/>
             {likeCount > 0 && <span>{likeCount}</span>}
+          </button>
+          <button className="plp-copy-btn" onClick={handleCopyList} disabled={copyLoading}>
+            {copyLabel === 'copied'
+              ? t('publiclist.copied', 'Copied')
+              : copyLabel === 'exists'
+                ? t('publiclist.alreadyCopied', 'Already copied')
+                : copyLabel === 'error'
+                  ? t('publiclist.error', 'Error')
+                  : t('publiclist.copyList', 'Copy list')}
           </button>
           <button className="plp-share-btn" onClick={handleCopyLink}>
             {copied ? (t('publiclist.copied')) : (t('publiclist.copyLink'))}

@@ -249,6 +249,7 @@ function ToggleRow({ icon, label, hint, value, onChange }) {
 function ListEditPage({ listId, customLists, createCustomList, updateListMeta, onBack, onSaved, addToCustomList, lang }) {
   const { t } = useTranslation();
   const existing = listId ? customLists[listId] : null;
+  const readOnly = !!existing && existing.isOwned === false;
   const [name,         setName]         = useState(existing?.name         || '');
   const [desc,         setDesc]         = useState(existing?.description  || '');
   const [image,        setImage]        = useState(existing?.image        || null);
@@ -281,6 +282,7 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
   };
 
   const handleSave = async () => {
+    if (readOnly) return;
     if (!name.trim()) return;
     const meta = {
       name: name.trim(),
@@ -326,6 +328,38 @@ function ListEditPage({ listId, customLists, createCustomList, updateListMeta, o
 
     onSaved(id);
   };
+
+  if (readOnly) {
+    return (
+      <div className="page list-edit-page">
+        <div className="list-edit__topbar">
+          <button className="list-detail__back" onClick={onBack}><CloseCircleLinear size={20}/></button>
+          <h2 className="list-edit__heading">{t('listeditor.readOnly', 'Read-only list')}</h2>
+          <button
+            className="list-edit__save-btn"
+            onClick={() => {
+              const base = existing || {};
+              const newId = createCustomList(base.name || t('profile.newList'), base.description || '', base.image || null, {
+                showProgress: base.showProgress !== false,
+                deadline: base.deadline || null,
+                isPublic: false,
+                separateTracking: base.separateTracking || false,
+                sourceListId: base.sourceListId || null,
+                sourceAuthorName: base.sourceAuthorName || base.authorName || null,
+              });
+              (base.items || []).forEach(m => addToCustomList(newId, m));
+              onSaved(newId);
+            }}
+          >
+            {t('publiclist.copyList', 'Copy list')}
+          </button>
+        </div>
+        <div style={{padding:'16px', color:'var(--text2)', fontSize:13, lineHeight:1.5}}>
+          {t('listeditor.readOnlyDesc', 'This list was added from a public list. Make a copy to edit it.')}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page list-edit-page">
@@ -544,6 +578,9 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
             {list.isOwned === false && list.authorName && (
               <p className="ldp-author">by {list.authorName}</p>
             )}
+            {list.isOwned !== false && list.sourceAuthorName && (
+              <p className="ldp-author">{t('profile.copiedFrom', 'copied from')} {list.sourceAuthorName}</p>
+            )}
             {list.description && <p className="list-detail__desc">{list.description}</p>}
             <p className="list-detail__count">{total} {t('profile.titles')}</p>
             <div className="ldp-actions-row">
@@ -728,9 +765,11 @@ function CustomListCard({ list, onOpenList, onEditList, onDeleteClick, lang }) {
         )}
       </div>
       <div className="custom-list-card__actions">
-        <button className="custom-list-card__edit" onClick={e=>{e.stopPropagation();onEditList(list.id);}}>
-          <Pen2Linear size={13}/>
-        </button>
+        {list.isOwned !== false && (
+          <button className="custom-list-card__edit" onClick={e=>{e.stopPropagation();onEditList(list.id);}}>
+            <Pen2Linear size={13}/>
+          </button>
+        )}
         <button className="custom-list-card__del" onClick={e=>onDeleteClick(e, list)}>
           <TrashBinMinimalistic2Linear size={13}/>
         </button>
@@ -986,7 +1025,7 @@ export default function Profile() {
           <CustomListsGrid
             customLists={customLists}
             onOpenList={id => setListView({ view: 'detail', id })}
-            onEditList={id => setListView({ view: 'edit', id })}
+            onEditList={id => { if (customLists[id]?.isOwned === false) return; setListView({ view: 'edit', id }); }}
             onCreateList={() => setListView({ view: 'edit', id: null })}
             deleteCustomList={deleteCustomList}
             lang={lang}

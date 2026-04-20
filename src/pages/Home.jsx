@@ -11,6 +11,7 @@ import { tmdb, HEADERS } from '../api';
 import { useAdmin } from '../admin';
 import { supabase } from '../supabase';
 import { useTheme } from '../theme';
+import { useLocalizedMovies } from '../useLocalizedMovies';
 import MovieCard from '../components/MovieCard';
 import MovieModal from '../components/MovieModal';
 import ScrollRow from '../components/ScrollRow';
@@ -213,6 +214,31 @@ function PopularListsContent({ lang }) {
       .catch(() => setLoading(false));
   }, []);
 
+  // public_lists.items stores slim entries (usually {id, media_type, ...}) without poster_path.
+  // Hydrate the first 4 items from each list so the cover collage works (same approach as Profile).
+  const previewEntries = useMemo(() => {
+    const out = [];
+    const seen = new Set();
+    for (const list of lists) {
+      const slice = (list.items || []).slice(0, 4);
+      for (const entry of slice) {
+        if (!entry?.id || !entry?.media_type) continue;
+        const key = `${entry.id}-${entry.media_type}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(entry);
+      }
+    }
+    return out;
+  }, [lists]);
+
+  const localizedPreview = useLocalizedMovies(previewEntries, lang);
+  const localizedByKey = useMemo(() => {
+    const m = new Map();
+    for (const it of localizedPreview) m.set(`${it.id}-${it.media_type}`, it);
+    return m;
+  }, [localizedPreview]);
+
   if (loading) return (
     <div className="home-sections" style={{paddingTop:18}}>
       {[1,2,3].map(i => <div key={i} className="skeleton" style={{height:80,borderRadius:14,margin:'0 20px 12px'}}/>)}
@@ -231,7 +257,14 @@ function PopularListsContent({ lang }) {
     <div className="popular-lists-grid">
       {lists.map(list => {
         const items = list.items || [];
-        const posters = items.slice(0, 4).map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
+        const posters = list.image
+          ? []
+          : items
+              .slice(0, 4)
+              .map(e => localizedByKey.get(`${e?.id}-${e?.media_type}`))
+              .filter(Boolean)
+              .map(m => tmdb.posterUrl(m.poster_path))
+              .filter(Boolean);
         return (
           <div key={list.id} className="pop-list-card" onClick={() => navigate(`/list/${list.id}`)}>
             <div className={`pop-list-card__cover${posters.length === 1 ? ' pop-list-card__cover--single' : ''}`}>

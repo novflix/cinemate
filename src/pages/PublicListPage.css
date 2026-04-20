@@ -125,7 +125,14 @@
 .plp-share-btn {
   margin-top: 16px;
   width: 100%;
-  padding: 11px;
+  height: 42px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -136,6 +143,35 @@
   transition: background 0.15s, color 0.15s;
 }
 .plp-share-btn:hover { background: var(--surface2); }
+
+.plp-copy-btn {
+  margin-top: 16px;
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(232, 197, 71, 0.08);
+  border: 1px solid rgba(232, 197, 71, 0.28);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.plp-copy-btn:hover {
+  background: rgba(232, 197, 71, 0.12);
+  border-color: rgba(232, 197, 71, 0.4);
+}
+.plp-copy-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 /* Grid */
 .plp-empty {
@@ -219,7 +255,8 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 8px 14px;
+  height: 42px;
+  padding: 0 14px;
   border-radius: 10px;
   border: 1.5px solid var(--border);
   background: transparent;
@@ -249,13 +286,16 @@
 .plp-actions-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
 }
-.plp-actions-row .plp-share-btn {
+.plp-actions-row .plp-share-btn,
+.plp-actions-row .plp-copy-btn {
   margin-top: 0;
-  flex: 1;
+  flex: 1 1 220px;
   width: auto;
+  max-width: none;
 }
 .plp-actions-row .plp-like-btn {
   flex-shrink: 0;
