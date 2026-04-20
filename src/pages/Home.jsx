@@ -160,7 +160,7 @@ function ThreeCatBlock({ movies, series, animation, onSelect, loading }) {
 }
 
 /* ─── Coming Soon Card ───────────────────────────────────────────────────── */
-function ComingSoonCard({ movie, onSelect }) {
+function ComingSoonCard({ movie, onSelect, lang }) {
   const { t } = useTranslation();
   const days = useMemo(() => {
     const d = movie.release_date;
@@ -168,6 +168,11 @@ function ComingSoonCard({ movie, onSelect }) {
     const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
     return diff > 0 ? diff : null;
   }, [movie.release_date]);
+
+  const dateLocale = {
+    ru: 'ru-RU', en: 'en-GB', de: 'de-DE', es: 'es-ES',
+    fr: 'fr-FR', it: 'it-IT', pt: 'pt-BR', tr: 'tr-TR', zh: 'zh-CN',
+  }[lang] || 'en-GB';
 
   return (
     <div className="cs-card" onClick={() => onSelect(movie)}>
@@ -188,7 +193,7 @@ function ComingSoonCard({ movie, onSelect }) {
         {movie.release_date && (
           <div className="cs-card__date">
             <CalendarDateLinear size={11} />
-            {new Date(movie.release_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {new Date(movie.release_date).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
           </div>
         )}
       </div>
@@ -361,7 +366,7 @@ export default function Home() {
     const oneYearOut = new Date(); oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
     const oneYearStr = oneYearOut.toISOString().split('T')[0];
 
-    const csParams = `primary_release_date.gte=${today}&primary_release_date.lte=${oneYearStr}&language=en-US&without_genres=10764,10767,10763,10766,10770,99`;
+    const csParams = `primary_release_date.gte=${today}&primary_release_date.lte=${oneYearStr}&language=${langCode}&without_genres=10764,10767,10763,10766,10770,99`;
     const csByPop  = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=popularity.desc`;
     const csByDate = `https://api.themoviedb.org/3/discover/movie?${csParams}&sort_by=primary_release_date.asc`;
     setComingSoonLoading(true);
@@ -517,7 +522,7 @@ export default function Home() {
               ? [1,2,3,4,5,6].map(i=><div key={i} className="skeleton cs-card-skeleton"/>)
               : comingSoon.length > 0
                 ? <div className="coming-soon-grid">
-                    {comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie}/>)}
+                    {comingSoon.map(m=><ComingSoonCard key={m.id} movie={m} onSelect={openMovie} lang={lang}/>)}
                   </div>
                 : <div className="tab-empty">{t('home.noData')}</div>
             }
