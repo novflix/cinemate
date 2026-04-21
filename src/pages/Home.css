@@ -28,7 +28,10 @@
 }
 
 .hero__content {
-  position: absolute; bottom: 56px; left: 0; right: 0; padding: 0 28px;
+  position: absolute; bottom: 56px; left: 0; right: 0; padding: 0 68px;
+}
+@media (min-width: 900px) {
+  .hero__content { padding: 0 80px; bottom: 56px; }
 }
 .hero__label {
   display: inline-flex; align-items: center; gap: 5px;
