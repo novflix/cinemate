@@ -354,10 +354,10 @@ function PopularListsPlaceholder() {
 
 /* ─── Main Tabs ──────────────────────────────────────────────────────────── */
 const MAIN_TABS = [
-  { id: 'trending',   i18nKey: 'home.tabTrending',   icon: FlameLinear        },
+  { id: 'popular',    i18nKey: 'home.tabPopular',     icon: CupStarLinear      },
   { id: 'nowplaying', i18nKey: 'home.tabNowPlaying',  icon: PlayLinear         },
   { id: 'comingsoon', i18nKey: 'home.tabComingSoon',  icon: CalendarDateLinear },
-  { id: 'popular',    i18nKey: 'home.tabPopular',     icon: CupStarLinear      },
+  { id: 'trending',   i18nKey: 'home.tabTrending',   icon: FlameLinear        },
   { id: 'new',        i18nKey: 'home.tabNew',         icon: MagicStickLinear   },
   { id: 'lists',      i18nKey: 'home.tabLists',       icon: CupStarLinear      },
   { id: 'seasonal',   i18nKey: 'home.tabSeasonal',    icon: null               },
@@ -367,7 +367,7 @@ const MAIN_TABS = [
 export default function Home() {
   const [allData, setAllData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('trending');
+  const [activeTab, setActiveTab] = useState('popular');
   const [animData, setAnimData] = useState({ trending: [], nowplaying: [], popular: [], new: [] });
   const [comingSoon, setComingSoon] = useState([]);
   const [comingSoonLoading, setComingSoonLoading] = useState(true);
