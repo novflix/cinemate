@@ -500,7 +500,7 @@ export default function Home() {
                   className={"main-tab main-tab--seasonal-wip" + (isActive ? ' active' : '')}
                   onClick={() => setActiveTab('seasonal')}
                 >
-                  <MagicStickLinear size={13}/>
+                  <MagicStickLinear size={18}/>
                   <span>{t('home.tabSeasonal')}</span>
                 </button>
               );
@@ -514,7 +514,7 @@ export default function Home() {
                 className={"main-tab" + (isActive ? ' active' : '')}
                 onClick={() => setActiveTab(tab.id)}
               >
-                {tab.icon && <tab.icon size={13}/>}
+                {tab.icon && <tab.icon size={18}/>}
                 <span>{label}</span>
               </button>
             );
