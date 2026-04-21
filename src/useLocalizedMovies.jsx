@@ -103,6 +103,10 @@ export function useLocalizedMovies(entries, lang) {
   const [localized, setLocalized] = useState([]);
   const mountedRef = useRef(true);
 
+  // Stable key derived from entries content — prevents infinite loops when
+  // callers pass a new array reference with the same items on every render
+  const entriesKey = entries.map(e => `${e.id}-${e.media_type}`).join(',');
+
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
@@ -156,7 +160,8 @@ export function useLocalizedMovies(entries, lang) {
     next();
 
     return () => { cancelled = true; };
-  }, [entries, langCode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entriesKey, langCode]);
 
   return localized;
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   TVLinear, Pen2Linear, SettingsMinimalisticLinear, EyeLinear, BookmarkLinear, PinLinear,
@@ -751,8 +751,13 @@ function ListDetailPage({ list, listId, onBack, onSelect, onEdit, removeFromCust
 function CustomListCard({ list, onOpenList, onEditList, onDeleteClick, lang }) {
   const { t } = useTranslation();
   const { isWatched } = useStore();
-  // Hydrate slim items to get poster_path
-  const hydratedItems = useLocalizedMovies(list.items.slice(0, 4), lang);
+  // Stabilize the slice reference so useLocalizedMovies doesn't see a new array every render
+  const previewItems = useMemo(
+    () => list.items.slice(0, 4),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [list.items.length, list.id, ...list.items.slice(0, 4).map(i => i.id)]
+  );
+  const hydratedItems = useLocalizedMovies(previewItems, lang);
   const posters = hydratedItems.map(m => tmdb.posterUrl(m.poster_path)).filter(Boolean);
   const total   = list.items.length;
   const watched = list.items.filter(m => isWatched(m.id)).length;
