@@ -579,3 +579,6 @@
 .about-footer__sep { font-size: 12px; color: var(--text3); opacity: 0.4; }
 .about-footer__disclaimer { font-size: 11px; color: var(--text3); opacity: 0.5; max-width: 600px; margin: 0 auto; line-height: 1.7; }
 .about-footer__disclaimer strong { font-weight: 600; color: var(--text2); opacity: 1; }
+.about-footer__email-wrapper {text-align: center; margin-top: 20px; margin-bottom: 20px;}
+.about-footer__email-link {font-size: 0.95em; color: #504E66; text-decoration: none; }
+.about-footer__email-link:hover { color: #e8c547; }

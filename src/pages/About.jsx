@@ -654,6 +654,10 @@ export default function About({ asLanding, onLogin, onRegister }) {
           <Link to="/community" className="about-footer__link">{t('about.footerCommunity')}</Link>
         </div>
 
+        <div className="about-footer__email-wrapper">
+          <a href="mailto:support@cinimate.fun" className="about-footer__email-link">support@cinimate.fun</a>
+        </div>
+
         <p className="about-footer__disclaimer">
           {t('about.footerDisclaimer')}
         </p>
