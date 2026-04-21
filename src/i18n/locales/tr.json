@@ -115,7 +115,7 @@
     "daysLabel": "gün",
     "noData": "Veri yok",
     "siteListBadge": "Official",
-    "siteListsHeader": "From CinΗmate",
+    "siteListsHeader": "From CiniMate",
     "communityListsHeader": "Community picks",
     "listsEmpty": "Henüz liste yok",
     "listsEmptyDesc": "Topluluk listeleri burada görünecek",
@@ -432,7 +432,7 @@
     "separateTracking": "Ayrı izleme takibi",
     "separateTrackingHint": "Bu listede izlenen/kuyruktaki içerikler profilinden ayrı kalır",
     "siteList": "Publish as site list",
-    "siteListHint": "Appears in \"From CinΗmate\" on Home. Author shown as CinΗmate."
+    "siteListHint": "Appears in \"From CiniMate\" on Home. Author shown as CiniMate."
   },
   "publiclist": {
     "notFound": "Liste bulunamadı",

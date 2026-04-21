@@ -115,7 +115,7 @@
     "daysLabel": "дн.",
     "noData": "Нет данных",
     "siteListBadge": "Официальный",
-    "siteListsHeader": "От CinΗmate",
+    "siteListsHeader": "От CiniMate",
     "communityListsHeader": "Выборка сообщества",
     "listsEmpty": "Пока пусто",
     "listsEmptyDesc": "Публичные списки пользователей появятся здесь",
@@ -432,7 +432,7 @@
     "separateTracking": "Отдельный учёт просмотров",
     "separateTrackingHint": "Просмотренное в списке не попадает в общий профиль",
     "siteList": "Опубликовать как список сайта",
-    "siteListHint": "Появится в разделе «От CinΗmate» на главной. Автор — CinΗmate."
+    "siteListHint": "Появится в разделе «От CiniMate» на главной. Автор — CiniMate."
   },
   "publiclist": {
     "notFound": "Список не найден",

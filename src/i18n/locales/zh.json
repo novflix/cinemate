@@ -115,7 +115,7 @@
     "daysLabel": "天",
     "noData": "暂无数据",
     "siteListBadge": "Official",
-    "siteListsHeader": "From CinΗmate",
+    "siteListsHeader": "From CiniMate",
     "communityListsHeader": "Community picks",
     "listsEmpty": "暂无列表",
     "listsEmptyDesc": "社区公开列表将在此显示",
@@ -432,7 +432,7 @@
     "separateTracking": "独立观看追踪",
     "separateTrackingHint": "此列表中的已观看/队列内容与个人资料分开记录",
     "siteList": "Publish as site list",
-    "siteListHint": "Appears in \"From CinΗmate\" on Home. Author shown as CinΗmate."
+    "siteListHint": "Appears in \"From CiniMate\" on Home. Author shown as CiniMate."
   },
   "publiclist": {
     "notFound": "列表未找到",

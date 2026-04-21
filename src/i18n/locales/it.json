@@ -115,7 +115,7 @@
     "daysLabel": "giorni",
     "noData": "Nessun dato",
     "siteListBadge": "Official",
-    "siteListsHeader": "From CinΗmate",
+    "siteListsHeader": "From CiniMate",
     "communityListsHeader": "Community picks",
     "listsEmpty": "Nessuna lista ancora",
     "listsEmptyDesc": "Le liste pubbliche della comunità appariranno qui",
@@ -432,7 +432,7 @@
     "separateTracking": "Tracciamento separato",
     "separateTrackingHint": "Visto/in coda in questa lista resta separato dal tuo profilo",
     "siteList": "Publish as site list",
-    "siteListHint": "Appears in \"From CinΗmate\" on Home. Author shown as CinΗmate."
+    "siteListHint": "Appears in \"From CiniMate\" on Home. Author shown as CiniMate."
   },
   "publiclist": {
     "notFound": "Lista non trovata",
