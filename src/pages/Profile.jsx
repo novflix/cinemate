@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -871,7 +871,9 @@ export default function Profile() {
   const { user } = useAuth();
   const { lang } = useTheme();
   const { t } = useTranslation();
-  const [listTab,      setListTab]      = useState('watchlist');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const listTab = searchParams.get('tab') || 'watchlist';
+  const setListTab = (tab) => setSearchParams({ tab }, { replace: false });
   const [editing,      setEditing]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [name,         setName]         = useState(profile.name);
