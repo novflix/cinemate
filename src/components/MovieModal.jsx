@@ -411,6 +411,14 @@ function MovieDetailsPanel({ details, type, t, onStudioClick }) {
   const originalTitle = details?.original_title || details?.original_name;
   const originalLang = details?.original_language;
   const homepage = details?.homepage;
+  const trailerVideo = (details?.videos?.results || []).find(
+    v => v.site === 'YouTube' && v.type === 'Trailer' && v.official
+  ) || (details?.videos?.results || []).find(
+    v => v.site === 'YouTube' && v.type === 'Trailer'
+  ) || (details?.videos?.results || []).find(
+    v => v.site === 'YouTube' && (v.type === 'Teaser' || v.type === 'Clip')
+  );
+  const trailerUrl = trailerVideo ? `https://www.youtube.com/watch?v=${trailerVideo.key}` : null;
   const studios = (details?.production_companies || []).slice(0, 4);
   const countries = (details?.production_countries || []).map(c => c.name);
   const languages = (details?.spoken_languages || []).map(l => l.english_name || l.name);
@@ -544,10 +552,10 @@ function MovieDetailsPanel({ details, type, t, onStudioClick }) {
             </div>
           )}
 
-          {homepage && (
-            <a href={homepage} target="_blank" rel="noopener noreferrer" className="mm-details__homepage">
-              <GlobalLinear size={12} />
-              <span>{t('modal.officialSite')}</span>
+          {trailerUrl && (
+            <a href={trailerUrl} target="_blank" rel="noopener noreferrer" className="mm-details__homepage">
+              <PlayLinear size={12} />
+              <span>{t('modal.trailer') || 'Trailer'}</span>
               <LinkMinimalisticLinear size={10} style={{ opacity: 0.5, marginLeft: 'auto' }} />
             </a>
           )}
