@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -367,7 +367,9 @@ const MAIN_TABS = [
 export default function Home() {
   const [allData, setAllData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('popular');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'popular';
+  const setActiveTab = (tab) => setSearchParams({ tab }, { replace: false });
   const [animData, setAnimData] = useState({ trending: [], nowplaying: [], popular: [], new: [] });
   const [comingSoon, setComingSoon] = useState([]);
   const [comingSoonLoading, setComingSoonLoading] = useState(true);
