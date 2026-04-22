@@ -420,7 +420,7 @@ export default function Home() {
         m.release_date &&
         m.release_date >= today &&
         m.release_date <= oneYearStr &&
-        (m.popularity || 0) >= 5 &&
+        (m.popularity || 0) >= 6 &&
         !(m.genre_ids || []).some(g => BLOCKED_GENRES.has(g))
       );
       const unique = [...new Map(filtered.map(m => [m.id, m])).values()];
