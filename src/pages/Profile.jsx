@@ -22,6 +22,7 @@ import SettingsModal from '../components/SettingsModal';
 import MovieModal from '../components/MovieModal';
 import Countdown from '../components/Countdown';
 import './Profile.css';
+import Wordmark from '../components/Wordmark';
 import { supabase } from '../supabase';
 
 // ─── Cloudinary avatar upload ─────────────────────────────────────────────────
@@ -979,7 +980,7 @@ export default function Profile() {
     <div className="page profile-page">
       <div className="profile-topbar">
         <div>
-          <span className="profile-topbar__title">CINI<span>MATE</span></span>
+          <Wordmark size="sm" className="profile-topbar__title" />
           {user
             ? <p className="profile-topbar__email">{user.email}</p>
             : <p className="profile-topbar__email">{t('profile.guestMode')}</p>

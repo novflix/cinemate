@@ -30,6 +30,7 @@ import {
 import { useTheme } from '../theme';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import './About.css';
+import Wordmark from '../components/Wordmark';
 
 /* ─── Reveal hook ─── */
 function useReveal(threshold = 0.12) {
@@ -642,7 +643,7 @@ export default function About({ asLanding, onLogin, onRegister }) {
 
       {/* ── FOOTER ── */}
       <footer className="about-footer">
-        <p className="about-footer__mark">CINI<em>MATE</em></p>
+        <Wordmark size="md" className="about-footer__mark" />
         <p className="about-footer__sub">{t('about.footerSub')}</p>
         <p className="about-footer__tmdb">{t('about.footerTmdb')}</p>
 

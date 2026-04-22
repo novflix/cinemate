@@ -38,13 +38,7 @@
 }
 .auth-logo--small { margin-bottom: 24px; }
 .auth-logo svg { color: var(--accent); }
-.auth-logo__text {
-  font-family: 'Bebas Neue', sans-serif; font-size: 42px;
-  letter-spacing: 4px; color: var(--text);
-}
-.auth-logo--small .auth-logo__text { font-size: 28px; }
-.auth-logo__text span { color: var(--accent); }
-.auth-logo__sub { font-size: 14px; color: var(--text3); text-align: center; }
+.auth-logo--small .auth-logo__sub { font-size: 14px; color: var(--text3); text-align: center; }
 
 /* Welcome buttons */
 .auth-welcome-btns {

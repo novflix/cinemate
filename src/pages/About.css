@@ -569,7 +569,6 @@
    FOOTER
    ══════════════════════════════════ */
 .about-footer { padding: 48px; text-align: center; border-top: 1px solid var(--border); }
-.about-footer__mark { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 5px; margin-bottom: 10px; }
 .about-footer__mark em { color: var(--accent); font-style: normal; }
 .about-footer__sub  { font-size: 14px; color: var(--text2); margin-bottom: 6px; }
 .about-footer__tmdb { font-size: 11px; color: var(--text3); opacity: 0.45; margin-bottom: 20px; }

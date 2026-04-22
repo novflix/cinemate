@@ -1,0 +1,41 @@
+/* ── CINIMATE Wordmark ────────────────────────────────────────────────────── */
+
+.wordmark {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 3px;
+  line-height: 1;
+  display: inline-block;
+
+  /* CINI — white-to-slightly-dim gradient */
+  background: linear-gradient(160deg, #fff 0%, rgba(255,255,255,0.75) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  filter: drop-shadow(0 0 18px rgba(232,197,71,0.18));
+}
+
+/* MATE — gold-to-orange gradient */
+.wordmark em {
+  font-style: normal;
+  background: linear-gradient(135deg, #e8c547 0%, #ff6b35 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Light theme: darken the CINI part so it stays readable */
+[data-theme="light"] .wordmark {
+  background: linear-gradient(160deg, #1a1a2e 0%, rgba(26,26,46,0.75) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(232,197,71,0.15));
+}
+
+/* ── Sizes ── */
+.wordmark--xs { font-size: 18px; letter-spacing: 2px; }
+.wordmark--sm { font-size: 24px; letter-spacing: 2.5px; }
+.wordmark--md { font-size: 28px; letter-spacing: 3px; }
+.wordmark--lg { font-size: 42px; letter-spacing: 4px; }
+.wordmark--xl { font-size: 64px; letter-spacing: 6px; }

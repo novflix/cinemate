@@ -53,18 +53,7 @@
   flex-shrink: 0;
 }
 
-.share-modal__header-logo-text {
-  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: var(--text);
-  line-height: 1;
-}
 
-.share-modal__header-logo-text span {
-  color: #e8c547;
-}
 
 .share-modal__close {
   width: 30px;

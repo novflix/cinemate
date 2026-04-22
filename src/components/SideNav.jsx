@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Home2Linear, MagicStickLinear, MagniferLinear, UserLinear, InfoCircleLinear } from 'solar-icon-set';
 import { useTranslation } from 'react-i18next';
 import './SideNav.css';
+import Wordmark from './Wordmark';
 
 const TAB_TO_PATH = { home:'/home', recs:'/recs', search:'/search', profile:'/profile', about:'/about' };
 const PATH_TO_TAB = { '/home':'home', '/recs':'recs', '/search':'search', '/profile':'profile', '/about':'about' };
@@ -28,7 +29,7 @@ const SideNav = memo(function SideNav({ active, onChange }) {
   return (
     <aside className="side-nav">
       <div className="side-nav__logo">
-        <span className="side-nav__logo-text">CINI<span>MATE</span></span>
+        <Wordmark size="sm" />
       </div>
       <nav className="side-nav__links">
         {tabs.map(({ id, label, Icon }) => (

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LetterLinear, LockLinear, EyeLinear, EyeClosedLinear, VideoLibraryLinear, DangerCircleLinear, CheckCircleLinear } from 'solar-icon-set';
 import { useAuth } from '../auth';
 import './AuthScreen.css';
+import Wordmark from '../components/Wordmark';
 
 
 export default function AuthScreen({ onSkip, initialMode, onBack }) {
@@ -50,7 +51,7 @@ export default function AuthScreen({ onSkip, initialMode, onBack }) {
         )}
         <div className="auth-logo">
           <VideoLibraryLinear size={40} strokeWidth={1.5}/>
-          <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
+          <Wordmark size="lg" />
           <p className="auth-logo__sub">{t('auth.personalCinima')}</p>
         </div>
 
@@ -141,7 +142,7 @@ export default function AuthScreen({ onSkip, initialMode, onBack }) {
           ← {t('auth.back')}
         </button>
         <div className="auth-logo auth-logo--small">
-          <h1 className="auth-logo__text">CINI<span>MATE</span></h1>
+          <Wordmark size="sm" />
         </div>
         <h2 className="auth-form-title">
           {mode === 'login' ? t('auth.signIn') : t('auth.register')}

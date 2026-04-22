@@ -6,6 +6,7 @@ import { HEADERS } from '../api';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import './ShareCard.css';
+import Wordmark from './Wordmark';
 
 // ─── Score colour palette ─────────────────────────────────────────────────────
 const SCORE_COLORS = [
@@ -463,9 +464,7 @@ export default function ShareCard({ movieId, mediaType, score, onClose }) {
         <div className="share-modal__header">
           <div className="share-modal__header-logo">
             <span className="share-modal__header-logo-dot" />
-            <span className="share-modal__header-logo-text">
-              CINI<span>MATE</span>
-            </span>
+            <Wordmark size="sm" />
           </div>
           <button className="share-modal__close" onClick={onClose} aria-label="Close">
             <CloseCircleLinear size={16} strokeWidth={2.5} />
