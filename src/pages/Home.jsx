@@ -3,7 +3,7 @@ import { useMovieModal } from '../hooks/useMovieModal';
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  StarLinear, PlayLinear, Chart2Linear, ClapperboardLinear, FlameLinear,
+  StarLinear, PlayLinear, ClapperboardLinear, FlameLinear,
   CupStarLinear, CalendarDateLinear, TVLinear, MagicStickLinear,
   AltArrowLeftLinear, AltArrowRightLinear, ListLinear
 } from 'solar-icon-set';
@@ -80,7 +80,7 @@ function HeroSlider({ items, onSelect }) {
         <div className="hero__fade" />
       </div>
       <div className={"hero__content hero__content--" + anim}>
-        <div className="hero__label"><Chart2Linear size={10} /> #{idx + 1} Trending</div>
+        <div className="hero__label"><CupStarLinear size={10} /> #{idx + 1} Popular</div>
         <h1 className="hero__title">{hero.title || hero.name}</h1>
         <div className="hero__meta">
           {hero.vote_average > 0 && <span><StarLinear size={12} fill="currentColor" /> {hero.vote_average.toFixed(1)}</span>}
@@ -440,8 +440,15 @@ export default function Home() {
       tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':20},2),
     ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV])=>{
       const dedup = arr => { const s = new Set(); return arr.filter(m => { if (s.has(m.id)) return false; s.add(m.id); return true; }); };
+      const popularAllMerged = (() => {
+        const movies = (popM.results||[]).filter(isQM).map(m=>({...m,media_type:'movie'}));
+        const series = (popTV.results||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}));
+        const merged = []; const len = Math.max(movies.length, series.length);
+        for (let i=0; i<len; i++) { if (movies[i]) merged.push(movies[i]); if (series[i]) merged.push(series[i]); }
+        return merged;
+      })();
       const data = {
-        heroItems:       dedup((tAll.results  ||[]).filter(isOK)).slice(0,10),
+        heroItems:       dedup(popularAllMerged.filter(isOK)).slice(0,10),
         trendingMovies:  dedup((tM.results    ||[]).filter(m=>isOK(m)&&isNotAnim(m))).slice(0,30),
         trendingSeries:  dedup((tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'}))).slice(0,30),
         popularMovies:   dedup((popM.results  ||[]).filter(isQM)).slice(0,40),
