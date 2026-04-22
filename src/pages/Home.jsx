@@ -229,8 +229,6 @@ function PopularListsContent({ lang }) {
 
   const allLists = useMemo(() => [...siteLists, ...userLists], [siteLists, userLists]);
 
-  // public_lists.items stores slim entries (usually {id, media_type, ...}) without poster_path.
-  // Hydrate the first 4 items from each list so the cover collage works (same approach as Profile).
   const previewEntries = useMemo(() => {
     const out = [];
     const seen = new Set();
@@ -390,18 +388,27 @@ export default function Home() {
     const JUNK_GENRES = new Set([10764, 10767, 10763, 10766, 10768, 99, 10770]);
     const ADULT_KEYWORDS = /\b(sex|erotic|xxx|porn|nude|naked|adult|hentai|softcore|hardcore|fetish|naughty|seduct|lust|explicit)\b/i;
 
-    // Universal quality filter — applied to every single item on the page
+    // Universal quality filter — poster + backdrop обязательны, без мусора
     const isOK = m =>
       m.poster_path &&
+      m.backdrop_path &&
       !m.adult &&
       !(m.genre_ids || []).some(g => JUNK_GENRES.has(g)) &&
       !ADULT_KEYWORDS.test(m.title || m.name || m.original_title || m.original_name || '');
 
     const isNotAnim = m => !(m.genre_ids || []).includes(16);
-    const isQM  = m => isOK(m) && isNotAnim(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=5.0 && (!m.release_date   || m.release_date  >='1980-01-01');
-    const isQTV = m => isOK(m) && (m.vote_count||0)>=80  && (m.vote_average||0)>=5.0 && (!m.first_air_date || m.first_air_date>='1980-01-01');
+    const today = new Date().toISOString().split('T')[0];
+    const isReleased = m => { const d = m.release_date || m.first_air_date; return d && d <= today; };
 
-    const today      = new Date().toISOString().split('T')[0];
+    // Повышенные пороги качества
+    const isQM    = m => isOK(m) && isNotAnim(m) && (m.vote_count||0)>=300 && (m.vote_average||0)>=7.0 && (!m.release_date   || m.release_date  >='1980-01-01');
+    const isQTV   = m => isOK(m) && (m.vote_count||0)>=150 && (m.vote_average||0)>=7.0 && (!m.first_air_date || m.first_air_date>='1980-01-01');
+    // Для Now Playing — чуть мягче, т.к. новинки ещё не набрали голосов
+    const isQMNow = m => isOK(m) && isNotAnim(m) && (m.vote_count||0)>=100 && (m.vote_average||0)>=6.5 && isReleased(m);
+    const isQTVNow= m => isOK(m) && (m.vote_count||0)>=80  && (m.vote_average||0)>=6.5 && isReleased(m);
+    // Для New — совсем свежие, голосов мало, но рейтинг уже виден
+    const isQNew  = m => isOK(m) && isNotAnim(m) && (m.vote_count||0)>=50  && (m.vote_average||0)>=6.5 && isReleased(m);
+
     const oneYearOut = new Date(); oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
     const oneYearStr = oneYearOut.toISOString().split('T')[0];
 
@@ -433,31 +440,46 @@ export default function Home() {
       tmdb.trending('all','week'),
       tmdb.trending('movie','week'),
       tmdb.trending('tv','week'),
-      tmdb.popular('movie',2),
-      tmdb.popular('tv',2),
-      tmdb.nowPlaying(2),
-      tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},2),
-      tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':20},2),
-    ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV])=>{
+      tmdb.popular('movie',3),
+      tmdb.popular('tv',3),
+      tmdb.nowPlaying(3),
+      tmdb.discover('movie',{primary_release_year:currentYear,sort_by:'popularity.desc','vote_count.gte':50},3),
+      tmdb.discover('tv',   {first_air_date_year:currentYear, sort_by:'popularity.desc','vote_count.gte':30},3),
+      tmdb.topRated('movie',2),
+      tmdb.topRated('tv',2),
+    ]).then(([tAll,tM,tTV,popM,popTV,nowP,newM,newTV,topM,topTV])=>{
       const dedup = arr => { const s = new Set(); return arr.filter(m => { if (s.has(m.id)) return false; s.add(m.id); return true; }); };
-      const popularAllMerged = (() => {
-        const movies = (popM.results||[]).filter(isQM).map(m=>({...m,media_type:'movie'}));
-        const series = (popTV.results||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}));
+
+      // Hero: popular + released + high quality, свежие приоритет
+      const fiveYearsAgo = new Date(); fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+      const fiveYearsAgoStr = fiveYearsAgo.toISOString().split('T')[0];
+      const heroMerged = (() => {
+        const movies = (popM.results||[]).filter(m=>isQM(m)&&isReleased(m)).map(m=>({...m,media_type:'movie'}));
+        const series = (popTV.results||[]).filter(m=>isQTV(m)&&isReleased(m)).map(m=>({...m,media_type:'tv'}));
+        const scoreM  = m => { const d = m.release_date||'';     const fresh = d>=fiveYearsAgoStr?1:0; return fresh*10000+(m.popularity||0); };
+        const scoreTV = m => { const d = m.first_air_date||'';   const fresh = d>=fiveYearsAgoStr?1:0; return fresh*10000+(m.popularity||0); };
+        movies.sort((a,b)=>scoreM(b)-scoreM(a));
+        series.sort((a,b)=>scoreTV(b)-scoreTV(a));
         const merged = []; const len = Math.max(movies.length, series.length);
         for (let i=0; i<len; i++) { if (movies[i]) merged.push(movies[i]); if (series[i]) merged.push(series[i]); }
         return merged;
       })();
+
       const data = {
-        heroItems:       dedup(popularAllMerged.filter(isOK)).slice(0,10),
-        trendingMovies:  dedup((tM.results    ||[]).filter(m=>isOK(m)&&isNotAnim(m))).slice(0,30),
-        trendingSeries:  dedup((tTV.results   ||[]).filter(isOK).map(m=>({...m,media_type:'tv'}))).slice(0,30),
-        popularMovies:   dedup((popM.results  ||[]).filter(isQM)).slice(0,40),
-        popularSeries:   dedup((popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}))).slice(0,40),
-        nowPlayingMovies:dedup((nowP.results  ||[]).filter(m=>isOK(m)&&isNotAnim(m))).slice(0,30),
-        nowPlayingSeries:dedup((popTV.results ||[]).filter(isQTV).map(m=>({...m,media_type:'tv'}))).slice(0,20),
+        heroItems:        dedup(heroMerged).slice(0,10),
+        // Trending — только вышедшие, рейтинг >=6.0
+        trendingMovies:   dedup((tM.results||[]).filter(m=>isOK(m)&&isNotAnim(m)&&isReleased(m)&&(m.vote_average||0)>=6.0)).slice(0,30),
+        trendingSeries:   dedup((tTV.results||[]).filter(m=>isOK(m)&&isReleased(m)&&(m.vote_average||0)>=6.0).map(m=>({...m,media_type:'tv'}))).slice(0,30),
+        // Popular — строгий фильтр, только вышедшие
+        popularMovies:    dedup((popM.results||[]).filter(m=>isQM(m)&&isReleased(m))).slice(0,40),
+        popularSeries:    dedup((popTV.results||[]).filter(m=>isQTV(m)&&isReleased(m)).map(m=>({...m,media_type:'tv'}))).slice(0,40),
+        // Now Playing — свои пороги для свежих релизов
+        nowPlayingMovies: dedup((nowP.results||[]).filter(isQMNow)).slice(0,30),
+        nowPlayingSeries: dedup((popTV.results||[]).filter(isQTVNow).map(m=>({...m,media_type:'tv'}))).slice(0,20),
         comingSoon: [],
-        newMovies: dedup((newM.results  ||[]).filter(m=>isOK(m)&&isNotAnim(m)&&(m.vote_count||0)>=30)).slice(0,30),
-        newSeries: dedup((newTV.results ||[]).filter(m=>isOK(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'}))).slice(0,30),
+        // New — только вышедшие в этом году с минимальным рейтингом
+        newMovies:        dedup((newM.results||[]).filter(isQNew)).slice(0,30),
+        newSeries:        dedup((newTV.results||[]).filter(m=>isQNew(m)&&!(m.genre_ids||[]).some(g=>JUNK_GENRES.has(g))).map(m=>({...m,media_type:'tv'}))).slice(0,30),
       };
       setAllData(data);
       setHomeCache(lang,data);
@@ -465,24 +487,32 @@ export default function Home() {
     }).catch(()=>setLoading(false));
 
     Promise.all([
-      fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}`,{headers:HEADERS}).then(r=>r.json()),
+      // Trending анимация — из trending/week
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}&page=1`,{headers:HEADERS}).then(r=>r.json()),
       fetch(`https://api.themoviedb.org/3/trending/movie/week?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      // Now Playing анимация — фильмы в прокате
       fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=1`,{headers:HEADERS}).then(r=>r.json()),
       fetch(`https://api.themoviedb.org/3/movie/now_playing?language=${langCode}&page=2`,{headers:HEADERS}).then(r=>r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=1`,{headers:HEADERS}).then(r=>r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=50&page=2`,{headers:HEADERS}).then(r=>r.json()),
-      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&primary_release_year=${currentYear}&sort_by=popularity.desc&page=1`,{headers:HEADERS}).then(r=>r.json()),
-    ]).then(([tw1,tw2,np1,np2,pop1,pop2,ny])=>{
-      const isAnim = m => isOK(m) && (m.genre_ids||[]).includes(16);
-      const mergeAnim = (...pages) => {
+      // Popular анимация — discover по популярности, последние 5 лет
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=200&primary_release_date.gte=${new Date(new Date().setFullYear(new Date().getFullYear()-5)).toISOString().split('T')[0]}&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=200&primary_release_date.gte=${new Date(new Date().setFullYear(new Date().getFullYear()-5)).toISOString().split('T')[0]}&page=2`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&sort_by=popularity.desc&vote_count.gte=200&primary_release_date.gte=${new Date(new Date().setFullYear(new Date().getFullYear()-5)).toISOString().split('T')[0]}&page=3`,{headers:HEADERS}).then(r=>r.json()),
+      // New анимация — этот год, по дате выхода
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&primary_release_year=${currentYear}&sort_by=primary_release_date.desc&vote_count.gte=10&page=1`,{headers:HEADERS}).then(r=>r.json()),
+      fetch(`https://api.themoviedb.org/3/discover/movie?language=${langCode}&with_genres=16&primary_release_year=${currentYear}&sort_by=primary_release_date.desc&vote_count.gte=10&page=2`,{headers:HEADERS}).then(r=>r.json()),
+    ]).then(([tw1,tw2,np1,np2,pop1,pop2,pop3,ny1,ny2])=>{
+      const isAnim    = m => isOK(m) && (m.genre_ids||[]).includes(16) && (m.vote_average||0)>=6.5 && (m.vote_count||0)>=100;
+      const isAnimPop = m => isOK(m) && (m.genre_ids||[]).includes(16) && (m.vote_average||0)>=6.5 && (m.vote_count||0)>=200;
+      const isAnimNew = m => isOK(m) && (m.genre_ids||[]).includes(16) && (m.vote_count||0)>=10;
+      const mergeAnim = (filter, ...pages) => {
         const seen = new Set();
-        return pages.flatMap(p=>p.results||[]).filter(m=>{ if(seen.has(m.id))return false; seen.add(m.id); return isAnim(m); });
+        return pages.flatMap(p=>p.results||[]).filter(m=>{ if(seen.has(m.id))return false; seen.add(m.id); return filter(m); });
       };
       setAnimData({
-        trending:  mergeAnim(tw1,tw2).slice(0,25),
-        nowplaying:mergeAnim(np1,np2).slice(0,25),
-        popular:   mergeAnim(pop1,pop2).slice(0,25),
-        new:       (ny.results||[]).filter(m=>m.poster_path&&!m.adult).slice(0,25),
+        trending:   mergeAnim(isAnim,    tw1, tw2).slice(0,25),
+        nowplaying: mergeAnim(isAnim,    np1, np2).slice(0,25),
+        popular:    mergeAnim(isAnimPop, pop1, pop2, pop3).slice(0,25),
+        new:        mergeAnim(isAnimNew, ny1, ny2).slice(0,25),
       });
     }).catch(()=>{});
   },[lang,currentYear,langCode]);
