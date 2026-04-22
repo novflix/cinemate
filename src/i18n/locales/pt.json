@@ -84,7 +84,15 @@
     "donateDesc": "Cinimate é um projeto gratuito. Se você gosta, pode apoiá-lo com cripto. Toque em um endereço para copiá-lo.",
     "donateCopied": " Copiado!",
     "donateTap": "Toque para copiar",
-    "donateBtnTitle": "Apoiar o projeto"
+    "donateBtnTitle": "Apoiar o projeto",
+    "deleteAccount": "Excluir conta",
+    "deleteAccountTitle": "Excluir conta",
+    "deleteAccountDesc": "Isso excluirá permanentemente sua conta e todos os seus dados. Esta ação não pode ser desfeita.",
+    "deleteAccountConfirmLabel": "Digite EXCLUIR para confirmar",
+    "deleteAccountConfirmPlaceholder": "EXCLUIR",
+    "deleteAccountConfirmWord": "EXCLUIR",
+    "deleteAccountBtn": "Excluir minha conta",
+    "deleteAccountDeleting": "Excluindo..."
   },
   "home": {
     "nowPlaying": "Em Cartaz",

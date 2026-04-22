@@ -6,7 +6,8 @@ import { useState } from 'react';
 import {
   SettingsMinimalisticLinear,
   MoonLinear, Sun2Linear, CloseCircleLinear, CheckCircleLinear,
-  Logout3Linear, UserPlusLinear, CalendarLinear, CloudLinear
+  Logout3Linear, UserPlusLinear, CalendarLinear, CloudLinear,
+  TrashBin2Linear, DangerTriangleLinear
 } from 'solar-icon-set';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import { SEASON_CONFIG } from '../hooks/useSeason';
@@ -15,7 +16,7 @@ import './SettingsModal.css'
 export default function SettingsModal({ onClose }) {
   const { theme, setTheme, lang, setLang } = useTheme();
   const { t } = useTranslation();
-  const { user, signOut, signUp } = useAuth();
+  const { user, signOut, signUp, deleteAccount } = useAuth();
   const { isAdmin, overrides, setOverride } = useAdmin();
   const [registerMode, setRegisterMode] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -24,6 +25,12 @@ export default function SettingsModal({ onClose }) {
   const [regPass,  setRegPass]  = useState('');
   const [regError, setRegError] = useState('');
   const [regOk,    setRegOk]    = useState(false);
+
+  // Delete account state
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -40,6 +47,23 @@ export default function SettingsModal({ onClose }) {
     await signOut();
     onClose();
     localStorage.removeItem('auth_skipped');
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmWord = t('profile.deleteAccountConfirmWord');
+    if (deleteInput.trim() !== confirmWord) {
+      setDeleteError(t('profile.deleteAccountConfirmLabel'));
+      return;
+    }
+    setDeleting(true);
+    setDeleteError('');
+    const { error } = await deleteAccount();
+    setDeleting(false);
+    if (error) {
+      setDeleteError(error.message || t('profile.error'));
+      return;
+    }
+    onClose();
   };
 
   return (
@@ -144,6 +168,65 @@ export default function SettingsModal({ onClose }) {
               <button className="settings-signout" onClick={handleSignOut}>
                 <Logout3Linear size={14}/> {t('profile.signOut')}
               </button>
+
+              {/* ── Delete account ── */}
+              {!deleteMode ? (
+                <button
+                  className="settings-delete-account-btn"
+                  onClick={() => { setDeleteMode(true); setDeleteInput(''); setDeleteError(''); }}
+                >
+                  <TrashBin2Linear size={15}/>
+                  <span>{t('profile.deleteAccount')}</span>
+                </button>
+              ) : (
+                <div className="settings-delete-zone">
+                  <div className="settings-delete-zone__header">
+                    <div className="settings-delete-zone__icon">
+                      <DangerTriangleLinear size={20}/>
+                    </div>
+                    <div>
+                      <p className="settings-delete-title">{t('profile.deleteAccountTitle')}</p>
+                      <p className="settings-delete-desc">{t('profile.deleteAccountDesc')}</p>
+                    </div>
+                  </div>
+                  <div className="settings-delete-zone__divider"/>
+                  <label className="settings-delete-label">{t('profile.deleteAccountConfirmLabel')}</label>
+                  <div className="settings-delete-input-wrap">
+                    <input
+                      className={"settings-delete-input" + (deleteInput && deleteInput.trim() === t('profile.deleteAccountConfirmWord') ? ' valid' : '')}
+                      type="text"
+                      placeholder={t('profile.deleteAccountConfirmPlaceholder')}
+                      value={deleteInput}
+                      onChange={e => { setDeleteInput(e.target.value); setDeleteError(''); }}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    {deleteInput.trim() === t('profile.deleteAccountConfirmWord') && (
+                      <span className="settings-delete-input-check"><CheckCircleLinear size={16}/></span>
+                    )}
+                  </div>
+                  {deleteError && <p className="settings-delete-error">⚠ {deleteError}</p>}
+                  <div className="settings-delete-actions">
+                    <button
+                      className="settings-delete-cancel"
+                      onClick={() => { setDeleteMode(false); setDeleteInput(''); setDeleteError(''); }}
+                      disabled={deleting}
+                    >
+                      {t('profile.cancel')}
+                    </button>
+                    <button
+                      className={"settings-delete-confirm" + (deleteInput.trim() === t('profile.deleteAccountConfirmWord') ? ' ready' : '')}
+                      onClick={handleDeleteAccount}
+                      disabled={deleting || deleteInput.trim() !== t('profile.deleteAccountConfirmWord')}
+                    >
+                      {deleting
+                        ? <><span className="settings-delete-spinner"/>  {t('profile.deleteAccountDeleting')}</>
+                        : <><TrashBin2Linear size={13}/> {t('profile.deleteAccountBtn')}</>
+                      }
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {!user && (

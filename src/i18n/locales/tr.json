@@ -84,7 +84,15 @@
     "donateDesc": "Cinimate ücretsiz bir projedir. Beğendiyseniz kripto ile destekleyebilirsiniz. Kopyalamak için bir adrese dokunun.",
     "donateCopied": " Kopyalandı!",
     "donateTap": "Kopyalamak için dokunun",
-    "donateBtnTitle": "Projeyi destekle"
+    "donateBtnTitle": "Projeyi destekle",
+    "deleteAccount": "Hesabı sil",
+    "deleteAccountTitle": "Hesabı sil",
+    "deleteAccountDesc": "Bu, hesabını ve tüm verilerini kalıcı olarak siler. Bu işlem geri alınamaz.",
+    "deleteAccountConfirmLabel": "Onaylamak için SİL yaz",
+    "deleteAccountConfirmPlaceholder": "SİL",
+    "deleteAccountConfirmWord": "SİL",
+    "deleteAccountBtn": "Hesabımı sil",
+    "deleteAccountDeleting": "Siliniyor..."
   },
   "home": {
     "nowPlaying": "Vizyonda",

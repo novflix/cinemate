@@ -84,7 +84,15 @@
     "donateDesc": "Cinimate ist ein kostenloses Projekt. Wenn es dir gefällt, kannst du es mit Krypto unterstützen. Tippe auf eine Adresse, um sie zu kopieren.",
     "donateCopied": " Kopiert!",
     "donateTap": "Zum Kopieren tippen",
-    "donateBtnTitle": "Projekt unterstützen"
+    "donateBtnTitle": "Projekt unterstützen",
+    "deleteAccount": "Konto löschen",
+    "deleteAccountTitle": "Konto löschen",
+    "deleteAccountDesc": "Dein Konto und alle Daten werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteAccountConfirmLabel": "Gib LÖSCHEN zur Bestätigung ein",
+    "deleteAccountConfirmPlaceholder": "LÖSCHEN",
+    "deleteAccountConfirmWord": "LÖSCHEN",
+    "deleteAccountBtn": "Mein Konto löschen",
+    "deleteAccountDeleting": "Wird gelöscht..."
   },
   "home": {
     "nowPlaying": "Jetzt im Kino",

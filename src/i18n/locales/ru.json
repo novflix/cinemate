@@ -84,7 +84,15 @@
     "donateDesc": "Cinimate — бесплатный проект. Если он вам нравится, вы можете поддержать его криптовалютой. Нажмите на адрес, чтобы скопировать.",
     "donateCopied": " Скопировано!",
     "donateTap": "Нажмите для копирования",
-    "donateBtnTitle": "Поддержать проект"
+    "donateBtnTitle": "Поддержать проект",
+    "deleteAccount": "Удалить аккаунт",
+    "deleteAccountTitle": "Удалить аккаунт",
+    "deleteAccountDesc": "Это навсегда удалит твой аккаунт и все данные. Действие нельзя отменить.",
+    "deleteAccountConfirmLabel": "Напиши УДАЛИТЬ для подтверждения",
+    "deleteAccountConfirmPlaceholder": "УДАЛИТЬ",
+    "deleteAccountConfirmWord": "УДАЛИТЬ",
+    "deleteAccountBtn": "Удалить мой аккаунт",
+    "deleteAccountDeleting": "Удаление..."
   },
   "home": {
     "nowPlaying": "Сейчас в кино",

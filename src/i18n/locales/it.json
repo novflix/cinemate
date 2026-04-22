@@ -84,7 +84,15 @@
     "donateDesc": "Cinimate è un progetto gratuito. Se ti piace, puoi supportarlo con le criptovalute. Tocca un indirizzo per copiarlo.",
     "donateCopied": " Copiato!",
     "donateTap": "Tocca per copiare",
-    "donateBtnTitle": "Supporta il progetto"
+    "donateBtnTitle": "Supporta il progetto",
+    "deleteAccount": "Elimina account",
+    "deleteAccountTitle": "Elimina account",
+    "deleteAccountDesc": "Questo eliminerà permanentemente il tuo account e tutti i tuoi dati. Questa azione non può essere annullata.",
+    "deleteAccountConfirmLabel": "Scrivi ELIMINA per confermare",
+    "deleteAccountConfirmPlaceholder": "ELIMINA",
+    "deleteAccountConfirmWord": "ELIMINA",
+    "deleteAccountBtn": "Elimina il mio account",
+    "deleteAccountDeleting": "Eliminazione..."
   },
   "home": {
     "nowPlaying": "Al Cinema",

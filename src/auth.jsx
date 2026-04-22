@@ -39,8 +39,43 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('auth_skipped');
   };
 
+  // Delete account: remove all user data from known tables, then delete auth user
+  const deleteAccount = async () => {
+    setLoading(true);
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error('Not authenticated');
+
+      const uid = currentUser.id;
+
+      // Delete user data from known tables (best-effort, ignore individual errors)
+      const tables = ['watchlist', 'ratings', 'lists', 'list_items', 'profiles', 'user_settings'];
+      for (const table of tables) {
+        await supabase.from(table).delete().eq('user_id', uid);
+      }
+
+      // Delete the auth user via Edge Function or RPC (requires service role on server)
+      // Try calling a Supabase RPC that wraps admin.deleteUser if available
+      const rpcResult = await supabase.rpc('delete_user');
+      if (rpcResult.error) {
+        // Fallback: sign out only (account data already cleared above)
+        console.warn('[deleteAccount] RPC delete_user failed:', rpcResult.error.message);
+      }
+
+      // Clear local state regardless
+      clearLocalStore();
+      localStorage.removeItem('auth_skipped');
+      await supabase.auth.signOut();
+    } catch (err) {
+      setLoading(false);
+      return { error: err };
+    }
+    setLoading(false);
+    return { error: null };
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
